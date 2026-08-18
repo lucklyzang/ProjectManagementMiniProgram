@@ -1,0 +1,2 @@
+# MedicInformationSystemsProgram
+一款供医院内部人士创建运送、工程维修、保洁任务的微信小程序
