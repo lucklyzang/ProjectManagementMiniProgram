@@ -53,13 +53,13 @@
 
 <script>
 	import { mapGetters, mapMutations } from 'vuex'
-	import { logIn, getTemplateType } from '@/api/login.js'
+	import { logIn, getDepartmentMsg } from '@/api/login.js'
 	import Qs from 'qs'
 	import { setCache, getCache, removeCache } from '@/common/js/utils'
 	export default {
 		data() {
 			return {
-				showLoadingHint: true,
+				showLoadingHint: false,
 				infoText: '登录中···',
 				form: {
 					username: '',
@@ -193,11 +193,16 @@
 	@import "~@/common/stylus/variable.scss";
 	.container {
 		@include content-wrapper;
+		padding-top: 50vh;
+		box-sizing: border-box;
 		.top-background-area {
 			width: 100%;
 			height: 50vh;
 			background-image: linear-gradient(#20c4f8, #31abf8);
 			position: absolute;
+			top: 0;
+			left: 0;
+			z-index: 10;
 			.title-area {
 				width: 100%;
 				position: absolute;

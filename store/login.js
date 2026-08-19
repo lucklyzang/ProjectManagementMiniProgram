@@ -19,7 +19,12 @@ export default {
 			state.affairToken = getCache('affairToken') ? getCache('affairToken') : null;
 			return state.affairToken
 		},
-		overDueWay: state => state.overDueWay
+		overDueWay: state => state.overDueWay,
+		newTaskName:(state) => {
+			state.newTaskName = getCache('newTaskList') ? JSON.parse(getCache('newTaskList'))['taskName'] : [];
+			return state.newTaskName
+		},
+		globalTimer: state => state.globalTimer
 	},
 	mutations: {
 		changeIsMedicalMan (state, playLoad) {
@@ -30,6 +35,17 @@ export default {
 			if (playLoad && playLoad != 'null') {
 				setCache('userInfo', playLoad);
 				state.userInfo = playLoad
+			}
+		},
+		// 改变全局定时器的状态
+		changeGlobalTimer (state, playLoad) {
+			state.globalTimer = playLoad
+		},
+		// 改变新任务列表状态
+		changeNewTaskList (state, playLoad) {
+			if (playLoad && playLoad != 'null') {
+				setCache('newTaskList',{taskName:playLoad})
+				state.newTaskName = playLoad
 			}
 		},
 		// 修改token状态

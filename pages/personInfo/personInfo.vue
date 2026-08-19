@@ -5,60 +5,56 @@
 				<u-loading-icon :show="showLoadingHint" :text="infoText" size="18" textSize="16"></u-loading-icon>
 			</view>
 		</u-transition>
-		<u-modal :show="modalShow" title="确定退出登录?" :showCancelButton="true" @confirm="sureCancel" @cancel="cancelSure"></u-modal>
+		<u-modal :show="modalShow" title="确定签退?" :showCancelButton="true" confirmColor="#2db8f9" @confirm="sureCancel" @cancel="cancelSure"></u-modal>
 		<view class="top-background-area" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }"></view>
 		<u-toast ref="uToast" />
 		<view class="nav" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }">
-			<nav-bar :home="false" backState='2000' fontColor="#FFF" bgColor="none" title="个人中心">
-			</nav-bar> 
+			<nav-bar :home="false" backState='2000' fontColor="#FFF" bgColor="none" title="个人资料">
+			</nav-bar>
 		</view>
 		<view class="content">
 			<view class="content-top">
-				<view class="account-area account-area-bottom-border">
-					<view class="account-area-left">
-						账号
-					</view>
-					<view class="account-area-right">
-						{{ userAccount }}
+				<view class="content-top-name">
+					<view>头像</view>
+					<view>
+						<image :src="defaultPersonPng" mode="widthFix"></image>
 					</view>
 				</view>
-				<view class="account-area account-area-bottom-border">
-					<view class="account-area-left">
-						姓名
-					</view>
-					<view class="account-area-right">
-						{{ userName }}
-					</view>
+				<view class="content-top-other">
+					<text>姓名</text>
+					<text>
+						{{userInfo.name}}
+					</text>
 				</view>
-				<view class="account-area account-area-bottom-border">
-					<view class="account-area-left">
-						所属科室
-					</view>
-					<view class="account-area-right">
-						{{ depName }}
-					</view>
+				<view class="content-top-other">
+					<text>手机号码</text>
+					<text>
+						无
+					</text>
 				</view>
-				<view class="account-area account-area-bottom-border" @click="modificationPasswordEvent">
-					<view class="account-area-left">
-						修改密码
-					</view>
-					<view class="account-area-right">
-						<u-icon name="arrow-right" color="#101010" size="24"></u-icon>
-					</view>
+				<view class="content-top-other">
+					<text>公司部门</text>
+					<text>
+						{{userInfo.extendData.proName}}
+					</text>
 				</view>
-				<view class="account-area" @click="feedbackEvent">
-					<view class="account-area-left">
-						意见反馈
-					</view>
-					<view class="account-area-right">
-						<u-icon name="arrow-right" color="#101010" size="24"></u-icon>
-					</view>
+				<view class="content-top-other">
+					<text>职位</text>
+					<text>
+						{{userInfo.extendData.userType}}
+					</text>
 				</view>
+			</view>
+			<view class="app-version">
+				<text>当前版本</text>
+				<text>
+					{{versionNumber}}
+				</text>
 			</view>
 		</view>
 		<view class="bottom-area">
-			<view class="quit-area" @click="signOutEvent">退出登录</view>
-			<view class="version-area">当前版本 1.1.9</view>
+			<view class="back-home" @click="backTo">返回主页</view>
+			<view class="quit-area" @click="signOutEvent">退出账号</view>
 		</view>
 	</view>
 </template>
@@ -83,9 +79,11 @@
 		},
 		data() {
 			return {
-				infoText: '开启中···',
+				infoText: '退出登录中···',
 				showLoadingHint: false,
-				modalShow: false
+				modalShow: false,
+				versionNumber: '1.0.0',
+				defaultPersonPng: require('@/static/img/default-person-photo.png')
 			}
 		},
 		computed: {
@@ -95,44 +93,34 @@
 				'navigationBarHeight',
 				'chooseHospitalArea'
 			]),
-			userName() {
-				return this.userInfo['name']
+			userName () {
+			 return this.userInfo.userName
+			},
+			userTypeId () {
+				return this.userInfo.extendData.user_type_id
+			},
+			proId () {
+				return this.userInfo.extendData.proId
 			},
 			proName () {
-			  return this.userInfo['proName']
+				return this.userInfo.extendData.proName
 			},
-			proId() {
-				return this.userInfo['proId']
+			workerId () {
+				return this.userInfo.extendData.userId
 			},
-			workerId() {
-				return this.userInfo['user']['id']
-			},
-			depId() {
-				return this.userInfo['depId'] === null ? '' : this.userInfo['depId']
-			},
-			depName() {
-				return this.userInfo['depName'] === null ? '' : this.userInfo['depName']
-			},
-			userAccount() {
-				return this.userInfo['userName']
+			name () {
+				return this.userInfo.name
 			}
 		},
 		methods: {
 			...mapMutations([
-				'changeUserBasicInfo'
+				'changeOverDueWay'
 			]),
 			
-			// 修改密码事件
-			modificationPasswordEvent () {
-				uni.navigateTo({
-					url: '/pages/modificationPassword/modificationPassword'
-				})
-			},
-			
-			// 意见反馈事件
-			feedbackEvent() {
-				uni.navigateTo({
-					url: '/pages/feedbackEvent/feedbackEvent'
+			// 返回主页
+			backTo () {
+				uni.switchTab({
+					url: '/pages/index/index'
 				})
 			},
 			
@@ -156,6 +144,7 @@
 			userSignOutEvent () {
 				this.showLoadingHint = true;
 				this.infoText = '退出登录中...';
+				this.changeOverDueWay(true);
 				userSignOut(this.proId,this.workerId).then((res) => {
 					if ( res && res.data.code == 200) {
 						uni.redirectTo({
@@ -164,8 +153,9 @@
 						// 清空store和localStorage
 						removeAllLocalStorage();
 						store.dispatch('resetLoginState');
-						store.dispatch('resetCommonInfoState')
+						store.dispatch('resetCommitState')
 					} else {
+						this.changeOverDueWay(false);
 						this.$refs.uToast.show({
 							message: res.data.msg,
 							type: 'error',
@@ -175,6 +165,7 @@
 					this.showLoadingHint = false;
 				})
 				.catch((err) => {
+					this.changeOverDueWay(false);
 					this.showLoadingHint = false;
 					this.$refs.uToast.show({
 						message: err,
@@ -213,7 +204,7 @@
 		};
 		.top-background-area {
 			width: 100%;
-			background: #3890EE;
+			background: #2db8f9;
 			position: absolute;
 			top: 0;
 			left: 0;
@@ -230,27 +221,90 @@
 			 position: relative;
 			 background: #F8F8F8;
 			 .content-top {
-				 background: #fff;
-				 .account-area-bottom-border {
-					 border-bottom: 1px solid #F8F8F8;
-				 };
-				 .account-area {
-					 padding: 0 10px;
+					height: auto;
+					font-size: 14px;
+					background: #fff;
+				 .content-top-name {
+					 height: 90px;
+					 padding: 10px;
 					 box-sizing: border-box;
-					 height: 44px;
-					 display: flex;
-					 align-items: center;
-					 justify-content: space-between;
-					 .account-area-left {
-						 font-size: 14px;
-						 color: #9C9C9C;
-					 };
-					 .account-area-right {
-						 font-size: 14px;
-						 color: #000000;
+					 position: relative;
+					 @include bottom-border-1px(#dadada);
+					 > view {
+						 position: absolute;
+						 display: inline-block;
+						 &:first-child {
+							 left: 0;
+							 top: 38px;
+							 color: #bbbaba;
+							 padding-left: 10px;
+						 };
+						 &:last-child {
+							 color: #271010;
+							 font-weight: bold;
+							 right: 10px;
+							 top: 10px;
+							 width: 65px;
+							 height: 65px;
+							 border-radius: 50%;
+							 >image {
+								 width: 100%;
+							 }
+						 }
+					 }
+				 };
+				 .content-top-other {
+					 height: 45px;
+					 line-height: 45px;
+					 box-sizing: border-box;
+					 position: relative;
+					 @include bottom-border-1px(#dadada);
+					 &:last-child {
+						 @include bottom-border-1px(#fff)
+					 }
+					 > text {
+						 position: absolute;
+						 display: inline-block;
+						 &:first-child {
+							 left: 0;
+							 top: 0;
+							 color: #bbbaba;
+							 padding-left: 10px;
+						 };
+						 &:last-child {
+							 color: #271010;
+							 font-weight: bold;
+							 right: 10px;
+							 top: 0
+						 }
 					 }
 				 }
-			 }
+			};
+			.app-version {
+				position: relative;
+				top: 14px;
+				left: 0;
+				height: 45px;
+				background: #fff;
+				line-height: 45px;
+				box-sizing: border-box;
+				> text {
+					position: absolute;
+					display: inline-block;
+					&:first-child {
+						left: 0;
+						top: 0;
+						color: #bbbaba;
+						padding-left: 10px;
+					};
+					&:last-child {
+						color: #271010;
+						font-weight: bold;
+						right: 10px;
+						top: 0
+					}
+				}
+			}
 		};
 		.bottom-area {
 			height: 110px;
@@ -260,20 +314,33 @@
 			align-items: center;
 			padding-bottom: 10px;
 			box-sizing: border-box;
-			.quit-area {
-				display: block;
-				height: 44px;
-				background: #E86F50;
-				border-radius: 4px;
-				font-size: 14px;
-				color: #fff;
-				line-height: 44px;
-				text-align: center;
-				width: 60%;
+			.back-home {
+				height: 45px;
+				width: 300px;
+				margin: 0 auto;
+				line-height: 45px;
+				left: 50%;
+				margin-left: -150px;
+				position: absolute;
+				bottom: 100px;
+				background: #fff;
+				color: #271010;
+				font-weight: bold;
+				text-align: center
 			};
-			.version-area {
-				font-size: 14px;
-				color: #9C9C9C;
+			.quit-area {
+				height: 45px;
+				width: 300px;
+				margin: 0 auto;
+				line-height: 45px;
+				left: 50%;
+				margin-left: -150px;
+				position: absolute;
+				bottom: 30px;
+				background: #ff0000;
+				color: #fff;
+				font-weight: bold;
+				text-align: center
 			}
 		}
 	}

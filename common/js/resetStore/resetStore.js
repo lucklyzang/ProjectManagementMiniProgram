@@ -5,7 +5,9 @@ export function getDefaultLoginState() {
 		token: null, //请求token,
 		affairToken: null, //事务订单专用token
 		isLogin: false,
-		overDueWay: false
+		overDueWay: false,
+		globalTimer: null,
+		newTaskName: []
 	}	
 }
 

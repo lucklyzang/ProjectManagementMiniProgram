@@ -37,14 +37,24 @@
 			"root": "projectManagementPackage",
 			"name": "rootProjectManagementPackage",
 			"pages": [
+				{
+					"path": "pages/RepairsWorkOrder",
+					"style": {
+						"navigationBarTitleText": "",
+						"navigationBarBackgroundColor": "#ffffff",
+						"backgroundColorTop": "#fff,",
+						"backgroundColorBottom": "#fff",
+						"navigationStyle" : "custom"
+					}
+				}
 			]
 		}
 	],
 	"preloadRule": {
-		// "projectManagementPackage/pages/callTask/callTask": {
-		// 		"network": "all",
-		// 		"packages": ["rootProjectManagementPackage"]
-		// }
+		"projectManagementPackage/pages/RepairsWorkOrder": {
+				"network": "all",
+				"packages": ["rootProjectManagementPackage"]
+		}
 	},
 	"globalStyle": {
 		"navigationBarTextStyle": "black",

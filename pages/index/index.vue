@@ -3,49 +3,49 @@
 		<view class="top-background-area" :style="{ 'height': statusBarHeight + navigationBarHeight + 'px' }"></view>
 		<u-toast ref="uToast" />
     <!-- 顶部标题 -->
-    <view class="topTabbar" :style="{ 'height': navigationBarHeight + 'px', 'lineHeight': navigationBarHeight + 'px', 'paddingRight': capsuleMessage.width + 10 + 'px' }">
-			<view class="title-left">
-				<image src="/static/img/home-icon.png" mode="widthFix"></image>
-				<text>新茂医信</text>
-			</view>
+    <view class="topTabbar" :style="{ 'height': navigationBarHeight + 'px', 'lineHeight': navigationBarHeight + 'px'}">
 			<view class="title-center">
-				智慧后勤服务平台
+				工程管理系统
 			</view>
     </view>
-		<view class="home-banner-area">
-			<image src="/static/img/home-banner.png"></image>
-		</view>
 		<view class="content-box">
-			<view class="service-management">
-				<view class="service-management-title">
-					服务管理
-				</view>
-				<view class="service-management-content">
-					<view class="service-list" v-for="(item,index) in hasAuthSystemsList" :key="index" @click="serviceManagementEvent(item,index)">
-						<view class="list-top" :class="{'projectStyle':item.value == 'project','cleanStyle':item.value == 'clean' }">
-							<image :src="item.url"></image>
-						</view>
-						<view class="list-bottom">{{ item.text }}</view>
+			<view class="content-top">
+				<view class="content-top-userName">
+					<view class="content-top-userName-img">
+						<image :src="defaultPersonPng" mode="widthFix"></image>
+					</view>
+					<view class="content-top-userName-msg">
+						<text class="real-name-one">{{name}}</text>
+						<text class="real-name-two">{{proName}}&emsp;&emsp;{{userType}}</text>
 					</view>
 				</view>
 			</view>
-			<view class="department-box">
-				<text>
-					{{ depName }}
-				</text>
-				<text v-if="depName != '' && depNum != ''">
-					-
-				</text>
-				<text>
-					{{ depNum }}
-				</text>
+			<view class="content-middle-task-message">
+				<view class="content-middle-title">任务看板</view>
+					<view class="content-middle-task-name">
+						<view v-for="(item,index) in taskList" :key="index" @click="taskClickEvent(item,index)">
+							<text class="task-length" :class="{daskListSignStyle:isExist(item.tit)}" v-show="item.count !== null && item.count !== '' && item.count !== 0">{{ item.count }}</text>
+							<view class="task-button-wrapper">
+								<image :src="btnTaskWrapperPng" mode="widthFix"></image>
+							</view>
+							<view class="task-btn-img">
+								<view>
+									<image :src="item.imgUrl" mode="widthFix"></image>
+								</view>
+							</view>
+							<view  class="task-btn-tit">{{item.tit}}</view>
+						</view>
+					</view>
+			</view>
+			<view class="content-bottom">
+				<view class="btn-left" v-for="(item,index) in btnList" :key="index" @click="bottomBtnClickEvent(item,index)">
+					<view :class="{pStyle: btnIndex == index}">
+						<u-icon :name="`${item.icon}`"></u-icon>
+					</view>
+					<view :class="{pStyle: btnIndex == index}">{{item.name}}</view>
+				</view>
 			</view>
 		</view>
-		<u-transition :show="showLoadingHint" mode="fade-down">
-			<view class="loading-box" v-if="showLoadingHint">
-				<u-loading-icon :show="showLoadingHint" text="加载中···" size="18" textSize="16"></u-loading-icon>
-			</view>
-		</u-transition>
 	</view>
 </template>
 <script>
@@ -53,160 +53,227 @@
 		mapGetters,
 		mapMutations
 	} from 'vuex'
+	import departmentServiceOnePng from '@/static/img/department-service-one.png'
+	import dispatchingManagementPng from '@/static/img/dispatching-management.png'
+	import deviceServiceOnePng from '@/static/img/device-service-one.png'
+	import autoRepairPng from '@/static/img/auto-repair.png'
+	import repairsWorkOrderOnePng from '@/static/img/repairs-work-order-one.png'
 	import store from '@/store'
+	import {queryTaskCount,getNewWork} from '@/api/project.js'
+	let windowTimer
 	export default{
 		data() {
 			return {
 				showLoadingHint: false,
-				triangleRectListInfoShow: false,
-				infoText: '加载中···',
-				loadingText: '加载中···',
-				hasAuthSystemsList: [],
-				serviceList: [
-					{
-						text: '中央运送',
-						value: 'trans',
-						url: '/static/img/trans-icon.png'
-					},
-					{
-						text: '工程维修',
-						value: 'project',
-						url: '/static/img/project-icon.png'
-					},
-					{
-						text: '保洁管理',
-						value: 'clean',
-						url: '/static/img/clean-icon.png'
-					}
-				]
+				temporaryNumList: [],
+				isTimeoutContinue: true,
+				taskList: [
+					{tit:'报修工单', imgUrl: repairsWorkOrderOnePng, value: 'bxTask', count: 0},
+					{tit:'设备巡检', imgUrl: deviceServiceOnePng, value: 'sxTask', count: 0},
+					{tit:'区域巡检', imgUrl: departmentServiceOnePng, value: 'kxTask', count: 0},
+					{tit:'调度管理', imgUrl: dispatchingManagementPng, value: 'dgTask', count: 0},
+					{tit:'自主报修', imgUrl: autoRepairPng, value: 'zizhuTask', count: 0}
+				],
+				defaultPersonPng: require('@/static/img/default-person-photo.png'),
+				btnTaskWrapperPng: require('@/static/img/btn-background.png'),
 			}
 		},
 		updated() {},
 		computed: {
 			...mapGetters([
 				'userInfo',
-				'socketOpen',
 				'statusBarHeight',
 				'navigationBarHeight',
 				'capsuleMessage',
-				'chooseHospitalArea'
+				'globalTimer',
+				'newTaskName'
 			]),
-			userName() {
-				return this.userInfo['name']
+			
+			userName () {
+			 return this.userInfo.userName
+			},
+			 userName () {
+			 return this.userInfo.userName
+			},
+			userTypeId () {
+				return this.userInfo.extendData.user_type_id
+			},
+			userType () {
+				return this.userInfo.extendData.userType
+			},
+			proId () {
+				return this.userInfo.extendData.proId
 			},
 			proName () {
-			  return this.userInfo['proName']
+				return this.userInfo.extendData.proName
 			},
-			proId() {
-				return this.userInfo['proId']
+			workerId () {
+				return this.userInfo.extendData.userId
 			},
-			workerId() {
-				return this.userInfo['user']['id']
-			},
-			depId() {
-				return this.userInfo['depId'] === null ? '' : this.userInfo['depId']
-			},
-			depName() {
-				return this.userInfo['depName'] === null ? '' : this.userInfo['depName']
-			},
-			depNum() {
-				if (this.userInfo.hasOwnProperty('depNum')) {
-					return this.userInfo['depNum'] === null ? '' : this.userInfo['depNum']
-				} else {
-					return ''
-				}
+			name () {
+				return this.userInfo.name
 			}
 		},
 		
 		onShow() {
-			this.controlServiceManageModuleShowEvent()
+			if (!this.globalTimer) {
+					windowTimer = setInterval(() => {
+						if (this.isTimeoutContinue) {
+							setTimeout(() => {
+								this.queryNewWork(this.proId, this.workerId)
+							}, 0);
+							this.changeGlobalTimer(windowTimer)
+						} else {
+							this.changeGlobalTimer(null)
+						}
+					}, 3000)
+			};
+			this.getTaskCount(this.proId,this.workerId);
+			this.controlModuleShow()
 		},
 		
 		methods: {
 			...mapMutations([
-				'changeSocketOpen',
-				'storeCurrentIndex',
-				'storeLocationMessage'
+				'changeNewTaskList',
+				'changeGlobalTimer'
 			]),
 			
-			// 控制服务管理模块显示隐藏
-			controlServiceManageModuleShowEvent () {
-				this.hasAuthSystemsList = [];
-				if (this.userInfo['extendData'].hasOwnProperty('systems')) {
-					this.serviceList.map((value,index,arr) => {
-						if (this.userInfo['extendData']['systems'].indexOf(value['value']) != -1) {
-							this.hasAuthSystemsList.push(value)
-						}
+			// 控制模块显示
+			controlModuleShow () {
+				if (this.userInfo['extendData']) {
+					if (!this.userInfo['extendData']['projectDisp']) {
+						this.taskList = this.taskList.filter((item) => { return item.tit != '报修工单'})
+					};
+					if (!this.userInfo['extendData']['projectAssgin'] || this.userInfo['extendData']['projectAudit']) {
+						this.taskList = this.taskList.filter((item) => { return item.tit != '调度管理'})
+					};
+					if (this.userInfo['extendData']['projectAudit']) {
+						this.taskList = this.taskList.filter((item) => { return item.tit != '自主报修'})
+					}
+				}  
+			},
+			
+			// 查询是否有新任务
+			queryNewWork (proId,workerId) {
+				this.isTimeoutContinue = false;
+				const audioCtx = uni.createInnerAudioContext();
+				audioCtx.src = '/static/task-info-voice.wav'; // 推荐使用 HTTPS 链接
+				audioCtx.volume = 0.8; // 设置音量 (0~1)
+				getNewWork(proId,workerId).then((res) => {
+					// token过期,清除定时器
+					if (!res['headers']['token']) {
+						if(windowTimer) {clearInterval(windowTimer)}
+					};
+					if (res && res.data.code == 200) {
+						this.isTimeoutContinue = true;
+						Object.keys(res.data.data).forEach((item) => {
+							if (item != "all" && res.data.data[item] == true) {
+								this.temporaryNumList = this.newTaskName;
+								this.temporaryNumList.push(item);
+								// 新任务存入vuex中
+								this.changeNewTaskList(repeArray(this.temporaryNumList));
+								// 新任务存入localStore中
+								setStore('newTaskList',{taskName:repeArray(this.temporaryNumList)});
+								//更新任务数量
+								this.getTaskCount(this.proId,this.workerId);
+								//进行播放
+								audioCtx.play();
+								audioCtx.onPlay();
+								audio.onEnded = () => {
+								}
+							}
+						})
+					}
+				})
+				.catch((err) => {
+					this.$refs.uToast.show({
+						message: err,
+						type: 'error',
+						position: 'center'
 					})
+				})
+			},
+			
+			// 任务类型转换字母
+			taskTypeTransferLetter (type) {
+				switch(type) {
+					case '报修工单' :
+						return 'bx'
+						break;
+					case '区域巡检' :
+						return 'kx'
+						break;
+					case '设备巡检' :
+						return 'sx'
+						break;
+					case '自主报修' :
+						return 'zizhuTask'
+						break
 				}
 			},
-			
-			// 格式化时间
-			getNowFormatDate(currentDate,type) {
-				// type:1(只显示小时分钟秒),2(只显示年月日)3(只显示年月)4(显示年月日小时分钟秒)5(显示月日)
-				let currentdate;
-				let strDate = currentDate.getDate();
-				let seperator1 = "-";
-				let seperator2 = ":";
-				let seperator3 = " ";
-				let month = currentDate.getMonth() + 1;
-				let hour = currentDate.getHours();
-				let minutes = currentDate.getMinutes();
-				let seconds = currentDate.getSeconds();
-				if (month >= 1 && month <= 9) {
-					month = "0" + month;
-				};
-				if (hour >= 0 && hour <= 9) {
-					hour = "0" + hour;
-				};
-				if (minutes >= 0 && minutes <= 9) {
-					minutes = "0" + minutes;
-				};
-				if (seconds >= 0 && seconds <= 9) {
-					seconds = "0" + seconds;
-				};
-				if (strDate >= 0 && strDate <= 9) {
-					strDate = "0" + strDate;
-				};
-				if (type == 1) {
-					currentdate = hour + seperator2 + minutes + seperator2 + seconds
-				};
-				if (type == 2) {
-					currentdate = currentDate.getFullYear() + seperator1 + month + seperator1 + strDate
-				};
-				if (type == 3) {
-					currentdate = currentDate.getFullYear() + seperator1 + month
-				};
-				if (type == 4) {
-					currentdate = currentDate.getFullYear() + seperator1 + month + seperator1 + strDate + seperator3 + hour + seperator2 + minutes + seperator2 + seconds
-				};
-				if (type == 5) {
-					currentdate = month + seperator1 + strDate
-				};
-				return currentdate
+
+			// 是否存在指定任务
+			isExist (item) {
+				let flag;
+				if (this.newTaskName.indexOf(this.taskTypeTransferLetter(item))!= -1) {
+					flag = true
+				} else {
+					flag = false
+				}
+				return flag
+			},
+
+			// 查询任务数量
+			getTaskCount (proId,workerId) {
+				queryTaskCount(proId,workerId).then((res) => {
+					if (res && res.data.code == 200) {
+						const {bxTask, sxTask, kxTask} = res.data.data;
+						this.taskList.forEach((item) => {
+							if (item.value == 'bxTask') {
+								item.count = bxTask;
+							} else if (item.value == 'sxTask') {
+								item.count = sxTask;
+							} else if (item.value == 'kxTask') {
+								item.count = kxTask;
+							}
+						})
+					}
+				})
+				.catch((err) => {
+					this.$refs.uToast.show({
+						message: err,
+						type: 'error',
+						position: 'center'
+					})
+				})
 			},
 			
-			// px转换成rpx
-			rpxTopx(px){
-				let deviceWidth = uni.getSystemInfoSync().windowWidth;
-				let rpx = ( 750 / deviceWidth ) * Number(px);
-				return Math.floor(rpx)
-			},
-			
-			// 服务管理项点击事件
-			serviceManagementEvent (item,index) {
-				if (item.text == '中央运送') {
-					uni.redirectTo({
-						url: '/transManagementPackage/pages/index/index'
+			// 任务类型点击事件
+			taskClickEvent (item,index) {
+				let currentIndex = this.newTaskName.indexOf(this.taskTypeTransferLetter(item.tit));
+				this.temporaryNumList = this.newTaskName;
+				if (item.tit == '报修工单') {
+					if (currentIndex != -1) {
+						this.temporaryNumList.splice(index,1);
+						this.changeNewTaskList(this.temporaryNumList);
+					};
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/RepairsWorkOrder'
 					})
-				} else if (item.text == '工程维修') {
-					uni.redirectTo({
-						url: '/projectManagementPackage/pages/callTask/callTask'
-					})
-				} else if (item.text == '保洁管理') {
-					uni.redirectTo({
-						url: '/cleanManagementPackage/pages/callTask/callTask'
-					})
+				} else if (item.tit == '设备巡检') {
+					if (currentIndex != -1) {
+						this.temporaryNumList.splice(index,1);
+						this.changeNewTaskList(this.temporaryNumList);
+						setStore('newTaskList',{taskName:this.temporaryNumList})
+					};
+				} else if (item.tit == '区域巡检') {
+					if (currentIndex != -1) {
+						this.temporaryNumList.splice(index,1);
+						this.changeNewTaskList(this.temporaryNumList);
+						setStore('newTaskList',{taskName:this.temporaryNumList})
+					};
+				} else if (item.tit == '调度管理') {
+				} else if (item.tit == '自主报修') {
 				}
 			}
 		}
@@ -239,7 +306,8 @@
 			width: 100%;
 			position: absolute;
 			top: 0;
-			left: 0
+			left: 0;
+			background: #2db8f9;
 		};
     .topTabbar {
 			width: 100%;
@@ -247,25 +315,11 @@
 			box-sizing: border-box;
 			align-items: center;
 			position: relative;
-			.title-left {
-				padding-left: 8px;
-				box-sizing: border-box;
-				>image {
-					width: 23px;
-					margin-right: 2px;
-					vertical-align: middle;
-				};
-				>text {
-					font-size: 12px;
-					color: #3370FF;
-					vertical-align: middle;
-				}
-			};
 			.title-center {
 				flex: 1;
 				text-align: center;
 				font-size: 14px;
-				color: #101010;
+				color: #fff;
 			}
 		};
 		.home-banner-area {
@@ -283,71 +337,194 @@
 			display: flex;
 			flex-direction: column;
 			margin-top: 10px;
-			.department-box {
-				max-width: 90%;
-				position: absolute;
-				bottom: 6px;
-				right: 10px;
-				font-size: 16px;
-				color: #ACADAF;
-				@include no-wrap;
-			};
-			.service-management {
-				padding: 10px 10px 20px 10px;
-				box-sizing: border-box;
-				width: 98%;
-				max-height: 60vh;
-				margin: 0 auto;
-				overflow: auto;
+			.content-top {
+				padding: 15px 10px;
+				font-size: 14px;
 				background: #fff;
-				border-radius: 10px;
-				.service-management-title {
-					font-size: 16px;
-					color: #242424;
-					font-weight: bold;
-					margin-bottom: 16px;
-				};
-				.service-management-content {
+				.content-top-userName {
+					height: 100%;
 					display: flex;
-					flex-wrap: wrap;
-					.service-list {
-						width: 25%;
-						display: flex;
-						flex-direction: column;
-						margin-bottom: 20px;
-						.list-top {
-							width: 50px;
-							height: 50px;
-							display: flex;
-							align-items: center;
-							justify-content: center;
-							background: #3370FF;
-							border-radius: 12px;
-							>image {
-								width: 32px;
-								height: 32px;
-							}
+					flex-flow: row nowrap;
+				 > view {
+						display: inline-block;
+						height: 100%;
+				 };
+				 .content-top-userName-img {
+						width: 75px;
+						vertical-align: top;
+						margin-right: 8px;
+						border-radius: 50%;
+						>image {
+							width: 100%;
+						}
+					};
+					.content-top-userName-msg {
+						flex: 1;
+						font-size: 13px;
+						vertical-align: top;
+						position: relative;
+						>text {
+							display: block;
+							word-break: break-all;
+							position: absolute;
+							left: 0
 						};
-						.projectStyle {
-							background: #FC8F66 !important;
+						.real-name-one {
+							top: 10px;
+							color: #271010;
+							line-height: 14px;
+							font-weight: bold
 						};
-						.cleanStyle {
-							background: #4CC9E4 !important;
-						};
-						.list-bottom {
-							margin-top: 10px;
-							font-size: 12px;
-							color: #101010;
+						.real-name-two {
+							bottom: 10px;
+							line-height: 14px;
+							color: #bbbaba
 						}
 					}
 				}
+			};
+			.content-middle-task-message {
+				flex:1;
+				overflow: scroll;
+				padding: 0 10px 0 10px;
+				background: #f7f7f7;
+				display: flex;
+				height: 0;
+				flex-direction: column;
+				font-size: 13px;
+				.content-middle-title {
+					height: 45px;
+					font-size: 16px;
+					line-height: 45px;
+					color: #271010;
+					font-weight: bold
+				};
+				.content-middle-task-name {
+					flex:1;
+					overflow: scroll;
+					box-sizing: border-box;
+					padding-bottom: 20px;
+					>view {
+						background: #fff;
+						width:47%;
+						height: 160px;
+						margin-top: 6%;
+						border-radius: 4px;
+						display:inline-block;
+						text-align: center;
+						padding-top: 20px;
+						box-sizing: border-box;
+						position: relative;
+						.task-length {
+							position: absolute;
+							width: 15px;
+							height: 15px;
+							line-height: 15px;
+							font-size: 10px;
+							top: 14px;
+							right: 14px;
+							background: orange;
+							color: #fff;
+							border-radius: 2px;
+							overflow: hidden;
+							text-overflow: ellipsis;
+							white-space: nowrap
+						};
+						.daskListSignStyle {
+							background: #eb0000
+						};
+						.task-button-wrapper {
+							width: 100%;
+							position: absolute;
+							top: 0;
+							left: 0;
+							z-index: -1;
+							>image {
+								width: 100%;
+							}
+						};
+						.task-btn-img {
+							width: 56px;
+							height: 56px;
+							line-height: 60px;
+							margin: 0 auto;
+							border-radius: 4px;
+							position: relative;
+							>view {
+								display: inline-block;
+								width: 56px;
+								height: 56px;
+								margin: 0 auto;
+								position: absolute;
+								top: 50%;
+								left: 50%;
+								margin-top: -28px;
+								margin-left: -28px;
+								>image {
+									width: 100%;
+								}
+							}
+						};
+						.task-btn-tit {
+							color: #271010;
+							font-weight: bold;
+							margin-top: 30px;
+						}
+						&:nth-child(1) {
+							margin-top: 0 !important
+						};
+						&:nth-child(2) {
+							margin-top: 0 !important
+						};
+						&:nth-child(odd) {
+							margin-right: 6%
+						}
+					}
+				}
+			};
+			.content-bottom {
+				height: 60px;
+				margin: 0 auto;
+				width: 100%;
+				font-size: 13px;
+				position: relative;
+				> view {
+					width: 50%;
+					height: 60px;
+					position: absolute;
+					top: 0;
+					text-align: center;
+					line-height: 60px;
+					.pStyle {
+						color: #2db8f9 !important
+					}
+					> view {
+						height: 30px;
+						line-height: 30px;
+						&:first-child {
+							color: #333;
+							font-size: 26px;
+							padding-top: 8px;
+							box-sizing: border-box;
+							::v-deep .u-icon {
+								margin-top: -2px
+							}
+						};
+						&:last-child {
+							letter-spacing: 5px;
+							text-indent: 5px;
+							color: #271010;
+							font-weight: bold;
+						}
+					};
+					&:first-child {
+						left: 0
+					};
+					&:last-child {
+						 right: 0
+					}
+				}
 			}
-		};
-		.loading-box {
-			height: 35px;
-			display: flex;
-			align-items: center;
-			justify-content: center
-		};
+		}
 	}
 </style>

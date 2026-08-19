@@ -1,27 +1,208 @@
 import request from '@/api/request';
 import Qs from 'qs'
 
-// 查询任务类型
-export function queryTaskType(data) {
+// 查询是否有新任务
+export function getNewWork (proId,workerId) {
   return request({
-    url: 'project/bxTaskType/queryAll',
+    url: `project/baseData/getNew/${proId}/${workerId}`,
+    method: 'get'
+  })
+}
+
+/*
+ *
+ *  报修工单
+ *
+ *
+*/
+
+// 查询报修项目列表
+export function queryRepairsProjectList(data) {
+  return request({
+    url: 'project/bxTask/queryTask',
+    method: 'get',
+    params: data
+  })
+};
+// 确认消息
+export function sureStartTask(data) {
+  return request({
+    url: 'project/bxTask/start',
+    method: 'put',
+    data
+  })
+};
+
+
+//确认任务
+export function sureRepairsTask(data) {
+  return request({
+    url: 'project/bxTask/confirm',
+    method: 'put',
+    data
+  })
+};
+
+// 驳回工单
+export function dismissalTask(data) {
+  return request({
+    url: 'project/bxTask/dismissalTask',
+    method: 'put',
+    data
+  })
+};
+
+//批量审核工单
+export function batchCgeckTask(data) {
+  return request({
+    url: 'project/bxTask/auditTask',
+    method: 'put',
+    data
+  })
+};
+
+// 签名完成(状态为待审核)
+export function noAuditTask(data) {
+  return request({
+    url: 'project/bxTask/noAuditTask',
+    method: 'put',
+    data
+  })
+};
+
+//完成任务(状态为待签字)
+export function completeRepairsTask(data) {
+  return request({
+    url: 'project/bxTask/completeTask',
+    method: 'put',
+    data
+  })
+};
+
+//完成任务(状态为已完成)
+export function completeRepairsTaskFinal(data) {
+  return request({
+    url: 'project/bxTask/finishTask',
+    method: 'put',
+    data
+  })
+};
+
+// 查询单条报修工单
+export function queryOneRepairsProject(taskId) {
+  return request({
+    url: `project/bxTask/query/${taskId}`,
+    method: 'get'
+  })
+};
+
+// 查询任务关联的物料信息
+export function queryMaterialById(taskId) {
+  return request({
+    url: `project/bxRepairTaskMaterial/queryMaterial/${taskId}`,
+    method: 'get'
+  })
+};
+
+// 查询所有的物料信息
+export function queryAllMaterial(data) {
+  return request({
+    url: 'project/bxMaterial/queryAll',
     method: 'get',
     params: data
   })
 };
 
-// 查询目的地(科室)
-export function queryAllDestination(proId) {
+// 退回接口
+export function backRepairsTask(data) {
   return request({
-    url: `project/department/dict/${proId}`,
+    url: 'project/bxTask/undoTask',
+    method: 'put',
+    data
+  })
+};
+
+// 查询退回原因
+export function queryBackRepairsTaskReason(data) {
+  return request({
+    url: 'project/back/dict',
+    method: 'get',
+    params: data
+  })
+};
+
+// 上传图片
+export function uploadRepairsTaskPhoto(data) {
+  return request({
+    url: 'project/bxRepairTaskImage/batchSave',
+    method: 'post',
+    data
+  })
+};
+
+// 查询任务下的图片信息
+export function queryRepairsTaskPhoto(data) {
+  return request({
+    url: 'project/bxRepairTaskImage/queryAll',
+    method: 'get',
+    params:data
+  })
+};
+
+// 保存物料信息
+export function saveMate(data) {
+  return request({
+    url: 'project/bxTask/saveMate',
+    method: 'post',
+    data
+  })
+};
+
+// 查询任务数量
+export function queryTaskCount (proId,workerId) {
+  return request({
+    url: `project/baseData/taskCount/${proId}/${workerId}`,
+    method: 'get'
+  })
+}
+
+/*
+ *
+ *  科室巡检
+ *
+ *
+*/
+
+// 巡检任务列表查询
+export function queryDepartmentServiceList (data) {
+  return request({
+    url: 'project/xjTask/xjTaskForApp',
+    method: 'get',
+    params: data
+  })
+};
+
+// 查询单条巡检任务信息
+export function queryOneDepartmentService(taskId) {
+  return request({
+    url: `project/xjTask/xjTaskByIdForApp/${taskId}`,
     method: 'get'
   })
 };
 
-// 根据科室查询房间信息
-export function departmentRoom(data) {
+// 校验科室
+export function verifyDepartment(data) {
   return request({
-    url: 'project/bxSpace/loadData',
+    url: 'project/xjTask/verifySpacesXjTask',
+    method: 'put',
+    data
+  })
+};
+
+// 根据科室查询检查项
+export function queryExamineItems(data) {
+  return request({
+    url: 'project/xjDepItem/queryItems',
     method: 'get',
     params: data
   })
@@ -36,62 +217,129 @@ export function reportProblem(data) {
   })
 };
 
-// 查询工程任务列表
-export function getMaintainTask(data) {
+// 提交检查结果
+export function postCheckResult(data) {
   return request({
-    url: 'project/bxTask/queryTask',
+    url: 'project/xjResult/submitXjDailyCheckResultForApp',
+    method: 'post',
+    data
+  })
+};
+
+// 完成接口(更新任务状态为待签字)
+export function updateDepartmentServiceTaskBeSigned(proId,taskId) {
+  return request({
+    url: `project/xjTask/updateToCompleteXjTask/${proId}/${taskId}`,
+    method: 'put'
+  })
+};
+
+// 提交签名信息(所有科室巡检完成签字)
+export function submitDepartMentServiceSignInfo(data) {
+  return request({
+    url: 'project/xjImage/submitSignInfoXjTask',
+    method: 'post',
+    data
+  })
+};
+
+// 提交签名信息(单个科室巡检完成)
+export function submitSingleDepartMentServiceSignInfo(data) {
+  return request({
+    url: 'project/xjDailyCheckHasSpaces/signToXjDailyCheckTask',
+    method: 'post',
+    data
+  })
+};
+
+// 完成接口(更新任务状态为已完成)
+export function updateDepartmentServiceTaskBeCompleted(proId,taskId) {
+  return request({
+    url: `project/xjTask/signToCompleteXjTask/${proId}/${taskId}`,
+    method: 'put'
+  })
+};
+
+// 查询巡检任务已选择的物料信息
+export function queryDepartmentMaterial(taskId) {
+  return request({
+    url: `project/xjCheckMaterial/queryMaterial/${taskId}`,
+    method: 'get'
+  })
+};
+
+// 保存巡检任务物料
+export function saveDepartmentMate(data) {
+  return request({
+    url: 'project/xjCheckMaterial/saveMate',
+    method: 'post',
+    data
+  })
+};
+
+/*
+ *
+ *  能耗抄录
+ *
+ *
+*/
+
+// 查询所有能耗抄录任务
+export function queryAllEnergyTask(data) {
+  return request({
+    url: 'project/xjEnergyTask/queryAllTask',
     method: 'get',
     params: data
   })
 };
 
-// 任务取消
-export function projectTaskCancel(data) {
+// 获取能耗抄录任务
+export function ensureEnergyTask(proId,taskId) {
   return request({
-    url: 'project/bxTask/cancelTask',
+    url: `project/xjEnergyTask/ensure/${proId}/${taskId}`,
+    method: 'put'
+  })
+};
+
+// 查询单条能耗抄录任务
+export function queryOneEnergyTask(taskId) {
+  return request({
+    url: `project/xjEnergyTask/queryOneTask/${taskId}`,
+    method: 'get'
+  })
+};
+
+// 校验科室
+export function verifyEnergyTaskDepartment(data) {
+  return request({
+    url: 'project/xjEnergyTask/spacesVerify',
     method: 'put',
     data
   })
 };
 
-// 工程任务催单
-export function projectTaskReminder(proId,taskId) {
+// 根据设备Id和科室查询设备信息
+export function getDeviceMessage(data) {
   return request({
-    url: `project/bxTask/reminder/${proId}/${taskId}`,
-    method: 'get'
-  })
-};
-
-// 任务取消原因
-export function projectTaskCancelReason(data) {
-  return request({
-    url: 'project/cancel/queryAll',
+    url: 'project/xjDevice/getDevice',
     method: 'get',
     params: data
   })
 };
 
-// 维修任务详情查询
-export function repairsDetails (id) {
+// 保存抄表数据
+export function submitMeterReadingData(data) {
   return request({
-    url: `project/bxTask/query/${id}`,
-    method: 'get'
+    url: 'project/xjCheckResult/submitResult',
+    method: 'post',
+    data
   })
 };
 
-// 维修任务图片查询
-export function repairsImage (data) {
+// 完成任务(能耗循环)
+export function completeEnergyRecodeTask(proId,taskId) {
   return request({
-    url: 'project/bxRepairTaskImage/queryAll',
-    method: 'get',
-		params: data
+    url: `project/xjEnergyTask/complete/${proId}/${taskId}`,
+    method: 'put'
   })
 };
-
-// 查询空间信息
-export function querySpace(proId,depId) {
-  return request({
-    url: `project/bxSpace/queryAll?proId=${proId}&depId=${depId}`,
-    method: 'get'
-  })
-}
