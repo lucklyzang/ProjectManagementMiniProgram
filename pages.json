@@ -38,7 +38,17 @@
 			"name": "rootProjectManagementPackage",
 			"pages": [
 				{
-					"path": "pages/RepairsWorkOrder",
+					"path": "pages/RepairsWorkOrder/RepairsWorkOrder",
+					"style": {
+						"navigationBarTitleText": "",
+						"navigationBarBackgroundColor": "#ffffff",
+						"backgroundColorTop": "#fff,",
+						"backgroundColorBottom": "#fff",
+						"navigationStyle" : "custom"
+					}
+				},
+				{
+					"path": "pages/RepairsWorkOrder/WorkOrderCheck",
 					"style": {
 						"navigationBarTitleText": "",
 						"navigationBarBackgroundColor": "#ffffff",
@@ -51,7 +61,7 @@
 		}
 	],
 	"preloadRule": {
-		"projectManagementPackage/pages/RepairsWorkOrder": {
+		"projectManagementPackage/pages/RepairsWorkOrder/RepairsWorkOrder": {
 				"network": "all",
 				"packages": ["rootProjectManagementPackage"]
 		}

@@ -258,7 +258,7 @@
 						this.changeNewTaskList(this.temporaryNumList);
 					};
 					uni.navigateTo({
-						url: '/projectManagementPackage/pages/RepairsWorkOrder'
+						url: '/projectManagementPackage/pages/RepairsWorkOrder/RepairsWorkOrder'
 					})
 				} else if (item.tit == '设备巡检') {
 					if (currentIndex != -1) {

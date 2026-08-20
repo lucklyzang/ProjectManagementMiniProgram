@@ -4,18 +4,18 @@ export default {
   state: getDefaultProjectState(),
 	
   getters:{
-		projectTaskMessage:(state) => {
-			state.projectTaskMessage = getCache('projectTaskMessage') ? getCache('projectTaskMessage') : {};
-			return state.projectTaskMessage
+		repairsWorkOrderMsg:(state) => {
+			state.repairsWorkOrderMsg = getCache('repairsWorkOrderMsg') ? getCache('repairsWorkOrderMsg') : {};
+			return state.repairsWorkOrderMsg
 		}
   },
 
   mutations:{
 		// 保存工程订单详情的信息
-		changeProjectTaskMessage (state, playLoad) {
+		changeRepairsWorkOrderMsg (state, playLoad) {
 			if (playLoad && playLoad != 'null') {
-				setCache('projectTaskMessage', playLoad);
-				state.projectTaskMessage = playLoad
+				setCache('repairsWorkOrderMsg', playLoad);
+				state.repairsWorkOrderMsg = playLoad
 			}
 		}
   },

@@ -34,7 +34,7 @@ export function getDefaultCommonState() {
 // 工程订单信息store的初始值
 export function getDefaultProjectState() {
 	return {
-		// 工程订单详情
-		projectTaskMessage: {}
+		// 报修工单详情
+		repairsWorkOrderMsg: {}
 	}	
 }

@@ -45,7 +45,7 @@
 				</u--input>
 			</view>
 			<view class="form-btn">
-				<button type="primary" @click="loginEvent">登 录</button>
+				<button type="primary" @click="$noMultipleClicks(loginEvent)">登 录</button>
 			</view>
 		</view>
 	</view>
@@ -61,6 +61,7 @@
 			return {
 				showLoadingHint: false,
 				infoText: '登录中···',
+				noClick: true,
 				form: {
 					username: '',
 					password: ''
