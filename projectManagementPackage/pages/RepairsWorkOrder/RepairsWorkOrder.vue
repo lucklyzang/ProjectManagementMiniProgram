@@ -663,13 +663,18 @@
 						workerId: this.workerId //用户ID 必输
 					})
 				};
-				if (item.state == 8) {
-					uni.navigateTo({
-						url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderCheck'
-					})
-				} else {
-					this.$router.push({path: 'workOrderDetails'})
-				}
+				uni.navigateTo({
+					url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderDetails'
+				})
+				// if (item.state == 8) {
+				// 	uni.navigateTo({
+				// 		url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderCheck'
+				// 	})
+				// } else {
+				// 	uni.navigateTo({
+				// 		url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderDetails'
+				// 	})
+				// }
 			},
 
 			// 确认任务开始

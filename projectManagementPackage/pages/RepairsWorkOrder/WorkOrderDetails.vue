@@ -8,7 +8,7 @@
 		<view class="top-background-area" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }"></view>
 		<u-toast ref="uToast" />
 		<view class="nav" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }">
-			<nav-bar :home="false" :isShowBackText="true" backState='3000' fontColor="#FFF" bgColor="none" title="工单审核" @backClick="backTo">
+			<nav-bar :home="false" :isShowBackText="true" backState='3000' fontColor="#FFF" bgColor="none" title="工单详情" @backClick="backTo">
 			</nav-bar> 
 		</view>
 		<view class="content">
@@ -30,6 +30,16 @@
 					<text>
 						{{oneRepairsMsg.typeName}}
 					</text>
+				</view>
+				<view class="task-attribution-box">
+					<view>任务归属</view>
+					<view>
+						<u-checkbox-group v-model="taskAttributionResult" disabled>
+							<u-checkbox name="0" label="普通任务" shape="circle"  labelColor="#3B9DF9" active-color="#3B9DF9"></u-checkbox>
+							<u-checkbox name="1" label="消防任务" shape="circle"  labelColor="#3B9DF9" active-color="#3B9DF9"></u-checkbox>
+							<u-checkbox name="2" label="电梯任务" shape="circle"  labelColor="#3B9DF9" active-color="#3B9DF9"></u-checkbox>
+						</u-checkbox-group>
+					</view>
 				</view>
 				<view class="content-top-other">
 					<text>时间</text>
@@ -71,34 +81,42 @@
 			</view>
 			<view class="content-middle">
 				<view class="issue-photo">
-					<text>问题拍照</text>
+					<view>问题拍照</view>
 					<view class="photo-list">
 						<view v-for="(item,index) in issueImageList" :key="index">
 							<image :src="item" @click="enlargeIssueImgEvent(item,0)"></image>
+							<u-icon name="close" color="#2db8f9" size="20" @click="issueDelete(index)" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6"></u-icon>
 						</view>
+					</view>
+					<view @click="issueClickEvent" class="icon-wrapper" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">
+						<u-icon name="plus" color="#2db8f9" size="34"></u-icon>
 					</view>
 				</view>
 				<view class="complete-photo">
-					<text>完成拍照</text>
+					<view>完成拍照</view>
 					<view class="photo-list">
 						<view v-for="(item,index) in completeImageList" :key="index">
 							<image :src="item" @click="enlargeCompleteImgEvent(item,0)"></image>
+							<u-icon name="close" color="#2db8f9" size="20" @click="completeDelete(index)" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6"></u-icon>
 						</view>
+					</view>
+					<view @click="completeClickEvent" class="icon-wrapper" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">
+						<u-icon name="plus" color="#2db8f9" size="34"></u-icon>
 					</view>
 				</view>
 				<view class="manage-wrapper-one" v-if="!userInfo.extendData.projectAudit">
 					<view class="mange-title">
 						<text>耗材使用量</text>
 					</view>
-					<view class="circviewation-area">
+					<view class="circulation-area">
 						<view v-for="(item,index) in consumableMsgList" :key="index">
-							<view>{{index+1}}</view>
-							<view>
+							<text>{{index+1}}</text>
+							<text>
 								{{item.mateName}}-{{item.model}}
-							</view>
-							<view>
+							</text>
+							<text>
 							 {{ `${item.number}${item.unit}` }}
-							</view>
+							</text>
 						</view>
 					</view>
 				</view>
@@ -107,60 +125,30 @@
 						<text>{{repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? "消耗耗材" : "耗材管理"}}</text>
 						<text @click="addConsumable" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">添加</text>
 					</view>
-					<view class="circviewation-area">
+					<view class="circulation-area">
 						<view v-for="(item,index) in consumableMsgList" :key="index">
-							<text>{{index+1}}</text>
-							<text>
+							<view>{{index+1}}</view>
+							<view>
 								{{item.mateName}}-{{item.model}}
-							</text>
-							<text>
-							<u-number-box v-model="item.number"
-								button-size="36"
-								color="#ffffff"
-								bgColor="#2db8f9"
-								iconStyle="color: #fff"
-								@change="function(val){stepValueChange(item,index,val)}"
-								theme="round" integer @focus="function(val){stepValueFocus(item,index,val)}"
-								:disabled="repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? true : false" min="0">
-							</u-number-box>
-							<!-- 	<van-stepper @change="function(val){stepValueChange(item,index,val)}" theme="round" integer 
-								@focus="function(val){stepValueFocus(item,index,val)}"
-								:disabled="repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? true : false"
-								v-model="item.number" min="0"/> -->
-							</text>
+							</view>
+							<view>
+								<u-number-box v-model="item.number"
+									button-size="36"
+									color="#ffffff"
+									bgColor="#2db8f9"
+									iconStyle="color: #fff"
+									@change="function(val){stepValueChange(item,index,val)}"
+									theme="round" integer @focus="function(val){stepValueFocus(item,index,val)}"
+									:disabled="repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? true : false" min="0">
+								</u-number-box>
+							</view>
 						</view>
 					</view>
 				</view>
 			</view>
 		</view>
 		<view class="content-bottom" ref="contentBottom" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">
-			<view class="complete-check" :class="{'completeCheckStyle' : !userInfo.extendData.projectAudit }" @click="completeTask">完成审核</view>
-			<view class="reject-workorder" :class="{'rejectWorkorderStyle' : !userInfo.extendData.projectAudit }" @click="rejectWorkorderEvent">取消</view>
-		</view>
-		<view class="reject-reason-dialog">
-				<u-modal :show="rejectReasonShow" showCancelButton cancelText="否" confirmText="是"
-					@cancel="rejectWorkorderCancelEvent" @confirm="rejectReasonDialogBeforeCloseEvent"
-				>
-						<view class="reject-reason-box">
-								<view class="reject-title">
-										<text>是否驳回该工单?</text>
-										<u-icon name="close" size="24" color="#101010" @click="closeRejectReasonDialogEvent"></u-icon>
-								</view>
-								<view class="reject-content">
-										<view class="reject-left">驳回原因:</view>
-										<view class="reject-right">
-											<u--textarea
-												v-model="rejectReason"
-												rows="3"
-												border="none"
-												maxlength="50"
-												placeholder="请输入驳回原因"
-												count>
-											</u--textarea>
-										</view>
-								</view>
-						</view>
-				</u-modal>
+			<view class="quit-account" @click="completeTask">{{repairsWorkOrderMsg.state == 4 ? "签字" : "完成工单"}}</view>
 		</view>
 		<view class="infoDialog">
 			<u-modal class="infoDialog" :show="enlargeImgShow">
@@ -234,10 +222,11 @@
 	} from 'vuex'
 	import _ from 'lodash'
 	import {
-		deepClone
+		deepClone,
+		setCache
 	} from '@/common/js/utils'
 	import store from '@/store'
-	 import {queryOneRepairsProject,uploadRepairsTaskPhoto,queryAllMaterial,queryRepairsTaskPhoto,saveMate,completeRepairsTaskFinal,sureStartTask,queryMaterialById, dismissalTask} from '@/api/project.js'
+	 import {queryOneRepairsProject,uploadRepairsTaskPhoto,queryAllMaterial,queryRepairsTaskPhoto,saveMate,sureStartTask,queryMaterialById, dismissalTask} from '@/api/project.js'
 	import navBar from "@/components/zhouWei-navBar"
 	export default {
 		components: {
@@ -247,20 +236,24 @@
 			return {
 				infoText: '加载中···',
 				showLoadingHint: false,
-				rejectReasonShow: false,
 				rejectReason: '',
 				photoBox: false,
 				toolShow: false,
 				isDeleteShow: false,
 				consumableIndex: null,
 				isFinishShow: false,
+				taskAttributionResult: [],
 				isChangeConsumableShow: false,
 				imageType: '',
 				photoType: '',
 				clickIssue: false,
 				clickComplete: false,
 				issueImageList: [],
+				issueFileList: [],
+				issueOnlineImageList: [],
 				completeImageList: [],
+				completeFileList: [],
+				completeOnlineImageList: [],
 				inventoryMsgList: [],
 				searchValue: '',
 				temporaryInventoryMsgList: [],
@@ -282,6 +275,7 @@
 				'repairsWorkOrderMsg',
 				'statusBarHeight',
 				'navigationBarHeight',
+				'isCompleteRepairsWorkOrderPhotoList',
 				'isFillMaterialList'
 			]),
 			userName () {
@@ -335,7 +329,7 @@
 		onLoad () {
 			this.getOneRepairsProjectNoComplete(this.taskId);
 			this.parallelFunction();
-			// this.echoIsMaterial();
+			this.echoIsMaterial();
 			if (this.repairsWorkOrderMsg.state != 5 && this.repairsWorkOrderMsg.state != 6) {
 				this.queryStoreId({proId: this.proId,state: 0});
 			};
@@ -344,6 +338,7 @@
 		
 		methods: {
 			...mapMutations([
+				'changeIsCompletePhotoList',
 				'changeisFillMaterialList'
 			]),
 			
@@ -352,11 +347,142 @@
 				uni.navigateBack()
 			},
 			
-			// 关闭拒绝弹框事件
-		closeRejectReasonDialogEvent () {
-			this.rejectReasonShow = false;
+		// 拍照问题照片点击
+		issueClickEvent () {
+			this.photoType = 1;
+			this.clickIssue = true;
+			this.clickComplete = false;
+			if (this.issueImageList.length == 5) {
+				this.$refs.uToast.show({
+					message: "至多只能上传5张图片",
+					position: 'center'
+				});
+				return
+			};
+			let that = this;
+			uni.chooseImage({
+				count: 5,
+				sizeType: ['original', 'compressed'],
+				sourceType: ['album', 'camera'],
+				success: function(res) {
+					uni.previewImage({
+						urls: res.tempFilePaths
+					});
+					for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
+						let url = res.tempFiles[imgI].path;
+						//获取最后一个的位置
+						let index = url.lastIndexOf(".");
+						//获取后缀
+						let jpgUrl = url.substr(index + 1);
+						if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
+							that.$refs.uToast.show({
+								message: '只可上传jpg或png格式的图片!',
+								type: 'error',
+								position: 'center'
+							});
+							continue
+						};
+						let isLt2M = res.tempFiles[imgI].size/1024/1024 <= 16;
+						if (!isLt2M) {
+							that.$refs.uToast.show({
+								message: '图片必须小于16MB!',
+								type: 'error',
+								position: 'center'
+							});
+							continue
+						};
+						that.issueFileList.push(res.tempFiles[imgI]['path']);
+						uni.getFileSystemManager().readFile({
+							filePath: res.tempFilePaths[imgI],
+							encoding: 'base64',
+							success: res => {
+								let base64 = 'data:image/jpeg;base64,' + res.data;
+								that.issueImageList.push(base64);
+								that.storePhoto(that.issueImageList,that.photoType);
+							}
+						})
+					}
+				}
+			})
 		},
 
+		// 拍照完成照片点击
+		completeClickEvent () {
+			this.photoType = 2;
+			this.clickIssue = false;
+			this.clickComplete = true;
+			if (this.completeImageList.length == 5) {
+				this.$refs.uToast.show({
+					message: "至多只能上传5张图片",
+					position: 'center'
+				});
+				return
+			};
+			let that = this;
+			uni.chooseImage({
+				count: 5,
+				sizeType: ['original', 'compressed'],
+				sourceType: ['album', 'camera'],
+				success: function(res) {
+					uni.previewImage({
+						urls: res.tempFilePaths
+					});
+					for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
+						let url = res.tempFiles[imgI].path;
+						//获取最后一个的位置
+						let index = url.lastIndexOf(".");
+						//获取后缀
+						let jpgUrl = url.substr(index + 1);
+						if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
+							that.$refs.uToast.show({
+								message: '只可上传jpg或png格式的图片!',
+								type: 'error',
+								position: 'center'
+							});
+							continue
+						};
+						let isLt2M = res.tempFiles[imgI].size/1024/1024 <= 16;
+						if (!isLt2M) {
+							that.$refs.uToast.show({
+								message: '图片必须小于16MB!',
+								type: 'error',
+								position: 'center'
+							});
+							continue
+						};
+						that.completeFileList.push(res.tempFiles[imgI]['path']);
+						uni.getFileSystemManager().readFile({
+							filePath: res.tempFilePaths[imgI],
+							encoding: 'base64',
+							success: res => {
+								let base64 = 'data:image/jpeg;base64,' + res.data;
+								that.completeImageList.push(base64);
+								that.storePhoto(that.completeFileList,that.photoType);
+							}
+						})
+					}
+				}
+			})
+		},
+		
+		
+
+		// 问题照片删除
+		issueDelete (index) {
+			this.photoType = 1;
+			this.issueImageList.splice(index,1);
+			this.issueFileList.splice(index,1);
+			storePhoto(this.issueImageList,this.photoType)
+		},
+
+		// 完成照片删除
+		completeDelete (index) {
+			this.photoType = 2;
+			this.completeImageList.splice(index,1);
+			this.completeFileList.splice(index,1);
+			storePhoto(this.completeImageList,this.photoType)
+		},
+			
 		// 搜索事件
 		searchEvent () {
 			if (this.searchValue == '') {
@@ -394,7 +520,7 @@
 						storeId: this.storeId,
 						systemId: this.systemId
 					})
-				};
+				}
 			}
 		},
 
@@ -497,12 +623,12 @@
 				})
 			}
 		},
-
+		
 		// 物料选择列表复选框变化事件
 		handleMaterialListChange(value) {
 			
 		},
-		
+
 		// 步进器值变化事件
 		stepValueChange (item,index,val) {
 			if (item.quantity == null) { return};
@@ -573,7 +699,7 @@
 		clearStorageMaterial () {
 			if (this.isFillMaterialList.length == 0) { return };
 			let temporaryPhotoList = this.isFillMaterialList.filter((item) => {return item.taskId !== this.taskId});
-			this.changeisFillMaterialList(temporaryPhotoList);
+			this.changeisFillMaterialList(temporaryPhotoList)
 		},
 
 		// 放大问题图片点击事件
@@ -627,6 +753,10 @@
 			queryOneRepairsProject(this.taskId).then((res) => {
 				if(res && res.data.code == 200) {
 					this.oneRepairsMsg = res.data.data;
+					if (this.oneRepairsMsg['userTag'] !== null) {
+						this.taskAttributionResult = [];
+						this.taskAttributionResult.push(this.oneRepairsMsg['userTag'].toString());
+					};
 					let temporaryArr = [];
 					for (let item of this.oneRepairsMsg.spaces) {
 						temporaryArr.push(item.name)
@@ -757,15 +887,13 @@
 			temporaryPhotoList[echoIndex]['completePhototList'] = temporaryPhotoId;
 			temporaryPhotoList[echoIndex]['issuePhototList'] = temporaryPhotoId;
 			this.changeIsCompletePhotoList(temporaryPhotoList);
-			setStore('completPhotoInfo', {"photoInfo": temporaryPhotoList});
 		},
 
 		// 清除该任务存储的照片信息
 		clearStoragePhoto () {
 			if (this.isCompleteRepairsWorkOrderPhotoList.length == 0) { return };
 			let temporaryPhotoList = this.isCompleteRepairsWorkOrderPhotoList.filter((item) => {return item.taskId !== this.taskId});
-			this.changeIsCompletePhotoList(temporaryPhotoList);
-			setStore('completPhotoInfo', {"photoInfo": temporaryPhotoList});
+			this.changeIsCompletePhotoList(temporaryPhotoList)
 		},
 
 		// 是否确定完成确认
@@ -873,127 +1001,153 @@
 
 		// 是否确定完成取消
 		isFinishCancel () {
+			// if (this.repairsWorkOrderMsg.state == 5 || this.repairsWorkOrderMsg.state == 6) {
+			// 	this.changeIsFreshRepairsWorkOrderPage(false)
+			// } else {
+			// 	this.changeIsFreshRepairsWorkOrderPage(true)
+			// };
 			this.isFinishShow = false;
 			this.backTo()
 		},
+		
+		// 存储已经上传的照片
+		storePhoto (photoId,type) {
+			let temporaryPhotoList = [];
+			temporaryPhotoList = deepClone(this.isCompleteRepairsWorkOrderPhotoList);
+			if (this.isCompleteRepairsWorkOrderPhotoList.length > 0 ) {
+				let temporaryIndex = this.isCompleteRepairsWorkOrderPhotoList.indexOf(this.isCompleteRepairsWorkOrderPhotoList.filter((item) => {return item.taskId == this.taskId})[0]);
+				if (temporaryIndex !== -1) {
+					if (type === 1) {
+						temporaryPhotoList[temporaryIndex]['issuePhototList'] = photoId;
+					} else if (type === 2) {
+						temporaryPhotoList[temporaryIndex]['completePhototList'] = photoId
+					}
+				} else {
+					if (type === 1) {
+						temporaryPhotoList.push(
+							{
+								issuePhototList: photoId,
+								taskId: this.taskId
+							}
+						)
+					} else if (type === 2) {
+						 temporaryPhotoList.push(
+							{
+								completePhototList: photoId,
+								taskId: this.taskId
+							}
+						)
+					}
+				};
+			} else {
+				if (type === 1) {
+					temporaryPhotoList.push(
+						{
+							issuePhototList: photoId,
+							taskId: this.taskId
+						}
+					)
+				} else if (type === 2) {
+					temporaryPhotoList.push(
+						{
+							completePhototList: photoId,
+							taskId: this.taskId
+						}
+					)
+				}
+			};
+			this.changeIsCompletePhotoList(temporaryPhotoList)
+		},
+		
+		// 上传图片
+		uploadPhoto () {
+			let imageType;
+			let photoMsg = {
+				taskId: this.taskId,  //任务ID
+				images: []
+			};
+			photoMsg.images = [];
+			if (this.issueImageList.length > 0) {
+				imageType = 1;
+				for (let item of this.issueImageList) {
+					// 上传过的图片不在进行上传
+					if (item.indexOf('https') == -1 && item.indexOf('http') == -1) {
+						photoMsg.images.push({
+							imgType: imageType,
+							image: item
+						})
+					} 
+				}
+			};
+			if (this.completeImageList.length > 0) {
+				imageType = 2;
+				for (let item of this.completeImageList) {
+					// 上传过的图片不在进行上传
+					 if (item.indexOf('https') == -1 && item.indexOf('http') == -1) {
+						photoMsg.images.push({
+							imgType: imageType,
+							image: item
+						})
+					}  
+				}
+			};
+			return new Promise((resolve,reject) => {
+				uploadRepairsTaskPhoto(photoMsg)
+				.then((res) => {
+					if (res && res.data.code == 200) {
+						this.issueImageList = [];
+						this.completeImageList = [];
+						resolve()
+					} else {
+						reject(`${res.data.msg}`);
+					}
+				})
+				.catch((err) => {
+					reject(err)
+				})
+			})  
+		},
 
-		// 完成审核
-		async completeTask () {
-			if (!this.userInfo.extendData.projectAudit) {
+		// 完成工单
+		completeTask () {
+			if (this.issueImageList.length == 0 || this.completeImageList.length == 0) {
 				this.$refs.uToast.show({
-					message: '你暂无此权限!',
+					message: '请上传问题照片或完成照片',
 					type: 'error',
 					position: 'center'
 				});
 				return
 			};
-			await this.submitMaterials();
-			this.infoText = '完成审核中,请稍等···';
-			this.showLoadingHint = true;
-			completeRepairsTaskFinal({
-				proId: this.proId,
-				taskId: this.taskId
-			})
-			.then((res) => {
-				this.clearStorageMaterial();  
-				if (res && res.data.code == 200) {
-					this.$router.push({path: 'repairsWorkOrder'});
-					this.changeTitleTxt({tit:'报修工单'});
-					setStore('currentTitle','报修工单')
-				} else {
-					this.$refs.uToast.show({
-						message: `${res.data.msg}`,
-						type: 'error',
-						position: 'center'
-					})
-				};
-				this.infoText = '';
-				this.showLoadingHint = false;
-			})
-			.catch((err) => {
-				this.$refs.uToast.show({
-					message: err,
-					type: 'error',
-					position: 'center'
-				});
-				this.infoText = '';
-				this.showLoadingHint = false;
-			})
-		},
-
-	// 驳回工单事件
-	rejectWorkorderSureEvent () {
-			this.infoText = '驳回中,请稍等···';
-			this.showLoadingHint = true;
-			dismissalTask({
-				proId: this.proId,
-				taskId: this.taskId,
-				reason: this.rejectReason,
-				workerId: this.workerId
-			})
-			.then((res) => {
-				this.clearStorageMaterial();  
-				if (res && res.data.code == 200) {
-					this.$router.push({path: 'repairsWorkOrder'});
-					this.changeTitleTxt({tit:'报修工单'});
-					setStore('currentTitle','报修工单')
-				} else {
-					this.$refs.uToast.show({
-						message: `${res.data.msg}`,
-						type: 'error',
-						position: 'center'
-					})
-				};
-				this.infoText = '';
-				this.showLoadingHint = false;
-			})
-			.catch((err) => {
-				this.$refs.uToast.show({
-					message: err,
-					type: 'error',
-					position: 'center'
-				});
-				this.infoText = '';
-				this.showLoadingHint = false;
-			})
-		},
-		
-
-		// 驳回工单显示驳回原因弹框事件(需求变更，点击后直接返回上一页)
-		rejectWorkorderEvent () {
-			this.$router.push({path: 'repairsWorkOrder'});
-			this.changeTitleTxt({tit:'报修工单'});
-			setStore('currentTitle','报修工单')
-			// if (!this.userInfo.extendData.projectAudit) {
-				// this.$refs.uToast.show({
-				// 	message: '你暂无此权限!',
-				// 	type: 'error',
-				// 	position: 'center'
-				// })
+			// if (this.consumableMsgList.length == 0) {
+			//   this.$toast('请填写耗材');
 			//   return
-			// };          
-			// this.rejectReason = '';  
-			// this.rejectReasonShow = true;
-		},
-
-		// 驳回工单确定事件
-		rejectReasonDialogBeforeCloseEvent () {
-			if (this.rejectReason === '') {
+			// };
+			this.infoText = '数据上传中,请稍等···';
+			this.showLoadingHint = true;
+			// 并行提交图片和耗材数据
+			Promise.all([this.submitMaterials(),this.uploadPhoto()]).then(() => {
+				this.clearStorageMaterial();
+				if (this.repairsWorkOrderMsg.state == 4) {
+					this.changeIsFreshRepairsWorkOrderPage(true);
+					this.$router.push({path: 'workOrderSignature'});
+					this.changeTitleTxt({tit:'工单完成签名'});
+					setStore('currentTitle','工单完成签名');
+				} else {
+					this.isFinishShow = true
+				};
+				this.infoText = '';
+				this.showLoadingHint = false;
+			})
+			.catch((err) => {
 				this.$refs.uToast.show({
-					message: '请输入驳回原因!',
+					message: err,
 					type: 'error',
 					position: 'center'
-				})
-			} else {
-				this.rejectReasonShow = false;
-				this.rejectWorkorderSureEvent();  
+				});
+				this.infoText = '';
+				this.showLoadingHint = false;
+			})
 			}
-		},
-
-		// 驳回工单取消事件
-		rejectWorkorderCancelEvent () {
-			this.rejectReasonShow = false;
-		}
 		}
 	}
 </script>
@@ -1009,67 +1163,6 @@
 		height: 100vh !important;
 		box-sizing: border-box;
 		background: #f6f6f6;
-		.reject-reason-dialog {
-		 ::v-deep .u-modal {
-				width: 95% !important;
-				top: 50% !important;
-				border-radius: 8px;
-				.u-modal__content {
-					padding: 20px 20px 0 20px;
-					box-sizing: border-box;
-					.reject-reason-box {
-						.reject-title {
-								display: flex;
-								align-items: center;
-								justify-content: space-between;
-								>text {
-										font-size: 16px;
-										color: #101010;
-										font-weight: bold;
-								}
-						};
-						.reject-content {
-								display: flex;
-								margin-top: 20px;
-								.reject-left {
-										font-size: 14px;
-										color: #101010;
-								};
-								.reject-right {
-										flex: 1;
-										margin-left: 10px;
-										/deep/ .van-cell {
-												border: 1px solid #d9d9d9;
-										}
-								}
-						}    
-					}
-				};
-				.u-modal__button-group {
-						justify-content: center;
-						height: 90px;
-						align-items: center;
-						.u-modal__button-group__wrapper--cancel {
-								flex: none !important;
-								width: 30%;
-								margin-right: 60px;
-								color: #fff;
-								border-radius: 7px;
-								color: #0A7AF5;
-								height: 40px;
-								border: 1px solid #0A7AF5;
-						};
-						.u-modal__button-group__wrapper--confirm {
-								flex: none !important;
-								width: 30%;
-								height: 40px;
-								color: #fff;
-								border-radius: 7px;
-								background: #0A7AF5;
-						}
-				}
-			}
-		};
 		.infoDialog {
 			::v-deep .u-modal {
 				width: 95% !important;
@@ -1266,6 +1359,48 @@
 						 }
 					 }
 				 };
+				 .task-attribution-box {
+					 min-height: 45px;
+					 box-sizing: border-box;
+					 display: flex;
+					 align-items: center;
+					 justify-content: space-between;
+					 padding: 4px 10px;
+					 @include bottom-border-1px(#dadada);
+					 &:last-child {
+						@include bottom-border-1px(#fff)
+					 }
+					 > view {
+						 display: inline-block;
+						 &:first-child {
+							 color: black;
+						 };
+						 &:not(:first-child) {
+							 width: 80%;
+							 color: #2db8f9;
+							 line-height: 18px;
+							 ::v-deep .u-checkbox-group {
+								 width: 100%;
+								 display: flex;
+								 flex-wrap: wrap;
+								 justify-content: flex-end;
+								 align-items: center;
+								 .u-checkbox {
+									 margin-left: 8px;
+									 .u-checkbox__label {
+										 margin-left: 3px !important;
+									 };
+									 &:last-child {
+										 margin-right: 0;
+									 }
+								 }
+							 };
+							 b {
+								 font-weight: bold;
+							 }
+						 }
+					 }
+				 };
 					.content-top-space {
 					 min-height: 45px;
 					 box-sizing: border-box;
@@ -1309,10 +1444,15 @@
 						 margin-right: 4px;
 						 margin-bottom: 4px;
 						 position: relative;
-						 >image {
+						 ::v-deep .u-icon {
+							 position: absolute;
+							 top: 0;
+							 right:0;
+						};
+						>image {
 							 width: 100%;
 							 height: 100%
-						 };
+						};
 						 &:nth-of-type(3n+0)
 						 {
 							 margin-right: 0
@@ -1325,7 +1465,7 @@
 					 background: #fff;
 					 line-height: 100px;
 					 box-sizing: border-box;
-					 > text {
+					 > view {
 						 position: absolute;
 						 display: inline-block;
 						 &:first-child {
@@ -1335,11 +1475,12 @@
 							 padding-left: 10px;
 						 };
 						 &:last-child {
-							 color: #2db8f9;
-							 font-size: 34px;
 							 font-weight: bold;
 							 right: 10px;
-							 top: 4px
+							 top: 0;
+							 height: 100px;
+							 display: flex;
+							 align-items: center;
 						 }
 					 }
 				 };
@@ -1350,7 +1491,7 @@
 					 background: #fff;
 					 line-height: 100px;
 					 box-sizing: border-box;
-					 > text {
+					 > view {
 						 position: absolute;
 						 display: inline-block;
 						 &:first-child {
@@ -1360,11 +1501,12 @@
 							 padding-left: 10px;
 						 };
 						 &:last-child {
-							 color: #2db8f9;
-							 font-size: 34px;
 							 font-weight: bold;
 							 right: 10px;
-							 top: 4px
+							 top: 0;
+							 height: 100px;
+							 display: flex;
+							 align-items: center;
 						 }
 					 }
 				 };
@@ -1484,17 +1626,10 @@
 									 @include no-wrap
 								 };
 								 &:nth-child(2) {
+									width: 55%;
 									overflow-x: auto;
 									white-space: nowrap;
 									text-align: left;
-									 text-align: left;
-									 /deep/ .van-cell {
-										 .van-cell__value--alone {
-											 .van-field__control {
-												 text-align: center
-											 }
-										 }
-									 }
 								 };
 								 &:last-child {
 									 position: absolute;
@@ -1502,7 +1637,7 @@
 									 right: 4px;
 									 width: 30%;
 									 text-align: right;
-									 /deep/ .van-stepper--round {
+									 ::v-deep .van-stepper--round {
 										 .van-stepper__minus {
 											 color: #fff;
 											 background-color: #2db8f9;
@@ -1550,32 +1685,19 @@
 		 display: flex;
 		 justify-content: center;
 		 align-items: center;
-		 .complete-check {
+		 .quit-account {
 			 height: 40px;
-			 width: 35%;
+			 width: 220px;
+			 margin: 0 auto;
 			 line-height: 40px;
-			 border-radius: 4px;
+			 left: 50%;
+			 margin-left: -110px;
+			 position: absolute;
+			 bottom: 5px;
 			 background: #2db8f9;
 			 color: #fff;
 			 font-weight: bold;
-			 text-align: center;
-			 margin-right: 25px;
-		 };
-		 .completeCheckStyle {
-			 opacity: .5 !important;
-		 };
-		 .reject-workorder {
-			 height: 40px;
-			 width: 35%;
-			 line-height: 40px;
-			 border: 1px solid #101010;
-			 border-radius: 4px;
-			 color: #101010;
-			 font-weight: bold;
 			 text-align: center
-		 };
-		 .rejectWorkorderStyle {
-			 // opacity: .4 !important;
 		 }
 		}
 	}

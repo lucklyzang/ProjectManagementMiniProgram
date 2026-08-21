@@ -35,6 +35,8 @@ export function getDefaultCommonState() {
 export function getDefaultProjectState() {
 	return {
 		// 报修工单详情
-		repairsWorkOrderMsg: {}
+		repairsWorkOrderMsg: {},
+		isCompleteRepairsWorkOrderPhotoList: [],
+		isFillMaterialList: []
 	}	
 }
