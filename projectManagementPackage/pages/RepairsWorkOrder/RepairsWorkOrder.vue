@@ -44,8 +44,8 @@
 										shape="circle" 
 									>
 									</u-checkbox>
-									<text class="tit">工单号:</text>
-									<text class="name">{{item.taskNumber}}</text>
+									<view class="tit">工单号:</view>
+									<view class="name">{{item.taskNumber}}</view>
 								</view>
 								<view class="work-info-other">
 									<text class="tit">工单:</text>
@@ -71,8 +71,8 @@
 								<text class="view" v-if="item.state !== 1" @click="taskView(item)">查看任务</text>
 							</view>
 							<view class="work-order-number">
-								<text class="tit">工单号:</text>
-								<text class="name">{{item.taskNumber}}</text>
+								<view class="tit">工单号:</view>
+								<view class="name">{{item.taskNumber}}</view>
 							</view>
 							<view class="work-info-other">
 								<text class="tit">工单:</text>
@@ -1029,6 +1029,7 @@
 						 }
 					 };
 					 .work-order-number {
+						 width: 90%;
 						 font-size: 14px;
 						 color: #bbbaba;
 						 display: flex;
