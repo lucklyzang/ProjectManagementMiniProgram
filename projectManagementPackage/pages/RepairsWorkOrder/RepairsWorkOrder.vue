@@ -36,10 +36,12 @@
 								<view class="work-order-number">
 									<u-checkbox
 										v-if="item.state == 8 && isManagementClick"
+										size="26"
+										iconSize="22"
 										active-color="#3B9DF9"
 										:key="item.id"
 										:name="item.id" 
-										 shape="circle" 
+										shape="circle" 
 									>
 									</u-checkbox>
 									<text class="tit">工单号:</text>
@@ -56,7 +58,7 @@
 								<view class="work-info-other">
 									<text class="tit">地点:</text>
 									<text class="name">{{item.depName}}</text>
-									<text v-for="(item,index) in item.spaces" :key="index">-{{item.name}}</text>
+									<text v-for="(innerItem,innerIndex) in item.spaces" :key="innerIndex">-{{innerItem.name}}</text>
 								</view>
 							</view>
 						</u-checkbox-group>
@@ -91,7 +93,9 @@
 			<view class="bottom-check-area" v-if="isManagementClick && taskMessageList.length > 0">
 				<view class="check-area-left">
 					 <u-checkbox-group v-model="selectAllGroup" @change="handleSelectAll">
-							<u-checkbox 
+							<u-checkbox
+								size="26"
+								iconSize="22"
 								name="all"
 								label="全选"
 								shape="circle" 
@@ -128,7 +132,7 @@
 					<view class="quick-input">
 							<view class="quick-input-text">快捷输入:</view>
 							<view class="quick-input-content">
-								<text v-for="(item,index) in reasonOperationList" :key="`${item}-${index}`" @click="reasonCheck(item,index)">
+								<text v-for="(item,index) in reasonOperationList" :key="index" @click="reasonCheck(item,index)">
 									{{item.text}}
 								</text>
 							</view>
@@ -956,9 +960,8 @@
 			 }
 			 .content-list-action-task-wrapper {
 				 .content-list-action-task-item {
-					 height: 200px;
 					 background: #fff;
-					 padding: 15px;
+					 padding: 15px 15px 55px 15px;
 					 box-sizing: border-box;
 					 margin-bottom: 15px;
 					 position: relative;
@@ -1013,11 +1016,17 @@
 						 }
 					 }
 					 > view {
-						 height: 30px;
+						 line-height: 30px;
 						 font-size: 15px;
-						 overflow: auto;
 						 color: black;
 						 font-weight: bold;
+						 display: flex;
+						 >text {
+							&:nth-child(2) {
+								flex: 1;
+								word-break: break-all;
+							}
+						 }
 					 };
 					 .work-order-number {
 						 font-size: 14px;

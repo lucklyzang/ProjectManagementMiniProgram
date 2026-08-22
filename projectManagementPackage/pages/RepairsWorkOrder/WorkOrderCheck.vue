@@ -163,7 +163,7 @@
 				</u-modal>
 		</view>
 		<view class="infoDialog">
-			<u-modal class="infoDialog" :show="enlargeImgShow">
+			<u-modal class="infoDialog" :show="enlargeImgShow" @confirm="enlargeImgShow = false">
 				<image :src="enlargeImgUrl" mode="widthFix"></image>
 			</u-modal>
 		</view>  
@@ -189,10 +189,10 @@
 									v-model="searchValue"
 									border="none"
 								>
+									<template slot="suffix">
+										<u-icon name="search" size="28" @click="searchEvent"></u-icon>
+									</template>
 								</u--input>
-								<text class="icon-text">
-									<u-icon name="search" @click="searchEvent"></u-icon>
-								</text>
 							</view>
 							<view class="tool-name-list-content">
 								<view class="circulation-area-title">
@@ -210,6 +210,8 @@
 										</view>
 										<view>
 											<u-checkbox
+												size="26"
+												iconSize="22"
 												active-color="#3B9DF9"
 												:key="item.id"
 												:name="item.id"
@@ -268,7 +270,7 @@
 				historyCompleteImageList: [],
 				photonList: [],
 				consumableMsgList: [],
-				enlargeimageShow: false,
+				enlargeImgShow: false,
 				oneRepairsMsg: '',
 				enlargeImgUrl: '',
 				storeId: '',
@@ -1072,10 +1074,10 @@
 		};
 		.infoDialog {
 			::v-deep .u-modal {
-				width: 95% !important;
 				top: 50% !important;
 				.u-modal__content {
-					height: 90vh;
+					max-height: 70vh;
+					overflow: auto;
 					>image {
 						width: 100%;
 					}
@@ -1087,7 +1089,8 @@
 				top: 50%;
 				.u-modal__content {
 					margin-bottom: 6px;
-					/*height: 500px;*/
+					padding: 10px !important;
+					height: 70vh;
 					margin: 10px 0;
 					.tool-name-list {
 						width: 94%;
@@ -1099,20 +1102,12 @@
 						max-height: 80vh;
 						.tool-name-list-title-innner {
 							padding: 10px;
-							position: relative;
+							box-sizing: border-box;
 							.u-input {
-								padding: 4px;
-								border: 1px solid #333;
-							};
-							.icon-text {
-								position: absolute;
-								top: 50%;
-								transform: translateY(-50%);
-								display: inline-block;
-								right: 16px;
-								.u-icon {
-									font-size: 23px
-								}
+								border: 1px solid #dfdcdc;
+								height: 30px;
+								padding: 0 6px !important;
+								box-sizing: border-box;
 							}
 						}
 						.tool-name-list-content {
@@ -1154,7 +1149,8 @@
 									line-height: 40px;
 									display: inline-block;
 									width: 20%;
-									font-size: 16px;
+									font-size: 17px;
+									font-weight: bold;
 									&:first-child {
 										width: 55%
 									};
@@ -1403,16 +1399,11 @@
 									 @include no-wrap;
 								 };
 								 &:nth-child(2) {
-									 width: 55%;
-									 @include no-wrap;
+									 width: 53%;
+									 overflow-x: auto;
+									 white-space: nowrap;
 									 text-align: left;
-									 /deep/ .van-cell {
-										 .van-cell__value--alone {
-											 .van-field__control {
-												 text-align: center
-											 }
-										 }
-									 }
+									 margin-right: 2%;
 								 };
 								 &:last-child {
 									 position: absolute;
@@ -1420,17 +1411,6 @@
 									 right: 4px;
 									 width: 30%;
 									 text-align: center;
-									 text {
-										 display: inline-block;
-										 position: absolute;
-										 top: 0;
-										 right: 2px;
-										 font-size: 22px;
-										 color: #2db8f9;
-										 /deep/ .van-icon {
-											 top: 2px
-										 }
-									 }
 								 }
 							 }
 						 }
@@ -1484,26 +1464,21 @@
 									 @include no-wrap
 								 };
 								 &:nth-child(2) {
+									width:53%; 
 									overflow-x: auto;
 									white-space: nowrap;
 									text-align: left;
-									 text-align: left;
-									 /deep/ .van-cell {
-										 .van-cell__value--alone {
-											 .van-field__control {
-												 text-align: center
-											 }
-										 }
-									 }
+									margin-right: 2%;
 								 };
 								 &:last-child {
 									 position: absolute;
 									 top:0;
 									 right: 4px;
 									 width: 30%;
-									 text-align: right;
-									 /deep/ .van-stepper--round {
-										 .van-stepper__minus {
+									 display: flex;
+									 align-items: center;
+									 ::v-deep .u-number-box {
+										 .u-number-box__minus {
 											 color: #fff;
 											 background-color: #2db8f9;
 											 border: 1px solid #2db8f9;
@@ -1511,7 +1486,7 @@
 												 height: 3px
 											 }
 										 };
-										 .van-stepper__plus {
+										 .u-number-box__plus {
 											 color: #fff;
 											 background-color: #2db8f9;
 											 border: 1px solid #2db8f9;
@@ -1521,17 +1496,6 @@
 											 &:after {
 												 width: 3px
 											 }
-										 }
-									 };
-									 text {
-										 display: inline-block;
-										 position: absolute;
-										 top: 0;
-										 right: 2px;
-										 font-size: 22px;
-										 color: #2db8f9;
-										 /deep/ .van-icon {
-											 top: 2px
 										 }
 									 }
 								 }

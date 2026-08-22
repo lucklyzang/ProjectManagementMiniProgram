@@ -59,11 +59,11 @@
             "minified" : true
         },
         "usingComponents" : true,
-				"requiredBackgroundModes": ["record"],
-        "permission" : {
-					"scope.writePhotosAlbum": {"desc": "写入相册权限"}
-				},
-				"lazyCodeLoading": "requiredComponents"
+				"requiredBackgroundModes": ["record"]
+    //     "permission" : {
+				// 	"scope.writePhotosAlbum": {"desc": "写入相册权限"}
+				// },
+				// "lazyCodeLoading": "requiredComponents"
     },
     "mp-alipay" : {
         "usingComponents" : true
