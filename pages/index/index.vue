@@ -318,7 +318,8 @@
 			.title-center {
 				flex: 1;
 				text-align: center;
-				font-size: 14px;
+				font-size: 16px;
+				font-weight: 700;
 				color: #fff;
 			}
 		};

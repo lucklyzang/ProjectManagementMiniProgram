@@ -22,7 +22,7 @@
 			</view>
 			<view class="content-bottom" :class="isActive ? 'contentBottomStyleOne' : 'contentBottomStyleTwo'">
 				<u-empty text="暂无数据" mode="list" v-if="isShowNoData"></u-empty>
-				<scroll-view  refresher-enabled="true" scroll-y :refresher-triggered="isRefreshing" @refresherrefresh="onRefresh">
+				<scroll-view  refresher-enabled="true" scroll-y :refresher-triggered="triggered" @refresherrefresh="onRefresh">
 					<view class="content-list-action-task-wrapper" v-if="currentIndex === 0">
 						<u-checkbox-group v-model="selectedIds" placement="column"  @change="handleListChange">
 							<view class="content-list-action-task-item" v-for="(item,index) in taskMessageList" :key="item.id">
@@ -183,6 +183,7 @@
 			return {
 				showLoadingHint: false,
 				currentIndex: 0,
+				triggered: false,
 				isRefreshing: false,
 				taskId: '',
 				isActive: false,
@@ -388,7 +389,14 @@
 
 			// 下拉刷新事件
 			onRefresh() {
+				if (this.isRefreshing) {
+					return
+				};
 				this.isRefreshing = true;
+				if (this.triggered) {
+					return
+				};
+				this.triggered = true;
 				this.getRepairsProjectList ({
 					proId: this.proId,
 					workerId: this.workerId,
@@ -498,7 +506,12 @@
 				queryRepairsProjectList(data)
 				.then((res) => {
 					this.isShowNoData = false;
-					this.isRefreshing = false;
+					if (this.triggered) {
+						this.$nextTick(() => {
+							this.triggered = false;
+							this.isRefreshing = false;
+						})
+					};
 					this.showLoadingHint = false;
 					this.taskMessageList = [];
 					this.temporaryTaskMessageList = [];
@@ -574,7 +587,12 @@
 						type: 'error',
 						position: 'center'
 					});
-					this.isRefreshing = false;
+					if (this.triggered) {
+						this.$nextTick(() => {
+							this.triggered = false;
+							this.isRefreshing = false;
+						})
+					};
 					this.showLoadingHint = false
 				})
 			},
@@ -944,7 +962,7 @@
 			 	left: 50%;
 			 	transform: translate(-50%,-50%)
 			 };
-			 .scroll-view {
+			 scroll-view {
 			 		width: 100%;
 			 		height: 100%;
 					padding-left: 1px;
