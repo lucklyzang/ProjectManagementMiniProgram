@@ -337,7 +337,7 @@
 		onLoad () {
 			this.getOneRepairsProjectNoComplete(this.taskId);
 			this.parallelFunction();
-			// this.echoIsMaterial();
+			this.echoIsMaterial();
 			if (this.repairsWorkOrderMsg.state != 5 && this.repairsWorkOrderMsg.state != 6) {
 				this.queryStoreId({proId: this.proId,state: 0});
 			};
@@ -351,7 +351,22 @@
 			
 			// 顶部导航返回事件
 			backTo () {
-				uni.navigateBack()
+				const pages = getCurrentPages();
+				const prevPage = pages[pages.length-1];
+				if (this.repairsWorkOrderMsg.state == 5 || this.repairsWorkOrderMsg.state == 6) {
+				} else {
+					const prevPageInner = pages[pages.length-2];
+					if (prevPageInner) {
+						prevPageInner.$vm.loadData();
+					}
+				};
+				if (prevPage['route'] === 'projectManagementPackage/pages/RepairsWorkOrder/WorkOrderSignature') {
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/RepairsWorkOrder/RepairsWorkOrder'
+					})
+				} else {
+					uni.navigateBack()
+				}
 			},
 			
 			// 关闭拒绝弹框事件
@@ -786,11 +801,6 @@
 						type: 'error',
 						position: 'center'
 					});
-					if (this.repairsWorkOrderMsg.state == 5 || this.repairsWorkOrderMsg.state == 6) {
-						// this.changeIsFreshRepairsWorkOrderPage(false)
-					} else {
-						// this.changeIsFreshRepairsWorkOrderPage(true)
-					};
 					this.backTo()
 				} else {
 					this.$refs.uToast.show({

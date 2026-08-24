@@ -7,7 +7,8 @@ export function getDefaultLoginState() {
 		isLogin: false,
 		overDueWay: false,
 		globalTimer: null,
-		newTaskName: []
+		newTaskName: [],
+		currentElectronicSignature: null
 	}	
 }
 

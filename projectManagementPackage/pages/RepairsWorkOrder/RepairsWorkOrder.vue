@@ -246,6 +246,18 @@
 				'changeRepairsWorkOrderMsg'
 			]),
 			
+			loadData () {
+				console.log('架子啊了');
+				// this.getRepairsProjectList({
+				// 	proId: this.proId,
+				// 	workerId: this.workerId,
+				// 	state: -1,
+				// 	startDate	: '',
+				// 	endDate : '',
+				// 	audit: this.userInfo.extendData.projectAudit
+				// },0,'')
+			},	
+			
 			// 顶部导航返回事件
 			backTo () {
 				uni.navigateBack()
@@ -686,7 +698,7 @@
 					})
 				};
 				uni.navigateTo({
-					url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderDetails'
+					url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderCheck'
 				})
 				// if (item.state == 8) {
 				// 	uni.navigateTo({

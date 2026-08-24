@@ -24,7 +24,8 @@ export default {
 			state.newTaskName = getCache('newTaskList') ? JSON.parse(getCache('newTaskList'))['taskName'] : [];
 			return state.newTaskName
 		},
-		globalTimer: state => state.globalTimer
+		globalTimer: state => state.globalTimer,
+		currentElectronicSignature: state => state.currentElectronicSignature
 	},
 	mutations: {
 		changeIsMedicalMan (state, playLoad) {
@@ -73,6 +74,11 @@ export default {
 		changeOverDueWay(state, playLoad) {
 			state.overDueWay = playLoad
 		},
+		// 改变当前签名状态
+		changeCurrentElectronicSignature (state, playLoad) {
+			state.currentElectronicSignature = playLoad.DtMsg
+		},
+				
 		//重置登录信息的状态
 		resetLoginInfoState(state) {
 				Object.assign(state, getDefaultLoginState())

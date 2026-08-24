@@ -346,6 +346,14 @@
 			
 			// 顶部导航返回事件
 			backTo () {
+				const pages = getCurrentPages();
+				if (this.repairsWorkOrderMsg.state == 5 || this.repairsWorkOrderMsg.state == 6) {
+				} else {
+					const prevPageInner = pages[pages.length-2];
+					if (prevPageInner) {
+						prevPageInner.$vm.loadData();
+					}
+				};
 				uni.navigateBack()
 			},
 			
@@ -915,11 +923,6 @@
 						type: 'error',
 						position: 'center'
 					});
-					if (this.repairsWorkOrderMsg.state == 5 || this.repairsWorkOrderMsg.state == 6) {
-						// this.changeIsFreshRepairsWorkOrderPage(false)
-					} else {
-						// this.changeIsFreshRepairsWorkOrderPage(true)
-					};
 					this.backTo()
 				} else {
 					this.$refs.uToast.show({
@@ -1004,11 +1007,6 @@
 
 		// 是否确定完成取消
 		isFinishCancel () {
-			// if (this.repairsWorkOrderMsg.state == 5 || this.repairsWorkOrderMsg.state == 6) {
-			// 	this.changeIsFreshRepairsWorkOrderPage(false)
-			// } else {
-			// 	this.changeIsFreshRepairsWorkOrderPage(true)
-			// };
 			this.isFinishShow = false;
 			this.backTo()
 		},
