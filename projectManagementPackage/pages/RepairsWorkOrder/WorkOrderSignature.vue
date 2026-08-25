@@ -93,7 +93,6 @@
 					return
 				};
 				setTimeout(() => {
-					this.$refs.contentTop.style.zIndex = 0;
 					this.infoText = '上传中,请稍等···';
 					this.showLoadingHint = true;
 					let photoMsg = {

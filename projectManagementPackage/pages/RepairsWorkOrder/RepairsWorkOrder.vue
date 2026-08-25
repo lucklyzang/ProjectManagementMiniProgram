@@ -247,15 +247,14 @@
 			]),
 			
 			loadData () {
-				console.log('架子啊了');
-				// this.getRepairsProjectList({
-				// 	proId: this.proId,
-				// 	workerId: this.workerId,
-				// 	state: -1,
-				// 	startDate	: '',
-				// 	endDate : '',
-				// 	audit: this.userInfo.extendData.projectAudit
-				// },0,'')
+				this.getRepairsProjectList({
+					proId: this.proId,
+					workerId: this.workerId,
+					state: -1,
+					startDate	: '',
+					endDate : '',
+					audit: this.userInfo.extendData.projectAudit
+				},0,'')
 			},	
 			
 			// 顶部导航返回事件
@@ -490,7 +489,7 @@
 				this.currentIndex = index;
 				this.isManagementClick = false;
 				this.showLoadingHint = true;
-				this.infoText = '加载中,请稍等···';
+				this.infoText = '加载中,请稍候···';
 				this.isActive = false;
 				if (index == 0) {
 					this.getRepairsProjectList({
@@ -515,9 +514,9 @@
 
 			// 查询报修项目列表
 			getRepairsProjectList (data,index,text) {
+				this.isShowNoData = false;
 				queryRepairsProjectList(data)
 				.then((res) => {
-					this.isShowNoData = false;
 					if (this.triggered) {
 						this.$nextTick(() => {
 							this.triggered = false;

@@ -8,13 +8,34 @@ export default {
 			return state.repairsWorkOrderMsg
 		},
 		isCompleteRepairsWorkOrderPhotoList:(state) => {
-			state.isCompleteRepairsWorkOrderPhotoList = getCache('completPhotoInfo') ? JSON.parse(getCache('completPhotoInfo'))['photoInfo'] : [];
+			state.isCompleteRepairsWorkOrderPhotoList = getCache('completPhotoInfo') ? getCache('completPhotoInfo')['photoInfo'] : [];
 			return state.isCompleteRepairsWorkOrderPhotoList
 		},
 		isFillMaterialList:(state) => {
-			state.isFillMaterialList = getCache('isFillMaterialList') ? JSON.parse(getCache('isFillMaterialList'))['number'] : [];
+			state.isFillMaterialList = getCache('isFillMaterialList') ? getCache('isFillMaterialList')['number'] : [];
 			return state.isFillMaterialList
 		},
+		departmentServiceMsg:(state) => {
+			state.departmentServiceMsg = getCache('departmentServiceMsg') ? getCache('departmentServiceMsg') : {};
+			return state.departmentServiceMsg
+		},
+		isCurrentDepartmentServiceVerifySweepCode:(state) => {
+			state.isCurrentDepartmentServiceVerifySweepCode = getCache('isCurrentDepartmentServiceVerifySweepCode') ? getCache('isCurrentDepartmentServiceVerifySweepCode')['number'] : [];
+			return state.isCurrentDepartmentServiceVerifySweepCode
+		},
+		completeDepartmentServiceOfficeInfo:(state) => {
+			state.completeDepartmentServiceOfficeInfo = getCache('isCompleteDepartmentServiceOfficeInfo') ? getCache('isCompleteDepartmentServiceOfficeInfo')['sweepCodeInfo'] : [];
+			return state.completeDepartmentServiceOfficeInfo
+		},
+		isDepartmentServiceVerifySweepCode:(state) => {
+			state.isDepartmentServiceVerifySweepCode = getCache('isDepartmentServiceVerifySweepCode') ? getCache('isDepartmentServiceVerifySweepCode')['sweepCodeInfo'] : [];
+			return state.isDepartmentServiceVerifySweepCode
+		},
+		departmentServiceOfficeId:(state) => {
+			state.departmentServiceOfficeId = getCache('departmentServiceId') ? getCache('departmentServiceId'): '';
+			return state.departmentServiceOfficeId
+		},
+		isSingleDepartmentSignature: state => state.isSingleDepartmentSignature
   },
 
   mutations:{
@@ -31,9 +52,38 @@ export default {
 			state.isCompleteRepairsWorkOrderPhotoList = playLoad
 		},
 		// 改变是否填写耗材的状态
-		 changeisFillMaterialList (state, playLoad) {
+		changeisFillMaterialList (state, playLoad) {
 			setCache('isFillMaterialList', {"number": playLoad})
 			state.isFillMaterialList = playLoad
+		},
+		// 改变巡检任务信息的状态
+		changeDepartmentServiceMsg (state, playLoad) {
+			setCache('departmentServiceMsg', playLoad)
+			state.departmentServiceMsg = playLoad
+		},
+		// 改变当前巡检任务扫码校验通过的科室id
+		changeIsCurrentDepartmentServiceVerifySweepCode (state, playLoad) {
+			setCache('isCurrentDepartmentServiceVerifySweepCode',{"number": playLoad});
+			state.isCurrentDepartmentServiceVerifySweepCode = playLoad
+		},
+		// 改变完成巡检任务的科室信息
+		changeCompleteDepartmentServiceOfficeInfo (state, playLoad) {
+			setCache('isCompleteDepartmentServiceOfficeInfo', {"sweepCodeInfo": playLoad});
+			state.completeDepartmentServiceOfficeInfo = playLoad
+		},
+		// 改变巡检任务扫码校验通过的科室编号
+		changeIsDepartmentServiceVerifySweepCode (state, playLoad) {
+			setStore('isDepartmentServiceVerifySweepCode', {"sweepCodeInfo": playLoad});
+			state.isDepartmentServiceVerifySweepCode = playLoad
+		},
+		// 改变当前巡检任务扫码校验通过的科室编号
+		changeDepartmentServiceOfficeId (state, playLoad) {
+			setStore('departmentServiceId',playLoad);
+			state.departmentServiceOfficeId = playLoad
+		},
+		// 改变是否是单个科室的签字状态
+		changeIsSingleDepartmentSignature (state, playLoad) {
+			state.isSingleDepartmentSignature = playLoad
 		}
   },
   

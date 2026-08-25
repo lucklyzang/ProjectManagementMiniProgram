@@ -270,8 +270,10 @@
 					if (currentIndex != -1) {
 						this.temporaryNumList.splice(index,1);
 						this.changeNewTaskList(this.temporaryNumList);
-						setStore('newTaskList',{taskName:this.temporaryNumList})
 					};
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/DepartmentService/DepartmentService'
+					})
 				} else if (item.tit == '调度管理') {
 				} else if (item.tit == '自主报修') {
 				}

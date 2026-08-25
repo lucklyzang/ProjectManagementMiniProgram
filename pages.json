@@ -76,6 +76,36 @@
 						"backgroundColorBottom": "#fff",
 						"navigationStyle" : "custom"
 					}
+				},
+				{
+					"path": "pages/DepartmentService/DepartmentService",
+					"style": {
+						"navigationBarTitleText": "",
+						"navigationBarBackgroundColor": "#ffffff",
+						"backgroundColorTop": "#fff,",
+						"backgroundColorBottom": "#fff",
+						"navigationStyle" : "custom"
+					}
+				},
+				{
+					"path": "pages/DepartmentService/DepartmentWorkOrderDeatils",
+					"style": {
+						"navigationBarTitleText": "",
+						"navigationBarBackgroundColor": "#ffffff",
+						"backgroundColorTop": "#fff,",
+						"backgroundColorBottom": "#fff",
+						"navigationStyle" : "custom"
+					}
+				},
+				{
+					"path": "pages/DepartmentService/DepartmentServiceSignature",
+					"style": {
+						"navigationBarTitleText": "",
+						"navigationBarBackgroundColor": "#ffffff",
+						"backgroundColorTop": "#fff,",
+						"backgroundColorBottom": "#fff",
+						"navigationStyle" : "custom"
+					}
 				}
 			]
 		}

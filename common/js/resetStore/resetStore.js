@@ -38,6 +38,12 @@ export function getDefaultProjectState() {
 		// 报修工单详情
 		repairsWorkOrderMsg: {},
 		isCompleteRepairsWorkOrderPhotoList: [],
-		isFillMaterialList: []
+		isFillMaterialList: [],
+		departmentServiceMsg: {},
+		isCurrentDepartmentServiceVerifySweepCode: [],
+		completeDepartmentServiceOfficeInfo: [],
+		isDepartmentServiceVerifySweepCode: [],
+		departmentServiceOfficeId: '',
+		isSingleDepartmentSignature: true
 	}	
 }

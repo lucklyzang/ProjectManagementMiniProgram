@@ -37,6 +37,28 @@ export const removeCache = (name) => {
 	}
 }
 
+export const deteleObject = (obj) => {
+  var uniques = [];
+  var stringify = {};
+  for (var i = 0; i < obj.length; i++) {
+      var keys = Object.keys(obj[i]);
+      keys.sort(function(a, b) {
+          return (Number(a) - Number(b));
+      });
+      var str = '';
+      for (var j = 0; j < keys.length; j++) {
+          str += JSON.stringify(keys[j]);
+          str += JSON.stringify(obj[i][keys[j]]);
+      }
+      if (!stringify.hasOwnProperty(str)) {
+          uniques.push(obj[i]);
+          stringify[str] = true;
+      }
+  }
+  uniques = uniques;
+  return uniques;
+}
+
 /* 
   * Base64编码转换图片
   * @param{String} dataurl base编码字符串
@@ -231,6 +253,23 @@ export const  mergeMethods =  (testData) => {
     temporaryObj.hasOwnProperty('parentTypeName') && mergeData.push(temporaryObj)
   };
   return mergeData
+}
+
+/* 
+  * 数组去重方法
+  * @param{Array} targetArray
+*/
+export const repeArray = (targetArray) => {
+  if (!Array.isArray(targetArray)) {return};
+  var result = [],
+  len = targetArray.length;
+  targetArray.forEach(function(v, i ,targetArray){  //这里利用map，filter方法也可以实现
+    var bool = targetArray.indexOf(v,i+1);  //从传入参数的下一个索引值开始寻找是否存在重复
+    if(bool === -1){
+      result.push(v);
+    }
+    });
+  return result;
 }
 
 /* 
