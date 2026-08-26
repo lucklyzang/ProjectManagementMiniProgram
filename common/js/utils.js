@@ -1,3 +1,4 @@
+import moment from 'moment'
 /*
  * 存储uni localStorage
  * @param{String} name key值
@@ -35,6 +36,13 @@ export const removeCache = (name) => {
 	} catch (e) {
 		console.log(e);
 	}
+}
+
+/**
+ * 格式化当前时间
+*/
+export const formatTime = (formatType) => {
+  return moment(new Date().getTime()).format(formatType)
 }
 
 export const deteleObject = (obj) => {
@@ -253,6 +261,15 @@ export const  mergeMethods =  (testData) => {
     temporaryObj.hasOwnProperty('parentTypeName') && mergeData.push(temporaryObj)
   };
   return mergeData
+}
+
+/*
+ * 扫码后从字典中取值
+ * @param{Object} data 字典数据
+ * @param{String} key key值
+*/
+export const Dictionary = (data, key) => {
+  return data[key] ? data[key] : undefined
 }
 
 /* 

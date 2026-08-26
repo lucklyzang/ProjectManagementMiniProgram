@@ -1163,7 +1163,6 @@
 		@include content-wrapper;
 		height: 100vh !important;
 		box-sizing: border-box;
-		background: #f6f6f6;
 		.infoDialog {
 			::v-deep .u-modal {
 				top: 50% !important;

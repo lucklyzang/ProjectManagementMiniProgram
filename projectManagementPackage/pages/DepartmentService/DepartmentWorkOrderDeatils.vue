@@ -192,18 +192,27 @@
 					});
 					return
 				};
-				uni.scanCode({
-					onlyFromCamera: true, // 只允许相机扫码
-					scanType: ['qrCode'], // 只扫二维码
-					success: (res) => {
-						this.scanQRcodeCallback(res.result)
-					},
-					fail: (err) => {
-						if (err.errMsg !== 'scanCode:fail cancel') {
-							uni.showToast({ title: '扫码失败', icon: 'none' });
-						}
-					}
+				// 存储扫码校验通过的科室编号
+				this.storeDepartmentNumber('hcgzs');
+				// 存储当前扫码校验通过的科室id
+				this.storeCurrentDepartmentNumber(2343);
+				// 存储当前扫码校验通过的科室编号
+				this.changeDepartmentServiceOfficeId('hcgzs');
+				uni.navigateTo({
+					url: '/projectManagementPackage/pages/DepartmentService/DepartmentServiceBill'
 				})
+				// uni.scanCode({
+				// 	onlyFromCamera: true, // 只允许相机扫码
+				// 	scanType: ['qrCode'], // 只扫二维码
+				// 	success: (res) => {
+				// 		this.scanQRcodeCallback(res.result)
+				// 	},
+				// 	fail: (err) => {
+				// 		if (err.errMsg !== 'scanCode:fail cancel') {
+				// 			uni.showToast({ title: '扫码失败', icon: 'none' });
+				// 		}
+				// 	}
+				// })
 			},
 
 			// 校验当前科室二维码
@@ -216,9 +225,9 @@
 						this.storeCurrentDepartmentNumber(data.depId);
 						// 存储当前扫码校验通过的科室编号
 						this.changeDepartmentServiceOfficeId(data.depNo);
-						this.$router.push({path: 'departmentServiceBill'});
-						this.changeTitleTxt({tit:'区域巡检单'});
-						setStore('currentTitle','区域巡检单')
+						uni.navigateTo({
+							url: '/projectManagementPackage/pages/DepartmentService/DepartmentServiceBill'
+						})
 					} else {
 						this.$refs.uToast.show({
 							message: res.data.msg,

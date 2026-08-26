@@ -44,6 +44,9 @@ export function getDefaultProjectState() {
 		completeDepartmentServiceOfficeInfo: [],
 		isDepartmentServiceVerifySweepCode: [],
 		departmentServiceOfficeId: '',
-		isSingleDepartmentSignature: true
+		isSingleDepartmentSignature: true,
+		completeDepartmentServiceCheckedItemList: [],
+		currentDepartmentServiceCheckedItemId: null,
+		completeRoomList: []
 	}	
 }

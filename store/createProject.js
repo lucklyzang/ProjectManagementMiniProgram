@@ -35,7 +35,19 @@ export default {
 			state.departmentServiceOfficeId = getCache('departmentServiceId') ? getCache('departmentServiceId'): '';
 			return state.departmentServiceOfficeId
 		},
-		isSingleDepartmentSignature: state => state.isSingleDepartmentSignature
+		isSingleDepartmentSignature: state => state.isSingleDepartmentSignature,
+		completeDepartmentServiceCheckedItemList:(state) => {
+			state.completeDepartmentServiceCheckedItemList = getCache('isCompleteDepartmentServiceCheckedItemList') ? getCache('isCompleteDepartmentServiceCheckedItemList')['sweepCodeInfo'] : [];
+			return state.completeDepartmentServiceCheckedItemList
+		},
+		currentDepartmentServiceCheckedItemId: state => {
+			state.currentDepartmentServiceCheckedItemId = getCache('checkedItemId') ? getCache('checkedItemId') : null;
+			return state.currentDepartmentServiceCheckedItemId
+		},
+		completeRoomList:(state) => {
+			state.completeRoomList = getCache('completeRoomList') ? getCache('completeRoomList')['sweepCodeInfo'] : [];
+			return state.completeRoomList
+		},
   },
 
   mutations:{
@@ -73,17 +85,32 @@ export default {
 		},
 		// 改变巡检任务扫码校验通过的科室编号
 		changeIsDepartmentServiceVerifySweepCode (state, playLoad) {
-			setStore('isDepartmentServiceVerifySweepCode', {"sweepCodeInfo": playLoad});
+			setCache('isDepartmentServiceVerifySweepCode', {"sweepCodeInfo": playLoad});
 			state.isDepartmentServiceVerifySweepCode = playLoad
 		},
 		// 改变当前巡检任务扫码校验通过的科室编号
 		changeDepartmentServiceOfficeId (state, playLoad) {
-			setStore('departmentServiceId',playLoad);
+			setCache('departmentServiceId',playLoad);
 			state.departmentServiceOfficeId = playLoad
 		},
 		// 改变是否是单个科室的签字状态
 		changeIsSingleDepartmentSignature (state, playLoad) {
 			state.isSingleDepartmentSignature = playLoad
+		},
+		// 改变当前完成问题上报的检查项id
+		changeCompleteDepartmentServiceCheckedItemList (state, playLoad) {
+			setCache('isCompleteDepartmentServiceCheckedItemList', {"sweepCodeInfo": playLoad})
+			state.completeDepartmentServiceCheckedItemList = playLoad
+		},
+		// 改变当前点击过的检查项id
+		changeCurrentDepartmentServiceCheckedItemId (state, playLoad) {
+			setCache("checkedItemId",playLoad);
+			state.currentDepartmentServiceCheckedItemId = playLoad
+		},
+		// 改变完成房间检修的状态
+		changeCompleteRoomList (state, playLoad) {
+			setStore('completeRoomList', {"sweepCodeInfo": playLoad})
+			state.completeRoomList = playLoad
 		}
   },
   
