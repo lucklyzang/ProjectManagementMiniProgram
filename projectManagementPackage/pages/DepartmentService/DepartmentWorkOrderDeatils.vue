@@ -117,7 +117,7 @@
 				return this.departmentServiceMsg.id
 			}
 		},
-		onLoad () {
+		onShow () {
 			this.getOneDepartmentService()
 		},
 		methods: {

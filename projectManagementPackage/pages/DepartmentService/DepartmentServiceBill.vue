@@ -43,7 +43,7 @@
 		@close="issueShow = false"
 		>
 	</u-modal>
-	 <u-modal :show="isBackShow"  title="返回上级将不会保存本区域检查结果,确定返回?" :showCancelButton="true"
+	 <u-modal :show="isBackShow"  content="返回上级将不会保存本区域检查结果,确定返回?" :showCancelButton="true"
 			@confirm="isBackSure" @cancel="isBackCancel"
 		>
 	</u-modal>
@@ -117,7 +117,7 @@
 				return this.departmentServiceMsg.id
 			}
 		},
-		onLoad () {
+		onShow () {
 			this.echoCurrentDepartmentId();
 			// 查询检查项
 			this.getExamineItems({
@@ -148,9 +148,7 @@
 			isBackSure () {
 				this.isBackShow = false;
 				this.clearCheckedInfo();
-				this.$router.push({path: 'departmentWorkOrderDeatils'});
-				this.changeTitleTxt({tit:'工单详情'});
-				setStore('currentTitle','工程详情')
+				uni.navigateBack()
 			},
 
 			// 取消返回
@@ -429,9 +427,9 @@
 				postCheckResult(data).then((res) => {
 					if (res && res.data.code == 200) {
 						this.changeIsSingleDepartmentSignature(true);
-						this.$router.push({path: 'departmentServiceSignature'});
-						this.changeTitleTxt({tit:'巡检签名'});
-						setStore('currentTitle','巡检签名');
+						uni.navigateTo({
+							url: '/projectManagementPackage/pages/DepartmentService/DepartmentServiceSignature'
+						})
 						this.$refs.uToast.show({
 							message: '上报成功',
 							type: 'success',

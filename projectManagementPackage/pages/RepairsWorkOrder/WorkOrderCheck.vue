@@ -90,7 +90,7 @@
 					<view class="mange-title">
 						<text>耗材使用量</text>
 					</view>
-					<view class="circviewation-area">
+					<view class="circulation-area">
 						<view v-for="(item,index) in consumableMsgList" :key="index">
 							<view>{{index+1}}</view>
 							<view>
@@ -107,13 +107,13 @@
 						<text>{{repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? "消耗耗材" : "耗材管理"}}</text>
 						<text @click="addConsumable" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">添加</text>
 					</view>
-					<view class="circviewation-area">
+					<view class="circulation-area">
 						<view v-for="(item,index) in consumableMsgList" :key="index">
-							<text>{{index+1}}</text>
-							<text>
+							<view>{{index+1}}</view>
+							<view>
 								{{item.mateName}}-{{item.model}}
-							</text>
-							<text>
+							</view>
+							<view>
 							<u-number-box v-model="item.number"
 								button-size="36"
 								color="#ffffff"
@@ -127,7 +127,7 @@
 								@focus="function(val){stepValueFocus(item,index,val)}"
 								:disabled="repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? true : false"
 								v-model="item.number" min="0"/> -->
-							</text>
+							</view>
 						</view>
 					</view>
 				</view>
@@ -196,9 +196,9 @@
 							</view>
 							<view class="tool-name-list-content">
 								<view class="circulation-area-title">
-									<text>物料名称</text>
-									<text>单位</text>
-									<text>操作</text>
+									<view>物料名称</view>
+									<view>单位</view>
+									<view>操作</view>
 								</view>
 								<u-checkbox-group v-model="selectedMaterialIds" placement="column"  @change="handleMaterialListChange">
 									<view v-for="(item,index) in inventoryMsgList" :key="index" class="circulation-area-content">
@@ -331,6 +331,16 @@
 				},
 				immediate: true,
 				deep: true
+			},
+			searchValue: {
+				handler(newVal) {
+					this.$nextTick(() => {
+						// 如果新值包含空格，则重新赋值为去除空格后的字符串
+						if (/\s/g.test(newVal)) {
+							this.searchValue = newVal.replace(/\s/g, '')
+						}
+					})
+				}
 			}
 		},
 		
@@ -352,7 +362,6 @@
 			// 顶部导航返回事件
 			backTo () {
 				const pages = getCurrentPages();
-				const prevPage = pages[pages.length-1];
 				if (this.repairsWorkOrderMsg.state == 5 || this.repairsWorkOrderMsg.state == 6) {
 				} else {
 					const prevPageInner = pages[pages.length-2];
@@ -360,13 +369,7 @@
 						prevPageInner.$vm.loadData();
 					}
 				};
-				if (prevPage['route'] === 'projectManagementPackage/pages/RepairsWorkOrder/WorkOrderSignature') {
-					uni.navigateTo({
-						url: '/projectManagementPackage/pages/RepairsWorkOrder/RepairsWorkOrder'
-					})
-				} else {
-					uni.navigateBack()
-				}
+				uni.navigateBack()
 			},
 			
 			// 关闭拒绝弹框事件
@@ -773,16 +776,14 @@
 			let temporaryPhotoId = [];
 			temporaryPhotoList[echoIndex]['completePhototList'] = temporaryPhotoId;
 			temporaryPhotoList[echoIndex]['issuePhototList'] = temporaryPhotoId;
-			this.changeIsCompletePhotoList(temporaryPhotoList);
-			setStore('completPhotoInfo', {"photoInfo": temporaryPhotoList});
+			this.changeIsCompletePhotoList(temporaryPhotoList)
 		},
 
 		// 清除该任务存储的照片信息
 		clearStoragePhoto () {
 			if (this.isCompleteRepairsWorkOrderPhotoList.length == 0) { return };
 			let temporaryPhotoList = this.isCompleteRepairsWorkOrderPhotoList.filter((item) => {return item.taskId !== this.taskId});
-			this.changeIsCompletePhotoList(temporaryPhotoList);
-			setStore('completPhotoInfo', {"photoInfo": temporaryPhotoList});
+			this.changeIsCompletePhotoList(temporaryPhotoList)
 		},
 
 		// 是否确定完成确认
@@ -909,9 +910,7 @@
 			.then((res) => {
 				this.clearStorageMaterial();  
 				if (res && res.data.code == 200) {
-					this.$router.push({path: 'repairsWorkOrder'});
-					this.changeTitleTxt({tit:'报修工单'});
-					setStore('currentTitle','报修工单')
+					this.backTo()
 				} else {
 					this.$refs.uToast.show({
 						message: `${res.data.msg}`,
@@ -946,9 +945,7 @@
 			.then((res) => {
 				this.clearStorageMaterial();  
 				if (res && res.data.code == 200) {
-					this.$router.push({path: 'repairsWorkOrder'});
-					this.changeTitleTxt({tit:'报修工单'});
-					setStore('currentTitle','报修工单')
+					this.backTo()
 				} else {
 					this.$refs.uToast.show({
 						message: `${res.data.msg}`,
@@ -973,9 +970,7 @@
 
 		// 驳回工单显示驳回原因弹框事件(需求变更，点击后直接返回上一页)
 		rejectWorkorderEvent () {
-			this.$router.push({path: 'repairsWorkOrder'});
-			this.changeTitleTxt({tit:'报修工单'});
-			setStore('currentTitle','报修工单')
+			this.backTo()
 			// if (!this.userInfo.extendData.projectAudit) {
 				// this.$refs.uToast.show({
 				// 	message: '你暂无此权限!',
@@ -1127,50 +1122,56 @@
 							box-sizing: border-box;
 							border-top: 1px solid #b2b2b2;
 							.circulation-area-content {
-								position: relative;
 								height: 40px;
 								background: #fff;
 								display: flex;
+								align-items: center;
 								> view {
 									height: 40px;
 									line-height: 40px;
 									font-size: 16px;
-									display: inline-block;
 									&:first-child {
-										width: 60%;
+										width: 55%;
 										overflow-x: auto;
 										white-space: nowrap;
+										margin-right: 2%;
 									};
 									&:nth-child(2) {
 										width: 20%;
+										text-align: center;
 									}
 									&:last-child {
-										position: absolute;
-										top: 12px;
-										right: 0
+										width: 20%;
+										display: flex;
+										align-items: center;
+										justify-content: center;
+										.u-checkbox {
+											.u-checkbox__icon-wrap {
+												margin-right: 0 !important;
+											}
+										}
 									}
 								}
 							}
 							.circulation-area-title {
-								position: relative;
-								font-size: 0;
-								text {
+								display: flex;
+								align-items: center;
+								>view {
 									height: 40px;
 									line-height: 40px;
-									display: inline-block;
-									width: 20%;
 									font-size: 17px;
 									font-weight: bold;
 									&:first-child {
-										width: 55%
+										width: 55%;
+										margin-right: 2%;
 									};
 									&:nth-child(2) {
 										width: 20%;
+										text-align: center;
 									}
 									&:last-child {
-										position: absolute;
-										text-align: right;
-										right: 0
+										width: 20%;
+										text-align: center;
 									}
 								}
 							}
@@ -1394,15 +1395,15 @@
 							 overflow: auto;
 							 font-size: 0;
 						 > view {
-							 position: relative;
 							 height: 50px;
 							 background: #fff;
 							 margin-bottom: 6px;
-							 > text {
+							 display: flex;
+							 align-items: center;
+							 > view {
 								 height: 50px;
 								 line-height: 50px;
 								 font-size: 16px;
-								 display: inline-block;
 								 text-align: center;
 								 &:first-child {
 									 width: 15%;
@@ -1416,11 +1417,9 @@
 									 margin-right: 2%;
 								 };
 								 &:last-child {
-									 position: absolute;
-									 top:0;
-									 right: 4px;
 									 width: 30%;
-									 text-align: center;
+									 display: flex;
+									 align-items: center;
 								 }
 							 }
 						 }
@@ -1456,12 +1455,13 @@
 							 overflow: auto;
 							 font-size: 0;
 						 > view {
-							 position: relative;
 							 height: 50px;
 							 background: #fff;
 							 margin-bottom: 6px;
+							 display: flex;
+							 align-items: center;
 							 &:last-child {
-								 margin-bottom:0
+							 		margin-bottom:0
 							 }
 							 > view {
 								 height: 50px;
@@ -1474,21 +1474,18 @@
 									 @include no-wrap
 								 };
 								 &:nth-child(2) {
-									width:53%; 
+									width: 53%;
 									overflow-x: auto;
 									white-space: nowrap;
 									text-align: left;
 									margin-right: 2%;
 								 };
 								 &:last-child {
-									 position: absolute;
-									 top:0;
-									 right: 4px;
 									 width: 30%;
 									 display: flex;
 									 align-items: center;
 									 ::v-deep .u-number-box {
-										 .u-number-box__minus {
+										 .u-number-box__minus  {
 											 color: #fff;
 											 background-color: #2db8f9;
 											 border: 1px solid #2db8f9;
@@ -1510,7 +1507,7 @@
 									 }
 								 }
 							 }
-						 }
+							}
 					 }
 				}
 			}

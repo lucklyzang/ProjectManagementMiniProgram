@@ -167,6 +167,28 @@
 				return this.departmentServiceMsg.id
 			}
 		},
+		watch: {
+			issueName:{
+				handler(newVal, oldVal){
+					this.$nextTick(() => {
+						// 如果新值包含空格，则重新赋值为去除空格后的字符串
+						if (/\s/g.test(newVal)) {
+							this.issueName = newVal.replace(/\s/g, '')
+						}
+					})
+				}
+			},
+			issueMessage:{
+				handler(newVal, oldVal){
+					this.$nextTick(() => {
+						// 如果新值包含空格，则重新赋值为去除空格后的字符串
+						if (/\s/g.test(newVal)) {
+							this.issueMessage = newVal.replace(/\s/g, '')
+						}
+					})
+				}
+			}
+		},
 		methods: {
 			...mapMutations([
 				'changeCompleteDepartmentServiceCheckedItemList',
@@ -342,7 +364,9 @@
 							position: 'center'
 						});
 						this.storageCompleteCheckItemInfo();
-						this.backTo()
+						uni.redirectTo({
+							url: '/projectManagementPackage/pages/DepartmentService/DepartmentServiceBill'
+						})
 					} else {
 						this.$refs.uToast.show({
 							message: `${res.data.msg}`,

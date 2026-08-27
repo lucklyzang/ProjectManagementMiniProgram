@@ -202,17 +202,15 @@ import { base64ImgtoFile } from '@/common/js/utils'
 						uni.showToast({ title: '请先签名', icon: 'none' })
 						return
 					}
-					uni.showLoading({ title: '生成中...' })
+					uni.showLoading({ title: '签名生成中...' })
 					setTimeout(() => {
 						this.exportBase64()
 							.then((base64) => {
 								uni.hideLoading()
-								console.log('base64 获取成功，长度:', base64.length)
 								this.changeCurrentElectronicSignature({DtMsg:base64});
 							})
 							.catch((err) => {
 								uni.hideLoading()
-								console.error('导出失败:', err)
 								uni.showToast({ title: '导出失败', icon: 'none' })
 							})
 					}, 300)

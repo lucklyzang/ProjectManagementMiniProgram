@@ -222,7 +222,18 @@
 				return this.userInfo.extendData.userId
 			}
 		},
-		
+		watch: {
+			reasonInputValue: {
+				handler(newVal) {
+					this.$nextTick(() => {
+						// 如果新值包含空格，则重新赋值为去除空格后的字符串
+						if (/\s/g.test(newVal)) {
+							this.reasonInputValue = newVal.replace(/\s/g, '')
+						}
+					})
+				}
+			}
+		},
 		onLoad () {
 			// 控制tab切换首项文案显示
 			if (this.userInfo['extendData']['projectAudit']) {
@@ -696,18 +707,15 @@
 						workerId: this.workerId //用户ID 必输
 					})
 				};
-				uni.navigateTo({
-					url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderCheck'
-				})
-				// if (item.state == 8) {
-				// 	uni.navigateTo({
-				// 		url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderCheck'
-				// 	})
-				// } else {
-				// 	uni.navigateTo({
-				// 		url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderDetails'
-				// 	})
-				// }
+				if (item.state == 8) {
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderCheck'
+					})
+				} else {
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderDetails'
+					})
+				}
 			},
 
 			// 确认任务开始
@@ -1032,7 +1040,11 @@
 							 height: 35px;
 							 line-height: 35px;
 							 text-align: center;
-							 color: #fff
+							 color: #fff;
+							 margin-right: 4px;
+							 &:last-child {
+								 margin-right: 0 !important;
+							 }
 						 };
 						 .back {
 							 background: #bec7d1

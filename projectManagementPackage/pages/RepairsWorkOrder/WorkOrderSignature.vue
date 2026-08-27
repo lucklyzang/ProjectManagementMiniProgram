@@ -89,10 +89,10 @@
 			// 确认
 			sure () {
 				this.$refs.mychild.commitSure();
-				if (!this.currentElectronicSignature) {
-					return
-				};
 				setTimeout(() => {
+					if (!this.currentElectronicSignature) {
+						return
+					};
 					this.infoText = '上传中,请稍等···';
 					this.showLoadingHint = true;
 					let photoMsg = {

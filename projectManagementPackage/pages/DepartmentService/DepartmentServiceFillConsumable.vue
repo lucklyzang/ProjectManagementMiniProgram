@@ -12,9 +12,8 @@
 			</nav-bar> 
 		</view>
 		<view class="content">
-			<!-- 内容部分 -->
-			<u-empty text="物料为空" mode="list" v-if="materialShow"></u-empty>
-			<view class="content-top" v-show="materialContentShow">
+			<view class="content-top">
+				<u-empty text="物料为空" mode="list" v-if="materialShow"></u-empty>
 				<view class="circulation-area-title">
 					<view></view>
 					<view>耗材名称</view>
@@ -152,7 +151,12 @@
 		watch: {
 			searchValue:{
 				handler(newVal, oldVal){
-					console.log(newVal,oldVal);
+					this.$nextTick(() => {
+						// 如果新值包含空格，则重新赋值为去除空格后的字符串
+						if (/\s/g.test(newVal)) {
+							this.searchValue = newVal.replace(/\s/g, '')
+						}
+					});
 					this.inventoryMsgList = [];
 					this.inventoryMsgList = this.temporaryInventoryMsgList.filter((item) => {return item.mateName.indexOf(newVal) != -1})
 				},
@@ -213,7 +217,6 @@
 							this.materialContentShow = false
 						}
 					} else {
-						this.materialShow = true;
 						this.materialContentShow = false;
 						this.$refs.uToast.show({
 							message: res.data.msg,
@@ -223,7 +226,6 @@
 					}
 				})
 				.catch((err) => {
-					this.materialShow = true;
 					this.materialContentShow = false;
 					this.$refs.uToast.show({
 						message: err,
@@ -257,6 +259,11 @@
 						position: 'center'
 					})
 				})
+			},
+			
+			// 物料选择列表复选框变化事件
+			handleMaterialListChange(value) {
+				
 			},
 
 			//查询所有物料信息
@@ -340,6 +347,7 @@
 						position: 'center'
 					})
 				} else {
+					this.toolShow = false;
 					this.materialShow = false;
 					this.materialContentShow = true;
 					const checkConsumableList = this.inventoryMsgList.filter(order => this.selectedMaterialIds.includes(order.id));
@@ -452,7 +460,9 @@
 							type: 'error',
 							position: 'center'
 						});
-						this.backTo() 
+						uni.redirectTo({
+							url: '/projectManagementPackage/pages/DepartmentService/DepartmentServiceBill'
+						}) 
 					} else {
 						this.$refs.uToast.show({
 							message: `${res.data.msg}`,
@@ -528,7 +538,6 @@
 							box-sizing: border-box;
 							border-top: 1px solid #b2b2b2;
 							.circulation-area-content {
-								position: relative;
 								height: 40px;
 								background: #fff;
 								display: flex;
@@ -537,7 +546,6 @@
 									height: 40px;
 									line-height: 40px;
 									font-size: 16px;
-									display: inline-block;
 									&:first-child {
 										width: 55%;
 										overflow-x: auto;
@@ -546,36 +554,40 @@
 									};
 									&:nth-child(2) {
 										width: 20%;
+										text-align: center;
 									}
 									&:last-child {
-										position: absolute;
-										top: 0;
-										right: 0;
+										width: 20%;
 										display: flex;
 										align-items: center;
+										justify-content: center;
+										.u-checkbox {
+											.u-checkbox__icon-wrap {
+												margin-right: 0 !important;
+											}
+										}
 									}
 								}
 							}
 							.circulation-area-title {
-								position: relative;
-								font-size: 0;
+								display: flex;
+								align-items: center;
 								>view {
 									height: 40px;
 									line-height: 40px;
-									display: inline-block;
-									width: 20%;
 									font-size: 17px;
 									font-weight: bold;
 									&:first-child {
-										width: 55%
+										width: 55%;
+										margin-right: 2%;
 									};
 									&:nth-child(2) {
 										width: 20%;
+										text-align: center;
 									}
 									&:last-child {
-										position: absolute;
-										text-align: right;
-										right: 0
+										width: 20%;
+										text-align: center;
 									}
 								}
 							}
@@ -614,52 +626,50 @@
 			 display: flex;
 			 height: 0;
 			 flex-direction: column;
-			 position: relative;
-			 ::v-deep .u-empty {
-			 	position: absolute;
-			 	top: 50%;
-			 	left: 50%;
-			 	transform: translate(-50%,-50%)
-			 };
 			 .content-top {
-			 height: auto;
-			 font-size: 14px;
-			 background: #f7f7f7;
-			 flex: 1;
-			 overflow: auto;
+				 height: auto;
+				 font-size: 14px;
+				 background: #f7f7f7;
+				 flex: 1;
+				 overflow: auto;
+				 position: relative;
+				 ::v-deep .u-empty {
+				 	position: absolute;
+				 	top: 50%;
+				 	left: 50%;
+				 	transform: translate(-50%,-50%);
+				};
 			 .circulation-area {
 				 max-height: 90%;
 				 margin: 0 auto;
 				 overflow: auto;
-				 font-size: 0;
 			 > view {
-				 position: relative;
 				 height: 50px;
 				 background: #fff;
 				 margin-bottom: 6px;
+				 display: flex;
+				 align-items: center;
 				 &:last-child {
 					 margin-bottom:0
-				 }
+				 };
 				 > view {
 					 height: 50px;
 					 line-height: 50px;
-					 width: 40%;
 					 font-size: 16px;
-					 display: inline-block;
-					 text-align: center;
+					 text-align:center;
 					 &:first-child {
-						 width: 10%
-					 };
-					 &:nth-child(2) {
-						 text-align: center;
-					 };
-					 &:nth-child(3) {
 						 width: 10%;
 					 };
+					 &:nth-child(2) {
+						width: 45%;
+						white-space: nowrap;
+						overflow-x: auto;
+						margin-right: 5%;
+					 };
+					 &:nth-child(3) {
+						 width: 15%;
+					 };
 					 &:last-child {
-						 position: absolute;
-						 top:0;
-						 right: 4px;
 						 width: 30%;
 						 display: flex;
 						 align-items: center;
@@ -691,25 +701,24 @@
 		 .circulation-area-title {
 			 height: 10%;
 			 position: relative;
-			 font-size: 0;
+			 display: flex;
+			 align-items: center;
 				>view {
-					 display: inline-block;
-					 text-align: left;
-					 width: 40%;
+					 text-align: center;
 					 font-size: 16px;
 					 line-height: 56px;
 					 &:first-child {
 						 width: 10%;
-						 text-align: center
 					 };
 					 &:nth-child(2) {
-						 text-align: center
+						 width: 45%;
+						 margin-right: 5%;
 					 };
 					 &:nth-child(3) {
-						 width: 10%
+						 width: 15%
 					 };
 					 &:last-child {
-						 text-align: center
+						 width: 30%;
 					 }
 				 }
 			 }

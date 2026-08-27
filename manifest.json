@@ -59,7 +59,12 @@
             "minified" : true
         },
         "usingComponents" : true,
-				"requiredBackgroundModes": ["record"]
+				"requiredBackgroundModes": ["record"],
+				"permission": {
+				    "scope.camera": {
+				      "desc": "需要使用相机进行扫码"
+				    }
+				  }
     //     "permission" : {
 				// 	"scope.writePhotosAlbum": {"desc": "写入相册权限"}
 				// },

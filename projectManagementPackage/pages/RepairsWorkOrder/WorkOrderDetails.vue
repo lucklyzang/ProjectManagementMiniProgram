@@ -104,23 +104,7 @@
 						<u-icon name="plus" color="#2db8f9" size="34"></u-icon>
 					</view>
 				</view>
-				<view class="manage-wrapper-one" v-if="!userInfo.extendData.projectAudit">
-					<view class="mange-title">
-						<text>耗材使用量</text>
-					</view>
-					<view class="circulation-area">
-						<view v-for="(item,index) in consumableMsgList" :key="index">
-							<text>{{index+1}}</text>
-							<text>
-								{{item.mateName}}-{{item.model}}
-							</text>
-							<text>
-							 {{ `${item.number}${item.unit}` }}
-							</text>
-						</view>
-					</view>
-				</view>
-				<view class="manage-wrapper" v-if="userInfo.extendData.projectAudit">
+				<view class="manage-wrapper">
 					<view class="mange-title">
 						<text>{{repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? "消耗耗材" : "耗材管理"}}</text>
 						<text @click="addConsumable" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">添加</text>
@@ -184,9 +168,9 @@
 							</view>
 							<view class="tool-name-list-content">
 								<view class="circulation-area-title">
-									<text>物料名称</text>
-									<text>单位</text>
-									<text>操作</text>
+									<view>物料名称</view>
+									<view>单位</view>
+									<view>操作</view>
 								</view>
 								<u-checkbox-group v-model="selectedMaterialIds" placement="column"  @change="handleMaterialListChange">
 									<view v-for="(item,index) in inventoryMsgList" :key="index" class="circulation-area-content">
@@ -325,6 +309,16 @@
 				},
 				immediate: true,
 				deep: true
+			},
+			searchValue: {
+				handler(newVal) {
+					this.$nextTick(() => {
+						// 如果新值包含空格，则重新赋值为去除空格后的字符串
+						if (/\s/g.test(newVal)) {
+							this.searchValue = newVal.replace(/\s/g, '')
+						}
+					})
+				}
 			}
 		},
 		
@@ -795,7 +789,6 @@
 				if(res && res.data.code == 200) {
 					if (res.data.data.length > 0) {
 						this.consumableMsgList = [];
-						console.log('使用物料',res.data.data);
 						this.consumableMsgList = res.data.data;
 					} else {
 					}
@@ -1129,10 +1122,9 @@
 			Promise.all([this.submitMaterials(),this.uploadPhoto()]).then(() => {
 				this.clearStorageMaterial();
 				if (this.repairsWorkOrderMsg.state == 4) {
-					this.changeIsFreshRepairsWorkOrderPage(true);
-					this.$router.push({path: 'workOrderSignature'});
-					this.changeTitleTxt({tit:'工单完成签名'});
-					setStore('currentTitle','工单完成签名');
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderSignature'
+					})
 				} else {
 					this.isFinishShow = true
 				};
@@ -1208,7 +1200,6 @@
 							box-sizing: border-box;
 							border-top: 1px solid #b2b2b2;
 							.circulation-area-content {
-								position: relative;
 								height: 40px;
 								background: #fff;
 								display: flex;
@@ -1217,7 +1208,6 @@
 									height: 40px;
 									line-height: 40px;
 									font-size: 16px;
-									display: inline-block;
 									&:first-child {
 										width: 55%;
 										overflow-x: auto;
@@ -1226,36 +1216,40 @@
 									};
 									&:nth-child(2) {
 										width: 20%;
+										text-align: center;
 									}
 									&:last-child {
-										position: absolute;
-										top: 0;
-										right: 0;
+										width: 20%;
 										display: flex;
 										align-items: center;
+										justify-content: center;
+										.u-checkbox {
+											.u-checkbox__icon-wrap {
+												margin-right: 0 !important;
+											}
+										}
 									}
-								}
-							}
+								}	
+							};
 							.circulation-area-title {
-								position: relative;
-								font-size: 0;
-								text {
+								display: flex;
+								align-items: center;
+								>view {
 									height: 40px;
 									line-height: 40px;
-									display: inline-block;
-									width: 20%;
 									font-size: 17px;
 									font-weight: bold;
 									&:first-child {
-										width: 55%
+										width: 55%;
+										margin-right: 2%;
 									};
 									&:nth-child(2) {
 										width: 20%;
+										text-align: center;
 									}
 									&:last-child {
-										position: absolute;
-										text-align: right;
-										right: 0
+										width: 20%;
+										text-align: center;
 									}
 								}
 							}
@@ -1508,58 +1502,6 @@
 						 }
 					 }
 				 };
-				 .manage-wrapper-one {
-					 background: #fff;
-					 .mange-title {
-						 height: 50px;
-						 @include bottom-border-1px(#dadada);
-						 text {
-							 position: absolute;
-							 top: 50%;
-							 transform: translateY(-50%);
-							 &:first-child {
-								 left: 10px;
-							 }
-						 }
-					 };
-					 .circulation-area {
-							 max-height: 90%;
-							 margin: 0 auto;
-							 overflow: auto;
-							 font-size: 0;
-						 > view {
-							 position: relative;
-							 height: 50px;
-							 background: #fff;
-							 margin-bottom: 6px;
-							 > text {
-								 height: 50px;
-								 line-height: 50px;
-								 font-size: 16px;
-								 display: inline-block;
-								 text-align: center;
-								 &:first-child {
-									 width: 15%;
-									 @include no-wrap;
-								 };
-								 &:nth-child(2) {
-									 width: 53%;
-									 overflow-x: auto;
-									 white-space: nowrap;
-									 text-align: left;
-									 margin-right: 2%;
-								 };
-								 &:last-child {
-									 position: absolute;
-									 top:0;
-									 right: 4px;
-									 width: 30%;
-									 text-align: center;
-								 }
-							 }
-						 }
-					 }
-				 };
 					.manage-wrapper {
 					 background: #fff;
 					 .mange-title {
@@ -1590,10 +1532,11 @@
 							 overflow: auto;
 							 font-size: 0;
 						 > view {
-							 position: relative;
 							 height: 50px;
 							 background: #fff;
 							 margin-bottom: 6px;
+							 display: flex;
+							 align-items: center;
 							 &:last-child {
 								 margin-bottom:0
 							 }
@@ -1601,7 +1544,6 @@
 								 height: 50px;
 								 line-height: 50px;
 								 font-size: 16px;
-								 display: inline-block;
 								 text-align: center;
 								 &:first-child {
 									 width: 15%;
@@ -1615,9 +1557,6 @@
 									margin-right: 2%;
 								 };
 								 &:last-child {
-									 position: absolute;
-									 top:0;
-									 right: 4px;
 									 width: 30%;
 									 display: flex;
 									 align-items: center;

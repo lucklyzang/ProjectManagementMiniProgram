@@ -116,10 +116,10 @@
 			// 确认
 			sure () {
 				this.$refs.mychild.commitSure();
-				if (!this.currentElectronicSignature) {
-					return
-				};
 				setTimeout(() => {
+					if (!this.currentElectronicSignature) {
+						return
+					};
 					this.infoText = '上传中,请稍等···';
 					this.showLoadingHint = true;
 					if (!this.isSingleDepartmentSignature) {
@@ -161,8 +161,10 @@
 									message: res.data.data,
 									type: 'success',
 									position: 'center'
+								});
+								uni.redirectTo({
+									url: '/projectManagementPackage/pages/DepartmentService/DepartmentWorkOrderDeatils'
 								})
-								this.backTo()
 							} else {
 								this.$refs.uToast.show({
 									message: res.data.msg,
@@ -195,8 +197,7 @@
 						});
 						let temporaryInfo = this.completeDepartmentServiceOfficeInfo.filter((item) => { return item.taskId !== this.taskId});
 						this.changeCompleteDepartmentServiceOfficeInfo(temporaryInfo);
-						setStore('isCompleteDepartmentServiceOfficeInfo', {"sweepCodeInfo": temporaryInfo});
-						uni.navigateTo({
+						uni.redirectTo({
 							url: '/projectManagementPackage/pages/DepartmentService/DepartmentService'
 						})
 					} else {
