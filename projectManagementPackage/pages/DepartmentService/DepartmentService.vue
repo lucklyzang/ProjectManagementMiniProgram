@@ -149,6 +149,16 @@
 				uni.navigateBack()
 			},
 			
+			loadData () {
+				this.getDepartmentList({
+					proId: this.proId,
+					workerId: this.workerId,
+					state: -1,
+					startDate	: '',
+					endDate : ''
+				},0)
+			},
+			
 			// 任务状态转换
 				stateTransfer (index) {
 					switch(index) {

@@ -364,8 +364,8 @@
 							position: 'center'
 						});
 						this.storageCompleteCheckItemInfo();
-						uni.redirectTo({
-							url: '/projectManagementPackage/pages/DepartmentService/DepartmentServiceBill'
+						uni.navigateBack({
+							delta: 1
 						})
 					} else {
 						this.$refs.uToast.show({

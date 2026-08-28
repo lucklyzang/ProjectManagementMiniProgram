@@ -357,7 +357,10 @@
 					});
 					return
 				};
+				this.infoText ='完成巡检中···';
+				this.showLoadingHint = true;
 				updateDepartmentServiceTaskBeSigned(this.proId, this.taskId).then((res) => {
+					this.showLoadingHint = false;
 					if (res && res.data.code == 200) {
 						this.$refs.uToast.show({
 							message: `${res.data.msg}`,
@@ -370,8 +373,16 @@
 						// 删除当前任务存储的当前扫码校验校验通过的科室编号信息
 						let temporaryInfo = this.isCurrentDepartmentServiceVerifySweepCode.filter((item) => { return item.taskId !== this.taskId});
 						this.changeIsCurrentDepartmentServiceVerifySweepCode(temporaryInfo);
-						this.backTo()
+						const pages = getCurrentPages();
+						const prevPageInner = pages[pages.length-2];
+						if (prevPageInner) {
+							prevPageInner.$vm.loadData();
+						};
+						uni.navigateBack({
+							delta:1
+						})
 					} else {
+						this.showLoadingHint = false;
 						this.$refs.uToast.show({
 							message: res.data.msg,
 							type: 'error',

@@ -105,10 +105,9 @@
 					if (echoIndex == -1) { return };
 					this.currentDepartmentId = this.isCurrentDepartmentServiceVerifySweepCode[echoIndex]['number'];
 				} catch (err) {
-					this.$refs.uToast.show({
-						message: err,
-						type: 'error',
-						position: 'center'
+					uni.showToast({
+					  title: err,
+					  icon: 'error'
 					})
 				}
 			},
@@ -120,8 +119,10 @@
 					if (!this.currentElectronicSignature) {
 						return
 					};
-					this.infoText = '上传中,请稍等···';
-					this.showLoadingHint = true;
+					uni.showToast({
+					  title: '上传中,请稍等···',
+					  icon: 'none'
+					});
 					if (!this.isSingleDepartmentSignature) {
 						submitDepartMentServiceSignInfo({
 							taskId: this.taskId,
@@ -132,20 +133,17 @@
 								if (res && res.data.code == 200) {
 									this.updateTaskComplete(this.proId, this.taskId)
 								} else {
-									this.$refs.uToast.show({
-										message: res.data.msg,
-										type: 'error',
-										position: 'center'
+									uni.showToast({
+									  title: res.data.msg,
+									  icon: 'error'
 									})
 								}
 							})
 							.catch((err) => {
-								this.$refs.uToast.show({
-									message: err,
-									type: 'error',
-									position: 'center'
-								});
-								this.showLoadingHint = false
+								uni.showToast({
+								  title: err,
+								  icon: 'error'
+								})
 							})
 					} else {
 						submitSingleDepartMentServiceSignInfo({
@@ -157,29 +155,25 @@
 						}).then((res) => {
 							this.showLoadingHint = false;
 							if (res && res.data.code == 200) {
-								this.$refs.uToast.show({
-									message: res.data.data,
-									type: 'success',
-									position: 'center'
+								uni.showToast({
+								  title: res.data.data,
+								  icon: 'success'
 								});
-								uni.redirectTo({
-									url: '/projectManagementPackage/pages/DepartmentService/DepartmentWorkOrderDeatils'
+								uni.navigateBack({
+									delta: 2
 								})
 							} else {
-								this.$refs.uToast.show({
-									message: res.data.msg,
-									type: 'error',
-									position: 'center'
+								uni.showToast({
+								  title: res.data.msg,
+								  icon: 'error'
 								})
 							}
 						})
 						.catch((err) => {
-							this.$refs.uToast.show({
-								message: err,
-								type: 'error',
-								position: 'center'
-							});
-							this.showLoadingHint = false
+							uni.showToast({
+							  title: err,
+							  icon: 'error'
+							})
 						})
 					}
 				},1000)
@@ -190,29 +184,31 @@
 				updateDepartmentServiceTaskBeCompleted(proId,taskId).then((res) => {
 					if(res && res.data.code == 200) {
 						// 删除当前任务存储的已完成巡检的科室信息
-						this.$refs.uToast.show({
-							message: '任务已完成',
-							type: 'success',
-							position: 'center'
+						uni.showToast({
+						  title: '任务已完成',
+						  icon: 'success'
 						});
 						let temporaryInfo = this.completeDepartmentServiceOfficeInfo.filter((item) => { return item.taskId !== this.taskId});
 						this.changeCompleteDepartmentServiceOfficeInfo(temporaryInfo);
-						uni.redirectTo({
-							url: '/projectManagementPackage/pages/DepartmentService/DepartmentService'
+						const pages = getCurrentPages();
+						const prevPageInner = pages[pages.length-3];
+						if (prevPageInner) {
+							prevPageInner.$vm.loadData();
+						};
+						uni.navigateBack({
+							delta: 2
 						})
 					} else {
-						this.$refs.uToast.show({
-							message: res.data.msg,
-							type: 'error',
-							position: 'center'
+						uni.showToast({
+						  title: res.data.msg,
+						  icon: 'error'
 						})
 					}
 				})
 				.catch((err) => {
-					this.$refs.uToast.show({
-						message: err,
-						type: 'error',
-						position: 'center'
+					uni.showToast({
+					  title: err,
+					  icon: 'error'
 					})
 				})
 			},

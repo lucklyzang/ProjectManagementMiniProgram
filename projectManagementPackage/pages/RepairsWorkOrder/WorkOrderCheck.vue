@@ -344,7 +344,7 @@
 			}
 		},
 		
-		onLoad () {
+		onShow () {
 			this.getOneRepairsProjectNoComplete(this.taskId);
 			this.parallelFunction();
 			this.echoIsMaterial();
@@ -361,14 +361,6 @@
 			
 			// 顶部导航返回事件
 			backTo () {
-				const pages = getCurrentPages();
-				if (this.repairsWorkOrderMsg.state == 5 || this.repairsWorkOrderMsg.state == 6) {
-				} else {
-					const prevPageInner = pages[pages.length-2];
-					if (prevPageInner) {
-						prevPageInner.$vm.loadData();
-					}
-				};
 				uni.navigateBack()
 			},
 			
@@ -802,7 +794,14 @@
 						type: 'error',
 						position: 'center'
 					});
-					this.backTo()
+					const pages = getCurrentPages();
+					const prevPageInner = pages[pages.length-4];
+					if (prevPageInner) {
+						prevPageInner.$vm.loadData();
+					};
+					uni.navigateBack({
+						delta:3
+					})
 				} else {
 					this.$refs.uToast.show({
 						message: `${res.data.msg}`,

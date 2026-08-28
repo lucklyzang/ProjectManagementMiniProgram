@@ -322,7 +322,7 @@
 			}
 		},
 		
-		onLoad () {
+		onShow () {
 			this.getOneRepairsProjectNoComplete(this.taskId);
 			this.parallelFunction();
 			this.echoIsMaterial();

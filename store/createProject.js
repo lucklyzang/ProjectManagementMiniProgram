@@ -8,7 +8,6 @@ export default {
 			return state.repairsWorkOrderMsg
 		},
 		isCompleteRepairsWorkOrderPhotoList:(state) => {
-			state.isCompleteRepairsWorkOrderPhotoList = getCache('completPhotoInfo') ? getCache('completPhotoInfo')['photoInfo'] : [];
 			return state.isCompleteRepairsWorkOrderPhotoList
 		},
 		isFillMaterialList:(state) => {
@@ -60,7 +59,6 @@ export default {
 		},
 		// 改变已完成上传图片的状态
 		changeIsCompletePhotoList (state, playLoad) {
-			setCache('completPhotoInfo', {"photoInfo": playLoad});
 			state.isCompleteRepairsWorkOrderPhotoList = playLoad
 		},
 		// 改变是否填写耗材的状态

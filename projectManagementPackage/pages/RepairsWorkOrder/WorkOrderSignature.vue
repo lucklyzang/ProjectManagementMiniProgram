@@ -93,8 +93,10 @@
 					if (!this.currentElectronicSignature) {
 						return
 					};
-					this.infoText = '上传中,请稍等···';
-					this.showLoadingHint = true;
+					uni.showToast({
+					  title: '上传中,请稍等···',
+					  icon: 'none'
+					});
 					let photoMsg = {
 						taskId: this.taskId,  //任务ID
 						images: []
@@ -106,30 +108,25 @@
 					});
 					uploadRepairsTaskPhoto(photoMsg)
 					.then((res) => {
-						this.showLoadingHint = false;
-						this.overlayShow = false;
 						if (res && res.data.code == 200) {
-							this.$refs.uToast.show({
-								message: res.data.msg,
-								position: 'center'
+							uni.showToast({
+							  title: res.data.msg,
+							  icon: 'success'
 							});
 							this.rewrite ();
 							this.updateTaskComplete()
 						} else {
-							this.$refs.uToast.show({
-								message: res.data.msg,
-								type: 'error',
-								position: 'center'
+							uni.showToast({
+							  title: res.data.msg,
+							  icon: 'error'
 							})
 						}
 					})
 					.catch((err) => {
-						this.$refs.uToast.show({
-							message: err,
-							type: 'error',
-							position: 'center'
-						});
-						this.showLoadingHint = false;
+						uni.showToast({
+						  title: err,
+						  icon: 'error'
+						})
 					})
 				},1000)
 			},
@@ -141,8 +138,6 @@
 
 			// 更改任务状态为已完成
 			updateTaskComplete () {
-				this.infoText = '加载中,请稍等···';
-				this.showLoadingHint = true;
 				noAuditTask({
 					proId: this.proId,
 					taskId: this.taskId
@@ -151,31 +146,24 @@
 					if (res && res.data.code == 200) {
 						this.clearPhotoList();
 						this.clearStoragePhoto();
-						this.$refs.uToast.show({
-							message: res.data.msg,
-							position: 'center'
+						uni.showToast({
+						  title: res.data.msg,
+						  icon: 'success'
 						});
 						uni.navigateTo({
 							url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderCheck'
 						})
 					} else {
-						this.$refs.uToast.show({
-							message: res.data.msg,
-							type: 'error',
-							position: 'center'
+						uni.showToast({
+						  title: res.data.msg,
+						  icon: 'error'
 						})
-					};
-					this.loadinText = '';
-					this.showLoadingHint = false;
-					this.overlayShow = false
+					}
 				})
 				.catch((err) => {
-					this.infoText = '';
-					this.showLoadingHint = false;
-					this.$refs.uToast.show({
-						message: err,
-						type: 'error',
-						position: 'center'
+					uni.showToast({
+					  title: err,
+					  icon: 'error'
 					})
 				})
 			},
