@@ -81,7 +81,7 @@
 			</view>
 			<view class="content-middle">
 				<view class="issue-photo">
-					<view>问题拍照</view>
+					<view class="issue-photo-tltle">问题拍照</view>
 					<view class="photo-list">
 						<view v-for="(item,index) in issueImageList" :key="index">
 							<image :src="item" @click="enlargeIssueImgEvent(item,0)"></image>
@@ -93,7 +93,7 @@
 					</view>
 				</view>
 				<view class="complete-photo">
-					<view>完成拍照</view>
+					<view class="issue-photo-tltle">完成拍照</view>
 					<view class="photo-list">
 						<view v-for="(item,index) in completeImageList" :key="index">
 							<image :src="item" @click="enlargeCompleteImgEvent(item,0)"></image>
@@ -212,7 +212,7 @@
 		setCache
 	} from '@/common/js/utils'
 	import store from '@/store'
-	 import {queryOneRepairsProject,uploadRepairsTaskPhoto,queryAllMaterial,queryRepairsTaskPhoto,saveMate,sureStartTask,queryMaterialById, dismissalTask} from '@/api/project.js'
+	 import {queryOneRepairsProject,uploadRepairsTaskPhoto,queryAllMaterial,queryRepairsTaskPhoto,completeRepairsTask,saveMate,sureStartTask,queryMaterialById, dismissalTask} from '@/api/project.js'
 	import navBar from "@/components/zhouWei-navBar"
 	export default {
 		components: {
@@ -340,14 +340,6 @@
 			
 			// 顶部导航返回事件
 			backTo () {
-				const pages = getCurrentPages();
-				if (this.repairsWorkOrderMsg.state == 5 || this.repairsWorkOrderMsg.state == 6) {
-				} else {
-					const prevPageInner = pages[pages.length-2];
-					if (prevPageInner) {
-						prevPageInner.$vm.loadData();
-					}
-				};
 				uni.navigateBack()
 			},
 			
@@ -916,7 +908,12 @@
 						type: 'error',
 						position: 'center'
 					});
-					this.backTo()
+					const pages = getCurrentPages();
+					const prevPageInner = pages[pages.length-2];
+					if (prevPageInner) {
+						prevPageInner.$vm.loadData();
+					};
+					uni.navigateBack()
 				} else {
 					this.$refs.uToast.show({
 						message: `${res.data.msg}`,
@@ -1258,6 +1255,11 @@
 				}
 			}
 		};
+		::v-deep .u-toast{
+			.u-transition {
+				z-index: 1000000 !important;
+			}
+		};
 		::v-deep .u-popup {
 			flex: none !important
 		};
@@ -1423,19 +1425,18 @@
 				 padding: 20px 0;
 				 box-sizing: border-box;
 				 .photo-list {
-					 position: absolute;
-					 left: 70px;
-					 width: 250px;
-					 top: 10px;
-					 height: 90px;
+					 height: 80px;
 					 overflow: auto;
+					 flex: 1;
+					 display: flex;
+					 align-items: center;
+					 flex-wrap: wrap;
 					 >view {
-						 width: 80px;
+						 width: 32%;
 						 height: 80px;
-						 float: left;
-						 margin-right: 4px;
-						 margin-bottom: 4px;
+						 margin-right: 2%;
 						 position: relative;
+						 margin-bottom: 4px;
 						 ::v-deep .u-icon {
 							 position: absolute;
 							 top: 0;
@@ -1452,54 +1453,49 @@
 					 }
 				 }
 				 .issue-photo {
-					 position: relative;
 					 height: 100px;
 					 background: #fff;
-					 line-height: 100px;
 					 box-sizing: border-box;
-					 > view {
-						 position: absolute;
-						 display: inline-block;
-						 &:first-child {
-							 left: 0;
-							 top: 0;
-							 color: black;
-							 padding-left: 10px;
-						 };
-						 &:last-child {
-							 font-weight: bold;
-							 right: 10px;
-							 top: 0;
-							 height: 100px;
-							 display: flex;
-							 align-items: center;
-						 }
-					 }
+					 display: flex;
+					 align-items: center;
+					.issue-photo-tltle {
+						 color: black;
+						 padding: 0 10px;
+						 box-sizing: border-box;
+						 height: 80px;
+						 display: flex;
+						 align-items: center;
+						 justify-content: center;
+					};
+					.icon-wrapper {
+						 height: 80px;
+						 display: flex;
+						 align-items: center;
+						 justify-content: center;
+						 width: 50px;
+					}
 				 };
 				 .complete-photo {
-					 position: relative;
 					 margin: 20px 0;
 					 height: 100px;
 					 background: #fff;
-					 line-height: 100px;
-					 box-sizing: border-box;
-					 > view {
-						 position: absolute;
-						 display: inline-block;
-						 &:first-child {
-							 left: 0;
-							 top: 0;
-							 color: black;
-							 padding-left: 10px;
-						 };
-						 &:last-child {
-							 font-weight: bold;
-							 right: 10px;
-							 top: 0;
-							 height: 100px;
-							 display: flex;
-							 align-items: center;
-						 }
+					 display: flex;
+					 align-items: center;
+					 .issue-photo-tltle {
+					 	 color: black;
+					 	 padding: 0 10px;
+					 	 box-sizing: border-box;
+					 	 height: 80px;
+					 	 display: flex;
+					 	 align-items: center;
+					 	 justify-content: center;
+					 };
+					 .icon-wrapper {
+					 	 height: 80px;
+					 	 display: flex;
+					 	 align-items: center;
+					 	 justify-content: center;
+					 	 width: 50px;
 					 }
 				 };
 					.manage-wrapper {

@@ -71,7 +71,7 @@
 			</view>
 			<view class="content-middle">
 				<view class="issue-photo">
-					<text>问题拍照</text>
+					<view class="issue-photo-tltle">问题拍照</view>
 					<view class="photo-list">
 						<view v-for="(item,index) in issueImageList" :key="index">
 							<image :src="item" @click="enlargeIssueImgEvent(item,0)"></image>
@@ -79,7 +79,7 @@
 					</view>
 				</view>
 				<view class="complete-photo">
-					<text>完成拍照</text>
+					<view class="issue-photo-tltle">完成拍照</view>
 					<view class="photo-list">
 						<view v-for="(item,index) in completeImageList" :key="index">
 							<image :src="item" @click="enlargeCompleteImgEvent(item,0)"></image>
@@ -361,7 +361,14 @@
 			
 			// 顶部导航返回事件
 			backTo () {
-				uni.navigateBack()
+				const pages = getCurrentPages();
+				const prevPageInner = pages[pages.length-4];
+				if (prevPageInner) {
+					prevPageInner.$vm.loadData();
+				};
+				uni.navigateBack({
+					delta:3
+				})
 			},
 			
 			// 关闭拒绝弹框事件
@@ -909,7 +916,14 @@
 			.then((res) => {
 				this.clearStorageMaterial();  
 				if (res && res.data.code == 200) {
-					this.backTo()
+					const pages = getCurrentPages();
+					const prevPageInner = pages[pages.length-4];
+					if (prevPageInner) {
+						prevPageInner.$vm.loadData();
+					};
+					uni.navigateBack({
+						delta:3
+					})
 				} else {
 					this.$refs.uToast.show({
 						message: `${res.data.msg}`,
@@ -1179,6 +1193,11 @@
 				}
 			}
 		};
+		::v-deep .u-toast{
+			.u-transition {
+				z-index: 1000000 !important;
+			}
+		};
 		::v-deep .u-popup {
 			flex: none !important
 		};
@@ -1302,19 +1321,18 @@
 				 padding: 20px 0;
 				 box-sizing: border-box;
 				 .photo-list {
-					 position: absolute;
-					 left: 70px;
-					 width: 250px;
-					 top: 10px;
-					 height: 90px;
+					 height: 80px;
 					 overflow: auto;
+					 flex: 1;
+					 display: flex;
+					 align-items: center;
+					 flex-wrap: wrap;
 					 >view {
-						 width: 80px;
+						 width: 32%;
 						 height: 80px;
-						 float: left;
-						 margin-right: 4px;
-						 margin-bottom: 4px;
+						 margin-right: 2%;
 						 position: relative;
+						 margin-bottom: 4px;
 						 >image {
 							 width: 100%;
 							 height: 100%
@@ -1326,52 +1344,49 @@
 					 }
 				 }
 				 .issue-photo {
-					 position: relative;
-					 height: 100px;
-					 background: #fff;
-					 line-height: 100px;
-					 box-sizing: border-box;
-					 > text {
-						 position: absolute;
-						 display: inline-block;
-						 &:first-child {
-							 left: 0;
-							 top: 0;
-							 color: black;
-							 padding-left: 10px;
-						 };
-						 &:last-child {
-							 color: #2db8f9;
-							 font-size: 34px;
-							 font-weight: bold;
-							 right: 10px;
-							 top: 4px
-						 }
+					  height: 100px;
+					  background: #fff;
+					  box-sizing: border-box;
+					  display: flex;
+					  align-items: center;
+					 .issue-photo-tltle {
+						 color: black;
+						 padding: 0 10px;
+						 box-sizing: border-box;
+						 height: 80px;
+						 display: flex;
+						 align-items: center;
+						 justify-content: center;
+					 };
+					 .icon-wrapper {
+						 height: 80px;
+						 display: flex;
+						 align-items: center;
+						 justify-content: center;
+						 width: 50px;
 					 }
 				 };
 				 .complete-photo {
-					 position: relative;
 					 margin: 20px 0;
 					 height: 100px;
 					 background: #fff;
-					 line-height: 100px;
-					 box-sizing: border-box;
-					 > text {
-						 position: absolute;
-						 display: inline-block;
-						 &:first-child {
-							 left: 0;
-							 top: 0;
-							 color: black;
-							 padding-left: 10px;
-						 };
-						 &:last-child {
-							 color: #2db8f9;
-							 font-size: 34px;
-							 font-weight: bold;
-							 right: 10px;
-							 top: 4px
-						 }
+					 display: flex;
+					 align-items: center;
+					 .issue-photo-tltle {
+					 	 color: black;
+					 	 padding: 0 10px;
+					 	 box-sizing: border-box;
+					 	 height: 80px;
+					 	 display: flex;
+					 	 align-items: center;
+					 	 justify-content: center;
+					 };
+					 .icon-wrapper {
+					 	 height: 80px;
+					 	 display: flex;
+					 	 align-items: center;
+					 	 justify-content: center;
+					 	 width: 50px;
 					 }
 				 };
 				 .manage-wrapper-one {

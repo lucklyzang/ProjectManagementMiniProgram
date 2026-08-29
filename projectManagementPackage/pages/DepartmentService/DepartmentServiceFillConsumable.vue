@@ -596,6 +596,11 @@
 				}
 			}
 		};
+		::v-deep .u-toast{
+			.u-transition {
+				z-index: 1000000 !important;
+			}
+		};
 		::v-deep .u-popup {
 			flex: none !important
 		};

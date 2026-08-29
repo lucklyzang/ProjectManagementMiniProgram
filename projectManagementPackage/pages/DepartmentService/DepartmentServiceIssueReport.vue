@@ -43,7 +43,7 @@
 			</view>
 			<view class="content-middle">
 				<view class="issue-photo">
-					<text>问题拍照</text>
+					<view class="issue-photo-tltle">问题拍照</view>
 					<view class="photo-list">
 						<view v-for="(item,index) in issueImageList" :key="index">
 							<image :src="item" @click="enlargeCompleteImgEvent(item)"></image>
@@ -515,17 +515,16 @@
 			 background: #f7f7f7;
 			 position: relative;
 			 .photo-list {
-				 position: absolute;
-				 left: 70px;
-				 width: 250px;
-				 top: 10px;
-				 height: 100px;
+				 height: 80px;
 				 overflow: auto;
+				 flex: 1;
+				 display: flex;
+				 align-items: center;
+				 flex-wrap: wrap;
 				 >view {
-					 width: 80px;
+					 width: 32%;
 					 height: 80px;
-					 float: left;
-					 margin-right: 4px;
+					 margin-right: 2%;
 					 position: relative;
 					 margin-bottom: 4px;
 					 ::v-deep .u-icon {
@@ -546,30 +545,26 @@
 				 }
 			 }
 			 .issue-photo {
-				 position: relative;
 				 margin-top: 15px;
 				 height: 100px;
 				 background: #fff;
-				 line-height: 100px;
-				 box-sizing: border-box;
-				 > text {
-					 position: absolute;
-					 display: inline-block;
-					 &:first-child {
-						 left: 0;
-						 top: 0;
-						 color: black;
-						 padding-left: 10px;
-					 };
-				 };
-				 .icon-wrapper {
-					 height: 100px;
+				 display: flex;
+				 align-items: center;
+				 .issue-photo-tltle {
+					 color: black;
+					 padding: 0 10px;
+					 box-sizing: border-box;
+					 height: 80px;
 					 display: flex;
 					 align-items: center;
 					 justify-content: center;
-					 position: absolute;
-					 right: 10px;
-					 top: 4px
+				 };
+				 .icon-wrapper {
+					 height: 80px;
+					 display: flex;
+					 align-items: center;
+					 justify-content: center;
+					 width: 50px;
 				 }
 			 };
 			 .content-top-name {
