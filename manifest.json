@@ -60,6 +60,7 @@
         },
         "usingComponents" : true,
 				"requiredBackgroundModes": ["record"],
+				// "__usePrivacyCheck__": true,
 				"permission": {
 				    "scope.camera": {
 				      "desc": "需要使用相机进行扫码"

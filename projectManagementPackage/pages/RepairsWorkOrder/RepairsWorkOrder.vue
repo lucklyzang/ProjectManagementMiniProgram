@@ -104,7 +104,7 @@
 							</u-checkbox>
 						</u-checkbox-group>
 				</view>
-				<view class="check-area-right" :class="{'checkAreaRightStyle' : !isCheckCanClick}" @click="completeCheckEvent">完成审核</view>
+				<view class="check-area-right" :class="{'checkAreaRightStyle' : !isCheckCanClick}" @click="$noMultipleClicks(completeCheckEvent)">完成审核</view>
 			</view>
 		</view>
 		<!-- 退回原因弹窗 -->
@@ -183,6 +183,7 @@
 			return {
 				showLoadingHint: false,
 				currentIndex: 0,
+				noClick: true,
 				triggered: false,
 				isRefreshing: false,
 				taskId: '',
@@ -444,7 +445,7 @@
 					if (res && res.data.code == 200) {
 						this.$refs.uToast.show({
 							message: res.data.msg,
-							type: 'error',
+							type: 'success',
 							position: 'center'
 						});
 						this.showLoadingHint = true;
@@ -680,10 +681,10 @@
 							audit: this.userInfo.extendData.projectAudit
 						},0,'')
 					} else {
-						this.$dialog.alert({
-							message: `${res.data.msg}`,
-							closeOnPopstate: true
-						}).then(() => {
+						this.$refs.uToast.show({
+							message: res.data.msg,
+							type: 'error',
+							position: 'center'
 						})
 					}
 				})
@@ -692,7 +693,7 @@
 						message: err,
 						type: 'error',
 						position: 'center'
-					});
+					})
 				})
 			},
 

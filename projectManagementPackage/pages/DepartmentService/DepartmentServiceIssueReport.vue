@@ -71,7 +71,7 @@
 			</view>
 			<view class="content-bottom">
 				<view class="back-home"  @click="cancel">取消</view>
-				<view class="quit-account" @click="completeTask">确认上报</view>
+				<view class="quit-account" @click="$noMultipleClicks(completeTask)">确认上报</view>
 			</view>
 		</view>
 		<u-popup :show="endTimePop" title="" mode="bottom">
@@ -118,6 +118,7 @@
 			return {
 				infoText: '加载中···',
 				showLoadingHint: false,
+				noClick: true,
 				endTimePop: false,
 				enlargeImgShow: false,
 				currentDepartmentId: '',

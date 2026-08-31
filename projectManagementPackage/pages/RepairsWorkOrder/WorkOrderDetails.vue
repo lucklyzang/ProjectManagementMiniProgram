@@ -132,7 +132,7 @@
 			</view>
 		</view>
 		<view class="content-bottom" ref="contentBottom" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">
-			<view class="quit-account" @click="completeTask">{{repairsWorkOrderMsg.state == 4 ? "签字" : "完成工单"}}</view>
+			<view class="quit-account" @click="$noMultipleClicks(completeTask)">{{repairsWorkOrderMsg.state == 4 ? "签字" : "完成工单"}}</view>
 		</view>
 		<view class="infoDialog">
 			<u-modal class="infoDialog" :show="enlargeImgShow" @confirm="enlargeImgShow = false">
@@ -187,8 +187,9 @@
 												active-color="#3B9DF9"
 												:key="item.id"
 												:name="item.id"
-												shape="square" 
+												shape="square"
 												:disabled="item.disabled"
+												:checked="item.checked"
 											>
 											</u-checkbox>
 										</view>
@@ -212,7 +213,7 @@
 		setCache
 	} from '@/common/js/utils'
 	import store from '@/store'
-	 import {queryOneRepairsProject,uploadRepairsTaskPhoto,queryAllMaterial,queryRepairsTaskPhoto,completeRepairsTask,saveMate,sureStartTask,queryMaterialById, dismissalTask} from '@/api/project.js'
+	import {queryOneRepairsProject,uploadRepairsTaskPhoto,queryAllMaterial,queryRepairsTaskPhoto,completeRepairsTask,saveMate,queryMaterialById} from '@/api/project.js'
 	import navBar from "@/components/zhouWei-navBar"
 	export default {
 		components: {
@@ -222,6 +223,7 @@
 			return {
 				infoText: '加载中···',
 				showLoadingHint: false,
+				noClick: true,
 				rejectReason: '',
 				photoBox: false,
 				toolShow: false,
@@ -345,120 +347,136 @@
 			
 		// 拍照问题照片点击
 		issueClickEvent () {
-			this.photoType = 1;
-			this.clickIssue = true;
-			this.clickComplete = false;
-			if (this.issueImageList.length == 5) {
-				this.$refs.uToast.show({
-					message: "至多只能上传5张图片",
-					position: 'center'
-				});
-				return
-			};
-			let that = this;
-			uni.chooseImage({
-				count: 5,
-				sizeType: ['original', 'compressed'],
-				sourceType: ['album', 'camera'],
-				success: function(res) {
-					uni.previewImage({
-						urls: res.tempFilePaths
+			try {
+				this.photoType = 1;
+				this.clickIssue = true;
+				this.clickComplete = false;
+				if (this.issueImageList.length == 5) {
+					this.$refs.uToast.show({
+						message: "至多只能上传5张图片",
+						position: 'center'
 					});
-					for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
-						let url = res.tempFiles[imgI].path;
-						//获取最后一个的位置
-						let index = url.lastIndexOf(".");
-						//获取后缀
-						let jpgUrl = url.substr(index + 1);
-						if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
-							that.$refs.uToast.show({
-								message: '只可上传jpg或png格式的图片!',
-								type: 'error',
-								position: 'center'
-							});
-							continue
-						};
-						let isLt2M = res.tempFiles[imgI].size/1024/1024 <= 16;
-						if (!isLt2M) {
-							that.$refs.uToast.show({
-								message: '图片必须小于16MB!',
-								type: 'error',
-								position: 'center'
-							});
-							continue
-						};
-						that.issueFileList.push(res.tempFiles[imgI]['path']);
-						uni.getFileSystemManager().readFile({
-							filePath: res.tempFilePaths[imgI],
-							encoding: 'base64',
-							success: res => {
-								let base64 = 'data:image/jpeg;base64,' + res.data;
-								that.issueImageList.push(base64);
-								that.storePhoto(that.issueImageList,that.photoType);
-							}
-						})
+					return
+				};
+				let that = this;
+				uni.chooseImage({
+					count: 5,
+					sizeType: ['original', 'compressed'],
+					sourceType: ['album', 'camera'],
+					success: function(res) {
+						uni.previewImage({
+							urls: res.tempFilePaths
+						});
+						for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
+							let url = res.tempFiles[imgI].path;
+							//获取最后一个的位置
+							let index = url.lastIndexOf(".");
+							//获取后缀
+							let jpgUrl = url.substr(index + 1);
+							if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
+								that.$refs.uToast.show({
+									message: '只可上传jpg或png格式的图片!',
+									type: 'error',
+									position: 'center'
+								});
+								continue
+							};
+							let isLt2M = res.tempFiles[imgI].size/1024/1024 <= 16;
+							if (!isLt2M) {
+								that.$refs.uToast.show({
+									message: '图片必须小于16MB!',
+									type: 'error',
+									position: 'center'
+								});
+								continue
+							};
+							that.issueFileList.push(res.tempFiles[imgI]['path']);
+							uni.getFileSystemManager().readFile({
+								filePath: res.tempFilePaths[imgI],
+								encoding: 'base64',
+								success: res => {
+									let base64 = 'data:image/jpeg;base64,' + res.data;
+									that.issueImageList.push(base64);
+									that.storePhoto(that.issueImageList,that.photoType);
+								},
+								fail: function(err) {
+									console.log(err);
+									uni.showToast({ title: `${err.errMsg}`, icon: 'none' });
+								}
+							})
+						}
 					}
-				}
-			})
+				})
+			} catch (e) {
+				uni.showToast({ title: e, icon: 'none' })
+			}	
 		},
 
 		// 拍照完成照片点击
 		completeClickEvent () {
-			this.photoType = 2;
-			this.clickIssue = false;
-			this.clickComplete = true;
-			if (this.completeImageList.length == 5) {
-				this.$refs.uToast.show({
-					message: "至多只能上传5张图片",
-					position: 'center'
-				});
-				return
-			};
-			let that = this;
-			uni.chooseImage({
-				count: 5,
-				sizeType: ['original', 'compressed'],
-				sourceType: ['album', 'camera'],
-				success: function(res) {
-					uni.previewImage({
-						urls: res.tempFilePaths
+			try {
+				this.photoType = 2;
+				this.clickIssue = false;
+				this.clickComplete = true;
+				if (this.completeImageList.length == 5) {
+					this.$refs.uToast.show({
+						message: "至多只能上传5张图片",
+						position: 'center'
 					});
-					for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
-						let url = res.tempFiles[imgI].path;
-						//获取最后一个的位置
-						let index = url.lastIndexOf(".");
-						//获取后缀
-						let jpgUrl = url.substr(index + 1);
-						if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
-							that.$refs.uToast.show({
-								message: '只可上传jpg或png格式的图片!',
-								type: 'error',
-								position: 'center'
-							});
-							continue
-						};
-						let isLt2M = res.tempFiles[imgI].size/1024/1024 <= 16;
-						if (!isLt2M) {
-							that.$refs.uToast.show({
-								message: '图片必须小于16MB!',
-								type: 'error',
-								position: 'center'
-							});
-							continue
-						};
-						that.completeFileList.push(res.tempFiles[imgI]['path']);
-						uni.getFileSystemManager().readFile({
-							filePath: res.tempFilePaths[imgI],
-							encoding: 'base64',
-							success: res => {
-								let base64 = 'data:image/jpeg;base64,' + res.data;
-								that.completeImageList.push(base64);
-								that.storePhoto(that.completeFileList,that.photoType);
-							}
-						})
+					return
+				};
+				let that = this;
+				uni.chooseImage({
+					count: 5,
+					sizeType: ['original', 'compressed'],
+					sourceType: ['album', 'camera'],
+					success: function(res) {
+						uni.previewImage({
+							urls: res.tempFilePaths
+						});
+						for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
+							let url = res.tempFiles[imgI].path;
+							//获取最后一个的位置
+							let index = url.lastIndexOf(".");
+							//获取后缀
+							let jpgUrl = url.substr(index + 1);
+							if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
+								that.$refs.uToast.show({
+									message: '只可上传jpg或png格式的图片!',
+									type: 'error',
+									position: 'center'
+								});
+								continue
+							};
+							let isLt2M = res.tempFiles[imgI].size/1024/1024 <= 16;
+							if (!isLt2M) {
+								that.$refs.uToast.show({
+									message: '图片必须小于16MB!',
+									type: 'error',
+									position: 'center'
+								});
+								continue
+							};
+							that.completeFileList.push(res.tempFiles[imgI]['path']);
+							uni.getFileSystemManager().readFile({
+								filePath: res.tempFilePaths[imgI],
+								encoding: 'base64',
+								success: res => {
+									let base64 = 'data:image/jpeg;base64,' + res.data;
+									that.completeImageList.push(base64);
+									that.storePhoto(that.completeFileList,that.photoType);
+								},
+								fail: function(err) {
+									console.log(err);
+									uni.showToast({ title: `${err.errMsg}`, icon: 'none' });
+								}
+							})
+						}
 					}
-				}
-			})
+				})
+			} catch (e) {
+				uni.showToast({ title: e, icon: 'none' })
+			}		
 		},
 		
 		
@@ -468,7 +486,7 @@
 			this.photoType = 1;
 			this.issueImageList.splice(index,1);
 			this.issueFileList.splice(index,1);
-			storePhoto(this.issueImageList,this.photoType)
+			this.storePhoto(this.issueImageList,this.photoType)
 		},
 
 		// 完成照片删除
@@ -476,12 +494,11 @@
 			this.photoType = 2;
 			this.completeImageList.splice(index,1);
 			this.completeFileList.splice(index,1);
-			storePhoto(this.completeImageList,this.photoType)
+			this.storePhoto(this.completeImageList,this.photoType)
 		},
 			
 		// 搜索事件
 		searchEvent () {
-			debugger;
 			if (this.searchValue == '') {
 				this.getAllMaterial({
 					proId: this.proId,
@@ -495,7 +512,8 @@
 
 		// 添加确认
 		toolSure () {
-			if (this.selectedMaterialIds.length == 0) {
+			const checkConsumableList = this.inventoryMsgList.filter(order => this.selectedMaterialIds.includes(order.id) && !order.disabled);
+			if (checkConsumableList.length == 0) {
 				this.$refs.uToast.show({
 					message: '至少要选择一种耗材',
 					type: 'error',
@@ -504,7 +522,6 @@
 			} else {
 				this.toolShow = false;
 				this.materialContentShow = true;
-				const checkConsumableList = this.inventoryMsgList.filter(order => this.selectedMaterialIds.includes(order.id));
 				for (let item of checkConsumableList) {
 					this.consumableMsgList.push({
 						number: 0,
@@ -562,12 +579,15 @@
 							// 添加过的物料不允许再次添加,数量为0不容许选择操作
 							let isExist = this.consumableMsgList.filter((innerItem) => { return innerItem.mateId == item.id});
 							if (isExist.length > 0) {
-								item['disabled'] = true
+								item['disabled'] = true;
+								item['checked'] = true
 							} else {
 								if (item.quantity > 0) {
-									item['disabled'] = false
+									item['disabled'] = false;
+									item['checked'] = false
 								} else {
-									item['disabled'] = true
+									item['disabled'] = true;
+									item['checked'] = true
 								}
 							}
 						};
@@ -582,6 +602,12 @@
 							position: 'center'
 						})
 					}
+				} else {
+					this.$refs.uToast.show({
+						message: res.data.msg,
+						type: 'error',
+						position: 'center'
+					})
 				}
 			})
 			.catch((err) => {
@@ -596,6 +622,9 @@
 		// 是否删除耗材确定事件
 		isDeleteSure () {
 			this.isDeleteShow = false;
+			this.selectedMaterialIds = this.selectedMaterialIds.filter((item) => {
+				return item != this.consumableMsgList[this.consumableIndex]['mateId']
+			});
 			this.consumableMsgList.splice(this.consumableIndex,1)
 		},
 
@@ -623,15 +652,14 @@
 		
 		// 物料选择列表复选框变化事件
 		handleMaterialListChange(value) {
-			
 		},
 
 		// 步进器值变化事件
 		stepValueChange (item,index,val) {
 			if (item.quantity == null) { return};
-			if (val === "") {return};
+			if (val['value'] === "") {return};
 			this.consumableIndex = index;
-			if (val == 0) {
+			if (val['value'] == 0) {
 				if (!this.isDeleteShow) {
 					this.isDeleteShow = true;
 					return
@@ -816,21 +844,6 @@
 							position: 'center'
 						})
 					}
-				}
-			})
-			.catch((err) => {
-				this.$refs.uToast.show({
-					message: err,
-					type: 'error',
-					position: 'center'
-				})
-			})
-		},
-
-		// 确认任务开始
-		sureTask (data) {
-			sureStartTask(data).then((res) => {
-				if(res && res.data.code == 200) {
 				}
 			})
 			.catch((err) => {

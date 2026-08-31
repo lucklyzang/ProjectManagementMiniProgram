@@ -16,7 +16,7 @@
 				<ElectronicSignature ref="mychild"></ElectronicSignature>
 			</view>
 			<view class="content-bottom">
-				<text @click="sure">确认</text>
+				<text @click="$noMultipleClicks(sure)">确认</text>
 				<text @click="rewrite">重写</text>
 				<text @click="cancel">取消</text>
 			</view>
@@ -42,6 +42,7 @@
 			return {
 				noClick: true,
 				infoText: '修改中···',
+				noClick: true,
 				showLoadingHint: false
 			}
 		},
@@ -146,10 +147,7 @@
 					if (res && res.data.code == 200) {
 						this.clearPhotoList();
 						this.clearStoragePhoto();
-						uni.showToast({
-						  title: res.data.msg,
-						  icon: 'success'
-						});
+						console.log('签名成功，准备跳转',res.data.msg);
 						uni.navigateTo({
 							url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderCheck'
 						})

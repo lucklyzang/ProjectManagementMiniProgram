@@ -48,7 +48,7 @@
 			</view>
 			<view class="content-bottom">
 				<view class="back-home"  @click="addConsumable">添加物资</view>
-				<view class="quit-account" @click="sure">确认</view>
+				<view class="quit-account" @click="$noMultipleClicks(sure)">确认</view>
 			</view>
 		</view>
 		<view class="infoDialog">
@@ -95,6 +95,7 @@
 												:name="item.id"
 												shape="square" 
 												:disabled="item.disabled"
+												:checked="item.checked"
 											>
 											</u-checkbox>
 										</view>
@@ -128,6 +129,7 @@
 			return {
 				infoText: '加载中···',
 				showLoadingHint: false,
+				noClick: true,
 				toolShow: false,
 				materialShow: false,
 				isDeleteShow: false,
@@ -279,12 +281,15 @@
 								// 添加过的物料不允许再次添加,数量为0不容许选择操作
 								let isExist = this.consumableMsgList.filter((innerItem) => { return innerItem.mateId == item.id});
 								if (isExist.length > 0) {
-									item['disabled'] = true
+									item['disabled'] = true;
+									item['checked'] = true;
 								} else {
 									if (item.quantity > 0) {
-										item['disabled'] = false
+										item['disabled'] = false;
+										item['checked'] = false;
 									} else {
-										item['disabled'] = true
+										item['disabled'] = true;
+										item['checked'] = true;
 									}
 								}
 							};
@@ -299,6 +304,12 @@
 								position: 'center'
 							})
 						}
+					} else {
+						this.$refs.uToast.show({
+							message: res.data.msg,
+							type: 'error',
+							position: 'center'
+						})
 					}
 				})
 				.catch((err) => {
@@ -340,7 +351,8 @@
 
 			// 添加确认
 			toolSure () {
-				if (this.selectedMaterialIds.length == 0) {
+				const checkConsumableList = this.inventoryMsgList.filter(order => this.selectedMaterialIds.includes(order.id) && !order.disabled);
+				if (checkConsumableList.length == 0) {
 					this.$refs.uToast.show({
 						message: '至少要选择一种耗材',
 						type: 'error',
@@ -350,7 +362,6 @@
 					this.toolShow = false;
 					this.materialShow = false;
 					this.materialContentShow = true;
-					const checkConsumableList = this.inventoryMsgList.filter(order => this.selectedMaterialIds.includes(order.id));
 					for (let item of checkConsumableList) {
 						 this.consumableMsgList.push({
 								number: 0,
@@ -390,11 +401,13 @@
 
 			// 步进器值变化事件
 			stepValueChange (item,index,val) {
-				if (val === "") {return};
+				if (val['value'] === "") {return};
 				this.consumableIndex = index;
-				if (val == 0) {
-					this.isDeleteShow = true;
-					return
+				if (val['value'] == 0) {
+					if (!this.isDeleteShow) {
+						this.isDeleteShow = true;
+						return
+					}
 				};
 				if (val > item.quantity) {
 					this.$refs.uToast.show({
@@ -417,12 +430,17 @@
 
 			 // 是否删除耗材确定事件
 			isDeleteSure () {
+				this.isDeleteShow = false;
+				this.selectedMaterialIds = this.selectedMaterialIds.filter((item) => {
+					return item != this.consumableMsgList[this.consumableIndex]['mateId']
+				});
 				this.consumableMsgList.splice(this.consumableIndex,1)
 			},
 
 			// 是否删除耗材取消事件
 			isDeleteCancel () {
 				// 耗材数量恢复为0之前的值
+				this.isDeleteShow = false;
 				this.consumableMsgList[this.consumableIndex]['number'] = this.lastConsumableNumber
 			},
 
@@ -448,6 +466,7 @@
 							mateName: item.mateName,
 							mateNumber: item.mateNumber,
 							model: item.model,
+							unit: item.unit,
 							storeId: this.storeId,
 							systemId: this.systemId
 						}

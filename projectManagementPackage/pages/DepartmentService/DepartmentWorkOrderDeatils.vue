@@ -48,7 +48,7 @@
 			</view>
 			<view class="content-bottom" v-if="departmentServiceMsg.state !== 4">
 				<view class="back-home"  @click="fillConsumable">扫一扫</view>
-				<view class="quit-account" v-if="departmentServiceMsg.state != 3" @click="completeTask">完成巡检</view>
+				<view class="quit-account" v-if="departmentServiceMsg.state != 3" @click="$noMultipleClicks(completeTask)">完成巡检</view>
 				<view class="quit-account" v-if="departmentServiceMsg.state == 3" @click="signatureClick">签字</view>
 			</view>
 		</view>
@@ -78,6 +78,7 @@
 			return {
 				infoText: '修改中···',
 				showLoadingHint: false,
+				noClick: true,
 				oneRepairsMsg: '',
 				departmentId: '',
 				departmentNo: '',

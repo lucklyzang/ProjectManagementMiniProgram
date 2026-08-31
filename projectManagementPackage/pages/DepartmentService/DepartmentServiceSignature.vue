@@ -16,7 +16,7 @@
 			  <ElectronicSignature ref="mychild"></ElectronicSignature>
 			</view>
 			<view class="content-bottom">
-				<text @click="sure">确认</text>
+				<text @click="$noMultipleClicks(sure)">确认</text>
 				<text @click="rewrite">重写</text>
 				<text @click="cancel">取消</text>
 			</view>
@@ -47,6 +47,7 @@
 			return {
 				infoText: '加载中···',
 				showLoadingHint: false,
+				noClick: true,
 				currentDepartmentId: ''
 			}
 		},

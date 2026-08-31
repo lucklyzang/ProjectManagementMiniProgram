@@ -342,7 +342,7 @@ export function noMultipleClicks(methods, info) {
 			};
 			setTimeout(()=> {
 					that.noClick= true;
-			}, 1000)
+			}, 2000)
 	} else {
 	}
 }
