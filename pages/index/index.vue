@@ -24,7 +24,7 @@
 				<view class="content-middle-title">任务看板</view>
 					<view class="content-middle-task-name">
 						<view v-for="(item,index) in taskList" :key="index" @click="taskClickEvent(item,index)">
-							<text class="task-length" :class="{daskListSignStyle:isExist(item.tit)}" v-show="item.count !== null && item.count !== '' && item.count !== 0">{{ item.count }}</text>
+							<text class="task-length" :class="{daskListSignStyle:isExist(item.tit)}" v-if="item.count !== null && item.count !== '' && item.count !== 0">{{ item.count }}</text>
 							<view class="task-button-wrapper">
 								<image :src="btnTaskWrapperPng" mode="widthFix"></image>
 							</view>
@@ -69,10 +69,10 @@
 				isTimeoutContinue: true,
 				taskList: [
 					{tit:'报修工单', imgUrl: repairsWorkOrderOnePng, value: 'bxTask', count: 0},
-					{tit:'设备巡检', imgUrl: deviceServiceOnePng, value: 'sxTask', count: 0},
+					// {tit:'设备巡检', imgUrl: deviceServiceOnePng, value: 'sxTask', count: 0},
 					{tit:'区域巡检', imgUrl: departmentServiceOnePng, value: 'kxTask', count: 0},
-					{tit:'调度管理', imgUrl: dispatchingManagementPng, value: 'dgTask', count: 0},
-					{tit:'自主报修', imgUrl: autoRepairPng, value: 'zizhuTask', count: 0}
+					// {tit:'调度管理', imgUrl: dispatchingManagementPng, value: 'dgTask', count: 0},
+					// {tit:'自主报修', imgUrl: autoRepairPng, value: 'zizhuTask', count: 0}
 				],
 				defaultPersonPng: require('@/static/img/default-person-photo.png'),
 				btnTaskWrapperPng: require('@/static/img/btn-background.png'),

@@ -132,6 +132,11 @@
 						}).then((res) => {
 								this.showLoadingHint = false;
 								if (res && res.data.code == 200) {
+									uni.showToast({
+									  title: '签名成功',
+									  icon: 'success'
+									});
+									this.rewrite();
 									this.updateTaskComplete(this.proId, this.taskId)
 								} else {
 									uni.showToast({
@@ -157,9 +162,10 @@
 							this.showLoadingHint = false;
 							if (res && res.data.code == 200) {
 								uni.showToast({
-								  title: res.data.data,
+								  title: '签名成功',
 								  icon: 'success'
 								});
+								this.rewrite();
 								uni.navigateBack({
 									delta: 2
 								})

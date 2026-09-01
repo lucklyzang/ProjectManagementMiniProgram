@@ -201,8 +201,8 @@
 									<view>操作</view>
 								</view>
 								<u-checkbox-group v-model="selectedMaterialIds" placement="column"  @change="handleMaterialListChange">
-									<view v-for="(item,index) in inventoryMsgList" :key="index" class="circulation-area-content">
-										<view @click="mateNameEvent(item,index)">
+									<view v-for="(item,index) in inventoryMsgList" @click="mateNameEvent(item,index)" :key="index" class="circulation-area-content">
+										<view>
 											{{item.mateName}}-{{item.model}}
 										</view>
 										<view>
@@ -216,7 +216,9 @@
 												:key="item.id"
 												:name="item.id"
 												shape="square"
-												:checked="item.checked"
+												:checked="selectedMaterialIds.includes(item.id)"
+												@click.stop
+												@change="onCheckboxChange"
 												:disabled="item.disabled"
 											>
 											</u-checkbox>
@@ -424,16 +426,23 @@
 			this.toolShow = false;
 		},
 
+		// checkbox 自身点击（阻止冒泡后单独处理）
+		onCheckboxChange(val) {
+			const index = this.selectedMaterialIds.indexOf(val.name);
+			if (val.checked && index === -1) {
+				this.selectedMaterialIds.push(val.name)
+			} else if (!val.checked && index > -1) {
+				this.selectedMaterialIds.splice(index, 1)
+			}
+		},
+		
 		// 耗材名称点击事件
-		mateNameEvent (name,index) {
-			this.inventoryMsgList[index]['checked'] = !this.inventoryMsgList[index]['checked'];
-			if (this.inventoryMsgList[index]['checked']) {
-				this.selectedMaterialIds.push(this.inventoryMsgList[index]['id'])
+		mateNameEvent (name) {
+			const index = this.selectedMaterialIds.indexOf(name.id)
+			if (index > -1) {
+				this.selectedMaterialIds.splice(index, 1)
 			} else {
-				let currentIndex = this.selectedMaterialIds.indexOf(this.inventoryMsgList[index]['id']);
-				if (currentIndex != -1) {
-					this.selectedMaterialIds.splice(currentIndex,1)
-				}
+				this.selectedMaterialIds.push(name.id)
 			}
 		},
 
@@ -461,17 +470,18 @@
 							let isExist = this.consumableMsgList.filter((innerItem) => { return innerItem.mateId == item.id});
 							if (isExist.length > 0) {
 								item['disabled'] = true;
-								item['checked'] = true;
+								if (this.isFirstShow) {
+									this.selectedMaterialIds.push(item.id);
+								}
 							} else {
 								if (item.quantity > 0) {
-									item['disabled'] = false;
-									item['checked'] = false;
+									item['disabled'] = false
 								} else {
-									item['disabled'] = true;
-									item['checked'] = true;
+									item['disabled'] = true
 								}
 							}
 						};
+						this.isFirstShow = false;
 						this.inventoryMsgList = res.data.data;
 						this.temporaryInventoryMsgList = res.data.data;
 						this.storeId = this.inventoryMsgList[0]['storeId'];
@@ -1158,7 +1168,7 @@
 									line-height: 40px;
 									font-size: 16px;
 									&:first-child {
-										width: 55%;
+										width: 58%;
 										overflow-x: auto;
 										white-space: nowrap;
 										margin-right: 2%;
@@ -1189,7 +1199,7 @@
 									font-size: 17px;
 									font-weight: bold;
 									&:first-child {
-										width: 55%;
+										width: 58%;
 										margin-right: 2%;
 									};
 									&:nth-child(2) {

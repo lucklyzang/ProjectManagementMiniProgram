@@ -136,7 +136,10 @@
 			
 			// 查询单条科室巡检任务信息
 			getOneDepartmentService () {
+				this.infoText ='加载中···';
+				this.showLoadingHint = true;
 				queryOneDepartmentService(this.taskId).then((res) => {
+					this.showLoadingHint = false;
 					if(res && res.data.code == 200) {
 						let temporaryOneRepairsMsg = res.data.data;
 						temporaryOneRepairsMsg.spaces = res.data.data.spaces;
@@ -171,6 +174,7 @@
 					}
 				})
 				.catch((err) => {
+					this.showLoadingHint = false;
 					this.$refs.uToast.show({
 						message: err,
 						type: 'error',
@@ -193,27 +197,18 @@
 					});
 					return
 				};
-				// 存储扫码校验通过的科室编号
-				this.storeDepartmentNumber('hcgzs');
-				// 存储当前扫码校验通过的科室id
-				this.storeCurrentDepartmentNumber(2343);
-				// 存储当前扫码校验通过的科室编号
-				this.changeDepartmentServiceOfficeId('hcgzs');
-				uni.navigateTo({
-					url: '/projectManagementPackage/pages/DepartmentService/DepartmentServiceBill'
+				uni.scanCode({
+					onlyFromCamera: true, // 只允许相机扫码
+					scanType: ['qrCode'], // 只扫二维码
+					success: (res) => {
+						this.scanQRcodeCallback(res.result)
+					},
+					fail: (err) => {
+						if (err.errMsg !== 'scanCode:fail cancel') {
+							uni.showToast({ title: '扫码失败', icon: 'none' });
+						}
+					}
 				})
-				// uni.scanCode({
-				// 	onlyFromCamera: true, // 只允许相机扫码
-				// 	scanType: ['qrCode'], // 只扫二维码
-				// 	success: (res) => {
-				// 		this.scanQRcodeCallback(res.result)
-				// 	},
-				// 	fail: (err) => {
-				// 		if (err.errMsg !== 'scanCode:fail cancel') {
-				// 			uni.showToast({ title: '扫码失败', icon: 'none' });
-				// 		}
-				// 	}
-				// })
 			},
 
 			// 校验当前科室二维码

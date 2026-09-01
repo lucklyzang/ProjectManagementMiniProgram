@@ -111,10 +111,10 @@
 					.then((res) => {
 						if (res && res.data.code == 200) {
 							uni.showToast({
-							  title: res.data.msg,
+							  title: '签名成功',
 							  icon: 'success'
 							});
-							this.rewrite ();
+							this.rewrite();
 							this.updateTaskComplete()
 						} else {
 							uni.showToast({
@@ -145,9 +145,12 @@
 				})
 				.then((res) => {
 					if (res && res.data.code == 200) {
+						uni.showToast({
+						  title: '任务已完成',
+						  icon: 'success'
+						});
 						this.clearPhotoList();
 						this.clearStoragePhoto();
-						console.log('签名成功，准备跳转',res.data.msg);
 						uni.navigateTo({
 							url: '/projectManagementPackage/pages/RepairsWorkOrder/WorkOrderCheck'
 						})

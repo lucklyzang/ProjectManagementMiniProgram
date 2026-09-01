@@ -184,7 +184,10 @@
 
 			// 查询检查项
 			getExamineItems (data) {
+				this.infoText ='加载中···';
+				this.showLoadingHint = true;
 				queryExamineItems(data).then((res) => {
+					this.showLoadingHint = false;
 					if (res && res.data.code == 200) {
 						this.consumableMsgList = [];
 						if (res.data.data.length > 0) {
@@ -233,8 +236,7 @@
 										}
 									}
 								}
-							};
-							console.log('变',this.consumableMsgList)
+							}
 						} else {
 							this.$refs.uToast.show({
 								message: '没有查询到检查项',
@@ -251,6 +253,7 @@
 					}
 				})
 				.catch((err) => {
+					this.showLoadingHint = false;
 					this.$refs.uToast.show({
 						message: err,
 						type: 'error',
@@ -411,6 +414,8 @@
 					});
 					return
 				};
+				this.infoText ='提交中···';
+				this.showLoadingHint = true;
 				let temporaryCheckItems = [];
 				for (let item of this.consumableMsgList) {
 					temporaryCheckItems.push({
@@ -425,6 +430,7 @@
 					checkItems: temporaryCheckItems
 				};
 				postCheckResult(data).then((res) => {
+					this.showLoadingHint = false;
 					if (res && res.data.code == 200) {
 						this.changeIsSingleDepartmentSignature(true);
 						uni.navigateTo({
@@ -446,6 +452,7 @@
 					}
 				})
 				.catch((err) => {
+					this.showLoadingHint = false;
 					this.$refs.uToast.show({
 						message: err,
 						type: 'error',

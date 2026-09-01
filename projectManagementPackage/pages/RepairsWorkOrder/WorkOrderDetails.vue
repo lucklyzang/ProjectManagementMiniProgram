@@ -106,8 +106,8 @@
 				</view>
 				<view class="manage-wrapper">
 					<view class="mange-title">
-						<text>{{repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? "消耗耗材" : "耗材管理"}}</text>
-						<text @click="addConsumable" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">添加</text>
+						<text class="mange-title-one">{{repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? "消耗耗材" : "耗材管理"}}</text>
+						<text class="mange-title-two" @click="addConsumable" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">添加</text>
 					</view>
 					<view class="circulation-area">
 						<view v-for="(item,index) in consumableMsgList" :key="index">
@@ -173,8 +173,8 @@
 									<view>操作</view>
 								</view>
 								<u-checkbox-group v-model="selectedMaterialIds" placement="column"  @change="handleMaterialListChange">
-									<view v-for="(item,index) in inventoryMsgList" :key="index" class="circulation-area-content">
-										<view @click="mateNameEvent(item,index)">
+									<view v-for="(item,index) in inventoryMsgList" @click="mateNameEvent(item,index)" :key="index" class="circulation-area-content">
+										<view>
 											{{item.mateName}}-{{item.model}}
 										</view>
 										<view>
@@ -188,8 +188,10 @@
 												:key="item.id"
 												:name="item.id"
 												shape="square"
+												:checked="selectedMaterialIds.includes(item.id)"
+												@click.stop
+												@change="onCheckboxChange"
 												:disabled="item.disabled"
-												:checked="item.checked"
 											>
 											</u-checkbox>
 										</view>
@@ -224,6 +226,7 @@
 				infoText: '加载中···',
 				showLoadingHint: false,
 				noClick: true,
+				isChoosingImage: false,
 				rejectReason: '',
 				photoBox: false,
 				toolShow: false,
@@ -325,6 +328,10 @@
 		},
 		
 		onShow () {
+			if (this.isChoosingImage) {
+				this.isChoosingImage = false;
+				return
+			};
 			this.getOneRepairsProjectNoComplete(this.taskId);
 			this.parallelFunction();
 			this.echoIsMaterial();
@@ -359,13 +366,17 @@
 					return
 				};
 				let that = this;
+				that.isChoosingImage = true;
 				uni.chooseImage({
 					count: 5,
 					sizeType: ['original', 'compressed'],
 					sourceType: ['album', 'camera'],
 					success: function(res) {
 						uni.previewImage({
-							urls: res.tempFilePaths
+							urls: res.tempFilePaths,
+							complete:function() {
+								that.isChoosingImage = true
+							}
 						});
 						for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
 							let url = res.tempFiles[imgI].path;
@@ -405,6 +416,9 @@
 								}
 							})
 						}
+					},
+					complete:function() {
+						that.isChoosingImage = true
 					}
 				})
 			} catch (e) {
@@ -426,13 +440,17 @@
 					return
 				};
 				let that = this;
+				that.isChoosingImage = true;
 				uni.chooseImage({
 					count: 5,
 					sizeType: ['original', 'compressed'],
 					sourceType: ['album', 'camera'],
 					success: function(res) {
 						uni.previewImage({
-							urls: res.tempFilePaths
+							urls: res.tempFilePaths,
+							complete:function() {
+								that.isChoosingImage = true
+							}
 						});
 						for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
 							let url = res.tempFiles[imgI].path;
@@ -464,7 +482,7 @@
 								success: res => {
 									let base64 = 'data:image/jpeg;base64,' + res.data;
 									that.completeImageList.push(base64);
-									that.storePhoto(that.completeFileList,that.photoType);
+									that.storePhoto(that.completeImageList,that.photoType);
 								},
 								fail: function(err) {
 									console.log(err);
@@ -472,6 +490,9 @@
 								}
 							})
 						}
+					},
+					complete:function() {
+						that.isChoosingImage = true
 					}
 				})
 			} catch (e) {
@@ -543,19 +564,6 @@
 			this.toolShow = false;
 		},
 
-		// 耗材名称点击事件
-		mateNameEvent (name,index) {
-			this.inventoryMsgList[index]['checked'] = !this.inventoryMsgList[index]['checked'];
-			if (this.inventoryMsgList[index]['checked']) {
-				this.selectedMaterialIds.push(this.inventoryMsgList[index]['id'])
-			} else {
-				let currentIndex = this.selectedMaterialIds.indexOf(this.inventoryMsgList[index]['id']);
-				if (currentIndex != -1) {
-					this.selectedMaterialIds.splice(currentIndex,1)
-				}
-			}
-		},
-
 		// 添加物质
 		addConsumable () {
 			this.toolShow = true;
@@ -580,17 +588,18 @@
 							let isExist = this.consumableMsgList.filter((innerItem) => { return innerItem.mateId == item.id});
 							if (isExist.length > 0) {
 								item['disabled'] = true;
-								item['checked'] = true
+								if (this.isFirstShow) {
+									this.selectedMaterialIds.push(item.id);
+								}
 							} else {
 								if (item.quantity > 0) {
-									item['disabled'] = false;
-									item['checked'] = false
+									item['disabled'] = false
 								} else {
-									item['disabled'] = true;
-									item['checked'] = true
+									item['disabled'] = true
 								}
 							}
 						};
+						this.isFirstShow = false;
 						this.inventoryMsgList = res.data.data;
 						this.temporaryInventoryMsgList = res.data.data;
 						this.storeId = this.inventoryMsgList[0]['storeId'];
@@ -653,7 +662,27 @@
 		// 物料选择列表复选框变化事件
 		handleMaterialListChange(value) {
 		},
-
+		
+		// checkbox 自身点击（阻止冒泡后单独处理）
+		onCheckboxChange(val) {
+			const index = this.selectedMaterialIds.indexOf(val.name);
+			if (val.checked && index === -1) {
+				this.selectedMaterialIds.push(val.name)
+			} else if (!val.checked && index > -1) {
+				this.selectedMaterialIds.splice(index, 1)
+			}
+		},
+		
+		// 耗材名称点击事件
+		mateNameEvent (name) {
+			const index = this.selectedMaterialIds.indexOf(name.id)
+			if (index > -1) {
+				this.selectedMaterialIds.splice(index, 1)
+			} else {
+				this.selectedMaterialIds.push(name.id)
+			}
+		},
+		
 		// 步进器值变化事件
 		stepValueChange (item,index,val) {
 			if (item.quantity == null) { return};
@@ -1219,7 +1248,7 @@
 									line-height: 40px;
 									font-size: 16px;
 									&:first-child {
-										width: 55%;
+										width: 58%;
 										overflow-x: auto;
 										white-space: nowrap;
 										margin-right: 2%;
@@ -1250,7 +1279,7 @@
 									font-size: 17px;
 									font-weight: bold;
 									&:first-child {
-										width: 55%;
+										width: 58%;
 										margin-right: 2%;
 									};
 									&:nth-child(2) {
@@ -1520,19 +1549,19 @@
 							 position: absolute;
 							 top: 50%;
 							 transform: translateY(-50%);
-							 &:first-child {
-								 left: 10px;
-							 };
-							 &:last-child {
-								 right: 10px;
-								 width: 55px;
-								 height: 30px;
-								 text-align: center;
-								 line-height: 30px;
-								 border-radius: 6px;
-								 background: #2db8f9;
-								 color: #fff
-							 }
+						 };
+						 .mange-title-one {
+							 left: 10px;
+						 };
+						 .mange-title-two {
+							 right: 10px;
+							 width: 55px;
+							 height: 30px;
+							 text-align: center;
+							 line-height: 30px;
+							 border-radius: 6px;
+							 background: #2db8f9;
+							 color: #fff
 						 }
 					 };
 					 .circulation-area {

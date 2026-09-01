@@ -10,7 +10,7 @@
 		<view class="nav" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }">
 			<nav-bar :home="false" :isShowBackText="true" backState='3000' fontColor="#FFF" bgColor="none" title="报修工单" @backClick="backTo">
 				<template slot="right">
-					<view v-if="currentIndex == 0" slot="right" class="left-text" @click="managementEvent">{{ isManagementClick ? '退出管理' : '管理' }}</view>
+					<view v-if="currentIndex == 0 && taskMessageList.length > 0" slot="right" class="left-text" @click="managementEvent">{{ isManagementClick ? '退出管理' : '管理' }}</view>
 				</template>
 			</nav-bar> 
 		</view>
@@ -319,9 +319,9 @@
 					this.taskMessageList = this.temporaryTaskMessageList
 				};
 				if (this.taskMessageList.length == 0) {
-					
+					this.isShowNoData = true
 				} else {
-					
+					this.isShowNoData = false
 				}
 			},
 			
