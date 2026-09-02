@@ -1,7 +1,7 @@
 <template>
 	<view class="container">
 		<u-transition :show="showLoadingHint" mode="fade-down">
-			<view class="loading-box" v-if="showLoadingHint">
+			<view class="loading-box">
 				<u-loading-icon :show="showLoadingHint" :text="infoText" size="18" textSize="16"></u-loading-icon>
 			</view>
 		</u-transition>

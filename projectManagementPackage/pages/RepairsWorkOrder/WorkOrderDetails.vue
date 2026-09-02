@@ -1,7 +1,7 @@
 <template>
 	<view class="content-box">
 		<u-transition :show="showLoadingHint" mode="fade-down">
-			<view class="loading-box" v-if="showLoadingHint">
+			<view class="loading-box">
 				<u-loading-icon :show="showLoadingHint" :text="infoText" size="18" textSize="16"></u-loading-icon>
 			</view>
 		</u-transition>
@@ -321,7 +321,12 @@
 						// 如果新值包含空格，则重新赋值为去除空格后的字符串
 						if (/\s/g.test(newVal)) {
 							this.searchValue = newVal.replace(/\s/g, '')
-						}
+						};
+						if (this.searchValue == '') {
+							this.inventoryMsgList = this.temporaryInventoryMsgList;
+							return
+						};
+						this.inventoryMsgList = this.temporaryInventoryMsgList.filter((item) => {return item.mateName.indexOf(this.searchValue) != -1})
 					})
 				}
 			}
@@ -520,15 +525,17 @@
 			
 		// 搜索事件
 		searchEvent () {
-			if (this.searchValue == '') {
-				this.getAllMaterial({
-					proId: this.proId,
-					state: 0
-				});
-				return
-			};
-			this.inventoryMsgList = [];
-			this.inventoryMsgList = this.temporaryInventoryMsgList.filter((item) => {return item.mateName.indexOf(this.searchValue) != -1})
+			this.$nextTick(() => {
+				// 如果新值包含空格，则重新赋值为去除空格后的字符串
+				if (/\s/g.test(this.searchValue)) {
+					this.searchValue = newVal.replace(/\s/g, '')
+				};
+				if (this.searchValue == '') {
+					this.inventoryMsgList = this.temporaryInventoryMsgList;
+					return
+				};
+				this.inventoryMsgList = this.temporaryInventoryMsgList.filter((item) => {return item.mateName.indexOf(this.searchValue) != -1})
+			})
 		},
 
 		// 添加确认
@@ -1231,13 +1238,21 @@
 								padding: 0 6px !important;
 								box-sizing: border-box;
 							}
-						}
+						};
+						.u-checkbox-group--column {
+							flex: 1;
+							height: 0;
+							overflow: auto;
+						};
 						.tool-name-list-content {
 							flex: 1;
 							padding: 6px;
 							overflow: auto;
 							box-sizing: border-box;
 							border-top: 1px solid #b2b2b2;
+							display: flex;
+							flex-direction: column;
+							height: 0;
 							.circulation-area-content {
 								height: 40px;
 								background: #fff;

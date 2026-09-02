@@ -317,9 +317,16 @@ import { base64ImgtoFile } from '@/common/js/utils'
 			            filePath: res.tempFilePath,
 			            encoding: 'base64',
 			            success: (fileRes) => {
-			              resolve('data:image/png;base64,' + fileRes.data)
+										//读完后立即删除临时文件
+										fs.unlink({
+											filePath: res.tempFilePath,
+											fail: () => {} // 忽略删除失败
+										});
+										resolve('data:image/png;base64,' + fileRes.data)
 			            },
 			            fail: () => {
+										// 降级时也删除
+										fs.unlink({ filePath: res.tempFilePath, fail: () => {} });
 			              // 最终降级：返回文件路径
 			              resolve(res.tempFilePath)
 			            }

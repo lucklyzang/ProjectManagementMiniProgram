@@ -157,7 +157,7 @@
 			queryNewWork (proId,workerId) {
 				this.isTimeoutContinue = false;
 				const audioCtx = uni.createInnerAudioContext();
-				audioCtx.src = '/static/task-info-voice.wav'; // 推荐使用 HTTPS 链接
+				audioCtx.src = 'static/task-info-voice.wav'; // 推荐使用 HTTPS 链接
 				audioCtx.volume = 0.8; // 设置音量 (0~1)
 				getNewWork(proId,workerId).then((res) => {
 					// token过期,清除定时器

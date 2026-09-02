@@ -1,7 +1,7 @@
 <template>
 	<view class="content-box">
 		<u-transition :show="showLoadingHint" mode="fade-down">
-			<view class="loading-box" v-if="showLoadingHint">
+			<view class="loading-box">
 				<u-loading-icon :show="showLoadingHint" :text="infoText" size="18" textSize="16"></u-loading-icon>
 			</view>
 		</u-transition>
@@ -29,7 +29,7 @@
 								<text class="status-box" :class="{statusWaitSure:item.state == 1,statusWaitFinish: item.state == 3,statusWaitSignature: item.state == 4, statusWaitCheck:item.state == 8}">{{stateTransfer(item.state)}}</text>
 								<text class="task-date">{{item.planStartTime}}</text>
 								<view class="task-btn">
-									<text class="back" @click="taskBack(item)" v-if="item.state == 1 || item.state == 2">退回</text>
+									<text class="back" @click="taskBack(item,index)" v-if="item.state == 1 || item.state == 2">退回</text>
 									<text class="sure" @click="taskSure(item)" v-if="item.state == 1">确认</text>
 									<text class="view"  @click="taskView(item)" v-if="item.state !== 1">查看任务</text>
 								</view>
@@ -187,6 +187,7 @@
 				triggered: false,
 				isRefreshing: false,
 				taskId: '',
+				currentOrderIndex: '',
 				isActive: false,
 				isShowNoData: false,
 				infoText: '加载中,请稍候····',
@@ -440,24 +441,23 @@
 					return
 				};
 				this.reasonShow = false;
+				this.showLoadingHint = true;
+				this.infoText = '退回中···';
 				backRepairsTask({proId:this.proId, taskId:this.taskId,reason:this.reasonInputValue})
 				.then((res) => {
+					this.showLoadingHint = false;
 					if (res && res.data.code == 200) {
 						this.$refs.uToast.show({
 							message: res.data.msg,
 							type: 'success',
 							position: 'center'
 						});
-						this.showLoadingHint = true;
-						this.infoText = '加载中,请稍等···';
-						this.getRepairsProjectList({
-							proId: this.proId,
-							workerId: this.workerId,
-							state: -1,
-							startDate	: '',
-							endDate : '',
-							audit: this.userInfo.extendData.projectAudit
-						},0,'')
+						this.taskMessageList.splice(this.currentOrderIndex,1);
+						if (this.taskMessageList.length == 0) {
+							this.isShowNoData = true
+						} else {
+							this.isShowNoData = false
+						}
 					} else {
 						this.$refs.uToast.show({
 							message: res.data.msg,
@@ -467,6 +467,7 @@
 					}
 				})
 				.catch((err) => {
+					this.showLoadingHint = false;
 					this.$refs.uToast.show({
 						message: err,
 						type: 'error',
@@ -621,8 +622,9 @@
 			},
 
 			// 任务退回
-			taskBack (item) {
+			taskBack (item,index) {
 				this.taskId = item.id;
+				this.currentOrderIndex = index;
 				this.reasonShow = true;
 				this.reasonInputValue = '';
 				queryBackRepairsTaskReason({proId:this.proId})
