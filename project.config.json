@@ -38,5 +38,6 @@
     "include": []
   },
   "appid": "wxf7c555a2845b33e3",
-  "simulatorPluginLibVersion": {}
+  "simulatorPluginLibVersion": {},
+	"miniprogramRoot": "unpackage/dist/dev/mp-weixin/"
 }

@@ -79,6 +79,7 @@
 									<view>操作</view>
 								</view>
 								<u-checkbox-group v-model="selectedMaterialIds" placement="column"  @change="handleMaterialListChange">
+									<u-empty text="暂无数据" mode="list" v-if="inventoryMsgList.length == 0"></u-empty>
 									<view v-for="(item,index) in inventoryMsgList" @click="mateNameEvent(item,index)" :key="index" class="circulation-area-content">
 										<view>
 											{{item.mateName}}-{{item.model}}
@@ -577,6 +578,13 @@
 							flex: 1;
 							height: 0;
 							overflow: auto;
+							position: relative;
+							.u-empty {
+								position: absolute;
+								top: 50%;
+								left: 50%;
+								transform: translate(-50%,-50%)
+							}
 						};
 						.tool-name-list-content {
 							flex: 1;
