@@ -358,6 +358,58 @@
 				uni.navigateBack()
 			},
 			
+			/**
+			 *检查微信小程序摄像头权限
+			 * @param {Function} successCallback 权限允许后的回调
+			*/
+			checkCameraPermission(successCallback) {
+				// #ifdef MP-WEIXIN
+				wx.getSetting({
+					success: (res) => {
+							// 如果用户之前明确拒绝过摄像头权限 (值为 false)
+							if (res.authSetting['scope.camera'] === false) {
+								uni.showModal({
+									title: '权限提示',
+									content: '您需要开启摄像头权限才能使用拍照功能，是否前往设置？',
+									confirmText: '去设置',
+									cancelText: '仅从相册选择',
+									success: (modalRes) => {
+										if (modalRes.confirm) {
+											// 用户点击“去设置”，打开微信设置页
+											wx.openSetting({
+												success: (settingRes) => {
+													// 如果在设置页开启了权限
+													if (settingRes.authSetting['scope.camera']) {
+														successCallback();
+													} else {
+														uni.showToast({ title: '您未开启摄像头权限', icon: 'none' });
+													}
+												}
+											})
+										} else if (modalRes.cancel) {
+											// 用户不想开权限，可以选择继续走流程（微信底层会处理无权限时的表现）
+											// 或者你可以在这里直接 return 阻止后续操作
+											successCallback();
+										}
+									}
+								})
+							} else {
+								// 权限为 true 或 undefined（从未询问过），均可直接调用
+								successCallback();
+							}
+						},
+						fail: () => {
+							// 获取设置失败，放行让微信自己处理
+							successCallback();
+						}
+				});
+				// #endif
+				// #ifndef MP-WEIXIN
+				// 非微信小程序平台，直接放行
+				successCallback()
+				// #endif
+			},
+			
 		// 拍照问题照片点击
 		issueClickEvent () {
 			try {
@@ -366,72 +418,113 @@
 				this.clickComplete = false;
 				if (this.issueImageList.length == 5) {
 					this.$refs.uToast.show({
-						message: "至多只能上传5张图片",
-						position: 'center'
+							message: "至多只能上传5张图片",
+							position: 'center'
 					});
-					return
+					return;
 				};
-				let that = this;
-				that.isChoosingImage = true;
-				uni.chooseImage({
-					count: 5,
-					sizeType: ['original', 'compressed'],
-					sourceType: ['album', 'camera'],
-					success: function(res) {
-						uni.previewImage({
-							urls: res.tempFilePaths,
-							complete:function() {
-								that.isChoosingImage = true
-							}
-						});
-						for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
-							let url = res.tempFiles[imgI].path;
-							//获取最后一个的位置
-							let index = url.lastIndexOf(".");
-							//获取后缀
-							let jpgUrl = url.substr(index + 1);
-							if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
-								that.$refs.uToast.show({
-									message: '只可上传jpg或png格式的图片!',
-									type: 'error',
-									position: 'center'
-								});
-								continue
-							};
-							let isLt2M = res.tempFiles[imgI].size/1024/1024 <= 16;
-							if (!isLt2M) {
-								that.$refs.uToast.show({
-									message: '图片必须小于16MB!',
-									type: 'error',
-									position: 'center'
-								});
-								continue
-							};
-							that.issueFileList.push(res.tempFiles[imgI]['path']);
-							uni.getFileSystemManager().readFile({
-								filePath: res.tempFilePaths[imgI],
-								encoding: 'base64',
-								success: res => {
-									let base64 = 'data:image/jpeg;base64,' + res.data;
-									that.issueImageList.push(base64);
-									that.storePhoto(that.issueImageList,that.photoType);
-								},
-								fail: function(err) {
-									console.log(err);
-									uni.showToast({ title: `${err.errMsg}`, icon: 'none' });
-								}
-							})
-						}
+				//前置校验隐私协议
+				// #ifdef MP-WEIXIN
+				wx.requirePrivacyAuthorize({
+					success: () => {
+						// 用户已同意隐私协议，进入第二步：检查摄像头权限
+						this.checkCameraPermission(() => {
+							// 权限校验通过，进入第三步：执行真正的选图逻辑
+							this.executeIssueChooseImage()
+						})
 					},
-					complete:function() {
-						that.isChoosingImage = true
+					fail: (err) => {
+						// 用户拒绝了隐私协议，或者触发了拒绝
+						uni.showToast({ 
+							title: '需同意隐私协议才能上传图片', 
+							icon: 'none',
+							duration: 2000
+						})
 					}
-				})
+				});
+				// #endif
+				// #ifndef MP-WEIXIN
+				// 非微信小程序平台（如 H5、App），不需要隐私校验，直接走原有逻辑
+				this.checkCameraPermission(() => {
+					this.executeIssueChooseImage()
+				});
+				// #endif
 			} catch (e) {
-				uni.showToast({ title: e, icon: 'none' })
-			}	
+				uni.showToast({ title: e.message || '发生异常', icon: 'none' });
+			}
 		},
-
+		
+		/**
+		 *  问题图片选择
+		*/
+		executeIssueChooseImage() {
+			let that = this;
+			that.isChoosingImage = true;
+			uni.chooseImage({
+				count: 5,
+				sizeType: ['original', 'compressed'],
+				sourceType: ['album', 'camera'],
+				success: function(res) {
+					uni.previewImage({
+						urls: res.tempFilePaths,
+						complete: function() {
+								that.isChoosingImage = true;
+						}
+					});
+					for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
+						let url = res.tempFiles[imgI].path;
+						//获取最后一个的位置
+						let index = url.lastIndexOf(".");
+						//获取后缀
+						let jpgUrl = url.substr(index + 1);
+						if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
+							that.$refs.uToast.show({
+								message: '只可上传jpg或png格式的图片!',
+								type: 'error',
+								position: 'center'
+							});
+							continue;
+						};
+						let isLt2M = res.tempFiles[imgI].size / 1024 / 1024 <= 16;
+						if (!isLt2M) {
+							that.$refs.uToast.show({
+								message: '图片必须小于16MB!',
+								type: 'error',
+								position: 'center'
+							});
+							continue;
+						};
+						that.issueFileList.push(res.tempFiles[imgI]['path']);
+						uni.getFileSystemManager().readFile({
+							filePath: res.tempFilePaths[imgI],
+							encoding: 'base64',
+							success: res => {
+								let base64 = 'data:image/jpeg;base64,' + res.data;
+								that.issueImageList.push(base64);
+								that.storePhoto(that.issueImageList, that.photoType);
+							},
+							fail: function(err) {
+								uni.showToast({ title: `${err.errMsg}`, icon: 'none' });
+							}
+						})
+					}
+				},
+				fail: function(err) {
+					const errMsg = err.errMsg || '';
+					if (errMsg.includes('cancel')) return;
+					// 处理隐私拒绝或系统异常
+					if (errMsg.includes('privacy') || errMsg.includes('deny')) {
+						uni.showToast({ title: '需同意隐私协议才能使用', icon: 'none' });
+					} else {
+						uni.showToast({ title: '选择图片失败', icon: 'none' });
+					}
+				},
+				complete: function() {
+					that.isChoosingImage = true;
+				}
+			})
+		},
+		
 		// 拍照完成照片点击
 		completeClickEvent () {
 			try {
@@ -445,68 +538,108 @@
 					});
 					return
 				};
-				let that = this;
-				that.isChoosingImage = true;
-				uni.chooseImage({
-					count: 5,
-					sizeType: ['original', 'compressed'],
-					sourceType: ['album', 'camera'],
-					success: function(res) {
-						uni.previewImage({
-							urls: res.tempFilePaths,
-							complete:function() {
-								that.isChoosingImage = true
-							}
-						});
-						for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
-							let url = res.tempFiles[imgI].path;
-							//获取最后一个的位置
-							let index = url.lastIndexOf(".");
-							//获取后缀
-							let jpgUrl = url.substr(index + 1);
-							if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
-								that.$refs.uToast.show({
-									message: '只可上传jpg或png格式的图片!',
-									type: 'error',
-									position: 'center'
-								});
-								continue
-							};
-							let isLt2M = res.tempFiles[imgI].size/1024/1024 <= 16;
-							if (!isLt2M) {
-								that.$refs.uToast.show({
-									message: '图片必须小于16MB!',
-									type: 'error',
-									position: 'center'
-								});
-								continue
-							};
-							that.completeFileList.push(res.tempFiles[imgI]['path']);
-							uni.getFileSystemManager().readFile({
-								filePath: res.tempFilePaths[imgI],
-								encoding: 'base64',
-								success: res => {
-									let base64 = 'data:image/jpeg;base64,' + res.data;
-									that.completeImageList.push(base64);
-									that.storePhoto(that.completeImageList,that.photoType);
-								},
-								fail: function(err) {
-									console.log(err);
-									uni.showToast({ title: `${err.errMsg}`, icon: 'none' });
-								}
-							})
-						}
+				//前置校验隐私协议
+				// #ifdef MP-WEIXIN
+				wx.requirePrivacyAuthorize({
+					success: () => {
+						// 用户已同意隐私协议，进入第二步：检查摄像头权限
+						this.checkCameraPermission(() => {
+							// 权限校验通过，进入第三步：执行真正的选图逻辑
+							this.executeCompleteChooseImage();
+						})
 					},
-					complete:function() {
-						that.isChoosingImage = true
+					fail: (err) => {
+						// 用户拒绝了隐私协议，或者触发了拒绝
+						uni.showToast({ 
+							title: '需同意隐私协议才能上传图片', 
+							icon: 'none',
+							duration: 2000
+						})
 					}
-				})
+				});
+				// #endif
+				// #ifndef MP-WEIXIN
+				// 非微信小程序平台（如 H5、App），不需要隐私校验，直接走原有逻辑
+				this.checkCameraPermission(() => {
+						this.executeCompleteChooseImage();
+				});
+				// #endif
 			} catch (e) {
-				uni.showToast({ title: e, icon: 'none' })
+				uni.showToast({ title: e.message || '发生异常', icon: 'none' })
 			}		
 		},
 		
-		
+		/**
+		 *  完成图片选择
+		*/
+		executeCompleteChooseImage() {
+			let that = this;
+			that.isChoosingImage = true;
+			uni.chooseImage({
+				count: 5,
+				sizeType: ['original', 'compressed'],
+				sourceType: ['album', 'camera'],
+				success: function(res) {
+					uni.previewImage({
+						urls: res.tempFilePaths,
+						complete:function() {
+							that.isChoosingImage = true
+						}
+					});
+					for (let imgI = 0, len = res.tempFilePaths.length; imgI < len; imgI++) {
+						let url = res.tempFiles[imgI].path;
+						//获取最后一个的位置
+						let index = url.lastIndexOf(".");
+						//获取后缀
+						let jpgUrl = url.substr(index + 1);
+						if (jpgUrl != "png" && jpgUrl != "jpg" && jpgUrl != "jpeg") {
+							that.$refs.uToast.show({
+								message: '只可上传jpg或png格式的图片!',
+								type: 'error',
+								position: 'center'
+							});
+							continue
+						};
+						let isLt2M = res.tempFiles[imgI].size/1024/1024 <= 16;
+						if (!isLt2M) {
+							that.$refs.uToast.show({
+								message: '图片必须小于16MB!',
+								type: 'error',
+								position: 'center'
+							});
+							continue
+						};
+						that.completeFileList.push(res.tempFiles[imgI]['path']);
+						uni.getFileSystemManager().readFile({
+							filePath: res.tempFilePaths[imgI],
+							encoding: 'base64',
+							success: res => {
+								let base64 = 'data:image/jpeg;base64,' + res.data;
+								that.completeImageList.push(base64);
+								that.storePhoto(that.completeImageList,that.photoType);
+							},
+							fail: function(err) {
+								console.log(err);
+								uni.showToast({ title: `${err.errMsg}`, icon: 'none' });
+							}
+						})
+					}
+				},
+				fail: function(err) {
+					const errMsg = err.errMsg || '';
+					if (errMsg.includes('cancel')) return;
+					// 处理隐私拒绝或系统异常
+					if (errMsg.includes('privacy') || errMsg.includes('deny')) {
+						uni.showToast({ title: '需同意隐私协议才能使用', icon: 'none' });
+					} else {
+						uni.showToast({ title: '选择图片失败', icon: 'none' });
+					}
+				},
+				complete:function() {
+					that.isChoosingImage = true
+				}
+			})
+		},
 
 		// 问题照片删除
 		issueDelete (index) {

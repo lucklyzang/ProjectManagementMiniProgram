@@ -60,18 +60,7 @@
         },
         "usingComponents" : true,
         "requiredBackgroundModes" : [ "record" ],
-        "__usePrivacyCheck__": true,
-        "permission" : {
-            "scope.camera" : {
-                "desc" : "需要使用相机进行扫码"
-            },
-						"scope.userCamera": {
-							"desc": "业务需求，用于拍照上传图片"
-						},
-						"scope.writePhotosAlbum": {
-							"desc": "用于保存拍摄内容至相册"
-						}
-        }
+        "__usePrivacyCheck__": true
     },
     // "lazyCodeLoading": "requiredComponents"
     "mp-alipay" : {

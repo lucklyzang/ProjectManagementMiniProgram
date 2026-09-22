@@ -182,7 +182,90 @@
 					})
 				})
 			},
+			
+			/**
+			 * 检查微信小程序摄像头权限
+			 * @param {Function} successCallback 权限允许后的回调
+			 */
+			checkCameraPermission(successCallback) {
+				// #ifdef MP-WEIXIN
+				wx.getSetting({
+					success: (res) => {
+						// 核心判断：如果 scope.camera 严格等于 false，说明用户之前明确拒绝过
+						if (res.authSetting['scope.camera'] === false) {
+							uni.showModal({
+								title: '权限提示',
+								content: '您已拒绝摄像头权限，无法进行扫码。请在设置中开启。',
+								confirmText: '去设置',
+								cancelText: '取消',
+								success: (modalRes) => {
+									if (modalRes.confirm) {
+										// 用户点击“去设置”，打开微信权限设置页
+										wx.openSetting({
+											success: (settingRes) => {
+												// 如果用户在设置页手动开启了摄像头
+												if (settingRes.authSetting['scope.camera']) {
+													successCallback()
+												} else {
+													uni.showToast({ title: '您未开启摄像头权限', icon: 'none' })
+												}
+											}
+										})
+									}
+								}
+							})
+						} else {
+							// 权限为 true（已授权）或 undefined（从未询问过，微信会自动弹系统授权框）
+							// 这两种情况都可以直接放行
+							successCallback()
+						}
+					},
+					fail: () => {
+						// 获取设置失败，放行让微信自己处理
+						successCallback()
+					}
+				});
+				// #endif
+				// #ifndef MP-WEIXIN
+				// 非微信小程序平台（如H5、App），直接放行
+				successCallback();
+				// #endif
+			},
 
+			/**
+			 * 步骤2：安全调用 uni.scanCode
+			*/
+			executeScanCode() {
+				uni.scanCode({
+					onlyFromCamera: true, // 只允许相机扫码
+					scanType: ['qrCode'], // 只扫二维码
+					success: (res) => {
+						this.scanQRcodeCallback(res.result)
+					},
+					fail: (err) => {
+						const errMsg = err.errMsg || '';
+						// 1. 用户主动点击左上角返回/取消扫码（正常行为，不提示）
+						if (errMsg.includes('cancel') || errMsg.includes('fail cancel')) {
+							return;
+						};
+						// 2. 隐私协议被拒绝（触发了官方弹窗但用户点了拒绝）
+						if (errMsg.includes('privacy permission is not authorized') || errMsg.includes('deny')) {
+							uni.showToast({ 
+								title: '需同意隐私协议才能使用扫码功能', 
+								icon: 'none',
+								duration: 2500
+							});
+							return;
+						};
+						// 3. 其他异常（如无摄像头设备、系统异常等）
+						uni.showToast({ 
+							title: '扫码失败，请重试', 
+							icon: 'none' 
+						})
+					}
+				})
+			},
+					
 			// 扫一扫
 			fillConsumable () {
 				// if (this.oneRepairsMsg.spaces.length == this.oneRepairsMsg.hasSpaces.length) {
@@ -197,18 +280,32 @@
 					});
 					return
 				};
-				uni.scanCode({
-					onlyFromCamera: true, // 只允许相机扫码
-					scanType: ['qrCode'], // 只扫二维码
-					success: (res) => {
-						this.scanQRcodeCallback(res.result)
+				//前置校验隐私协议
+				// #ifdef MP-WEIXIN
+				wx.requirePrivacyAuthorize({
+					success: () => {
+						// 用户已同意隐私协议，进入第二步：检查摄像头权限
+						this.checkCameraPermission(() => {
+							// 权限校验通过，进入第三步：执行真正的扫码逻辑
+							this.executeScanCode()
+						})
 					},
 					fail: (err) => {
-						if (err.errMsg !== 'scanCode:fail cancel') {
-							uni.showToast({ title: '扫码失败', icon: 'none' });
-						}
+						// 用户拒绝了隐私协议，或者触发了拒绝
+						uni.showToast({ 
+							title: '需同意隐私协议才能上传图片', 
+							icon: 'none',
+							duration: 2000
+						})
 					}
-				})
+				});
+				// #endif
+				// #ifndef MP-WEIXIN
+				// 非微信小程序平台（如 H5、App），不需要隐私校验，直接走原有逻辑
+				this.checkCameraPermission(() => {
+					this.executeScanCode()
+				});
+				// #endif
 			},
 
 			// 校验当前科室二维码
