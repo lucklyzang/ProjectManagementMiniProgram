@@ -32,6 +32,7 @@
 	import ElectronicSignature from '@/components/electronicSignature/electronicSignature'
 	import {uploadRepairsTaskPhoto, noAuditTask} from '@/api/project.js'
 	import store from '@/store'
+	import { deepClone } from '@/common/js/utils'
 	import navBar from "@/components/zhouWei-navBar"
 	export default {
 		components: {

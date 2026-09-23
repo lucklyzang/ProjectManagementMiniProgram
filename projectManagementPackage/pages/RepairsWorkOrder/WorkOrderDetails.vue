@@ -227,6 +227,7 @@
 				infoText: '加载中···',
 				showLoadingHint: false,
 				noClick: true,
+				isFirstShow: true,
 				isChoosingImage: false,
 				rejectReason: '',
 				photoBox: false,

@@ -254,6 +254,7 @@
 				infoText: '加载中···',
 				showLoadingHint: false,
 				noClick: true,
+				isFirstShow: true,
 				rejectReasonShow: false,
 				rejectReason: '',
 				photoBox: false,

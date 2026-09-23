@@ -59,6 +59,7 @@
 	import autoRepairPng from '@/static/img/auto-repair.png'
 	import repairsWorkOrderOnePng from '@/static/img/repairs-work-order-one.png'
 	import store from '@/store'
+	import { repeArray } from '@/common/js/utils'
 	import {queryTaskCount,getNewWork} from '@/api/project.js'
 	let windowTimer
 	export default{
@@ -72,7 +73,7 @@
 					// {tit:'设备巡检', imgUrl: deviceServiceOnePng, value: 'sxTask', count: 0},
 					{tit:'区域巡检', imgUrl: departmentServiceOnePng, value: 'kxTask', count: 0},
 					// {tit:'调度管理', imgUrl: dispatchingManagementPng, value: 'dgTask', count: 0},
-					// {tit:'自主报修', imgUrl: autoRepairPng, value: 'zizhuTask', count: 0}
+					{tit:'自主报修', imgUrl: autoRepairPng, value: 'zizhuTask', count: 0}
 				],
 				defaultPersonPng: require('@/static/img/default-person-photo.png'),
 				btnTaskWrapperPng: require('@/static/img/btn-background.png'),
@@ -276,6 +277,9 @@
 					})
 				} else if (item.tit == '调度管理') {
 				} else if (item.tit == '自主报修') {
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/AutoRepair/AutoRepairList'
+					})
 				}
 			}
 		}
