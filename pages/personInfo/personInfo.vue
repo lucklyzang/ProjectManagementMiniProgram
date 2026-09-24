@@ -152,7 +152,9 @@
 						// 清空store和localStorage
 						removeAllLocalStorage();
 						store.dispatch('resetLoginState');
-						store.dispatch('resetCommitState')
+						store.dispatch('resetCommitState');
+						store.dispatch('resetAutoRepairTaskStore');
+						store.dispatch('resetCreateProjectStateAction')
 					} else {
 						this.changeOverDueWay(false);
 						this.$refs.uToast.show({

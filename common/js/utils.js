@@ -278,70 +278,97 @@ export const Dictionary = (data, key) => {
  * @param{edg} 旋转角度
  */
 export const rotateBase64Img = (src, edg, callback) => {
-  var canvas = document.createElement("canvas");
-  var ctx = canvas.getContext("2d");
-  var imgW; //图片宽度
-  var imgH; //图片高度
-  var size; //canvas初始大小
-  if (edg % 90 != 0) {
-      console.error("旋转角度必须是90的倍数!");
-      throw '旋转角度必须是90的倍数!';
-  }
-  (edg < 0) && (edg = (edg % 360) + 360)
-  const quadrant = (edg / 90) % 4; //旋转象限
-  const cutCoor = { sx: 0, sy: 0, ex: 0, ey: 0 }; //裁剪坐标
-  var image = new Image();
-  image.crossOrigin = "anonymous"
-  image.src = src;
-  image.onload = function() {
-      imgW = image.width;
-      imgH = image.height;
-      size = imgW > imgH ? imgW : imgH;
-      canvas.width = size * 2;
-      canvas.height = size * 2;
-      switch (quadrant) {
-          case 0:
-              cutCoor.sx = size;
-              cutCoor.sy = size;
-              cutCoor.ex = size + imgW;
-              cutCoor.ey = size + imgH;
-              break;
-          case 1:
-              cutCoor.sx = size - imgH;
-              cutCoor.sy = size;
-              cutCoor.ex = size;
-              cutCoor.ey = size + imgW;
-              break;
-          case 2:
-              cutCoor.sx = size - imgW;
-              cutCoor.sy = size - imgH;
-              cutCoor.ex = size;
-              cutCoor.ey = size;
-              break;
-          case 3:
-              cutCoor.sx = size;
-              cutCoor.sy = size - imgW;
-              cutCoor.ex = size + imgH;
-              cutCoor.ey = size + imgW;
-              break;
-      }
-      ctx.translate(size, size);
-      ctx.rotate(edg * Math.PI / 180);
-      //drawImage向画布上绘制图片
-      ctx.drawImage(image, 0, 0);
-      //getImageData() 复制画布上指定矩形的像素数据
-      var imgData = ctx.getImageData(cutCoor.sx, cutCoor.sy, cutCoor.ex, cutCoor.ey);
-      if (quadrant % 2 == 0) {
-          canvas.width = imgW;
-          canvas.height = imgH;
-      } else {
-          canvas.width = imgH;
-          canvas.height = imgW;
-      }
-      //putImageData() 将图像数据放回画布
-      ctx.putImageData(imgData, 0, 0);
-      callback(canvas.toDataURL())
-  }
+if (edg % 90 !== 0) {
+	uni.showToast({
+		title: "旋转角度必须是90的倍数!",
+		icon: 'none',
+		duration: 2000
+	});
+	return
+};
+if (edg < 0) edg = (edg % 360) + 360;
+// 清洗 base64，确保带有前缀（createImage 需要标准格式）
+let cleanSrc = src;
+if (!cleanSrc.startsWith('data:image')) {
+	// 如果没有前缀，补上 png 前缀
+	cleanSrc = 'data:image/png;base64,' + cleanSrc.replace(/^base64,/, '');
+};
+// 去除换行符
+cleanSrc = cleanSrc.replace(/[\n\r]/g, '');
+// 获取 Canvas 节点
+const query = wx.createSelectorQuery();
+query.select('#rotateCanvas')
+	.fields({ node: true, size: true })
+	.exec((res) => {
+		if (!res[0] || !res[0].node) {
+			uni.showToast({
+				title: "未找到 Canvas 节点",
+				icon: 'none',
+				duration: 2000
+			});
+			return
+		};
+		const canvas = res[0].node;
+		const ctx = canvas.getContext('2d');
+		// 使用 canvas.createImage() 直接在内存中加载图片（不需要 writeFile！）
+		const image = canvas.createImage();
+		image.onload = () => {
+			const imgW = image.width;
+			const imgH = image.height;
+			const quadrant = (edg / 90) % 4;
+			// 计算旋转后的画布尺寸
+			const canvasW = quadrant % 2 === 0 ? imgW : imgH;
+			const canvasH = quadrant % 2 === 0 ? imgH : imgW;
+			// 设置 canvas 的真实像素宽高（非常重要，否则图片会模糊或被裁切）
+			canvas.width = canvasW;
+			canvas.height = canvasH;
+			// 清空画布
+			ctx.clearRect(0, 0, canvasW, canvasH);
+			// 移动中心点并旋转
+			ctx.translate(canvasW / 2, canvasH / 2);
+			ctx.rotate((edg * Math.PI) / 180);
+			// 绘制图片
+			ctx.drawImage(image, -imgW / 2, -imgH / 2, imgW, imgH);
+			// 导出为 Base64 (type="2d" 的 canvas 支持直接 toDataURL)
+			try {
+				// 使用 jpeg 压缩体积
+				const base64Str = canvas.toDataURL('image/jpeg', 0.8);
+				if (typeof callback === 'function') {
+					callback(base64Str);
+				}
+			} catch (err) {
+				// 如果 toDataURL 报错（极少数低版本库），降级使用 canvasToTempFilePath
+				wx.canvasToTempFilePath({
+					canvas: canvas, // 这里传的是 canvas 节点对象，不是 canvasId
+					fileType: 'jpg',
+					quality: 0.8,
+					success: (tempRes) => {
+						// 转回 base64
+						const fs = wx.getFileSystemManager();
+						const b64 = fs.readFileSync(tempRes.tempFilePath, 'base64');
+						if (typeof callback === 'function') callback('data:image/jpeg;base64,' + b64);
+						// 用完即删
+						try { fs.unlinkSync(tempRes.tempFilePath); } catch(e) {
+							uni.showToast({
+								title: e,
+								icon: 'none',
+								duration: 2000
+							})
+						}
+					}
+				})
+			}
+		};
+		image.onerror = (err) => {
+			uni.showToast({
+				title: err,
+				icon: 'none',
+				duration: 2000
+			})
+		};
+		// 触发加载
+		image.src = cleanSrc
+	})
 }
 
 /* 

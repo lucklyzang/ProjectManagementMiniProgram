@@ -109,8 +109,16 @@ export default {
 		changeCompleteRoomList (state, playLoad) {
 			setStore('completeRoomList', {"sweepCodeInfo": playLoad})
 			state.completeRoomList = playLoad
+		},
+		//重置创建工程维保任务状态
+		resetCreateProjectState(state) {
+			Object.assign(state, getDefaultProjectState())
 		}
   },
   
-  actions:{}
+  actions:{
+		resetCreateProjectStateAction({ commit }) {
+			commit('resetCreateProjectState')
+		}
+	}
 }

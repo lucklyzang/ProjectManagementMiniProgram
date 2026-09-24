@@ -59,7 +59,9 @@ instance.interceptors.response.use(function (response) {
 		// 清空store和localStorage
 		removeAllLocalStorage();
 		store.dispatch('resetLoginState');
-		store.dispatch('resetCommitState')
+		store.dispatch('resetCommitState');
+		store.dispatch('resetAutoRepairTaskStore');
+		store.dispatch('resetCreateProjectStateAction')
 	};
 	return response
 }, function (error) {
@@ -84,7 +86,9 @@ instance.interceptors.response.use(function (response) {
 				// 清空store和localStorage
 				removeAllLocalStorage();
 				store.dispatch('resetLoginState');
-				store.dispatch('resetCommitState')
+				store.dispatch('resetCommitState');
+				store.dispatch('resetAutoRepairTaskStore');
+				store.dispatch('resetCreateProjectStateAction')
 			} else {
 			}
 		}

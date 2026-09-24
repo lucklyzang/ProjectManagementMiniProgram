@@ -1,5 +1,10 @@
 <template>
   <view class="page-box" ref="wrapper">
+		<canvas 
+			type="2d" 
+			id="rotateCanvas"
+			style="position: fixed; left: -9999px; top: -9999px; width: 100px; height: 100px;"
+		></canvas>
    <u-transition :show="showLoadingHint" mode="fade-down">
    	<view class="loading-box">
    		<u-loading-icon :show="showLoadingHint" :text="infoText" size="18" textSize="16"></u-loading-icon>
@@ -10,7 +15,9 @@
     </view>
     <view class="content">
       <view class="content-left">
-        <ElectronicSignature ref="mychild"></ElectronicSignature>
+				<view class="electronic-signature-box">
+					<ElectronicSignature ref="mychild"></ElectronicSignature>
+				</view>
         <view class="btn-area">
           <view class="cancel-btn" @click="cancel">
             <text>取</text>
@@ -53,6 +60,7 @@ export default {
       isExpire: false,
       isAllTaskComplete: true,
       infoText: '提交中',
+			currentTaskId: '',
       fromPathSource: '',
       imgOnlinePathArr: [],
       currentTaskSetId: '',
@@ -68,7 +76,7 @@ export default {
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo","submitAutoRepairTaskMessage","currentElectronicSignature","createAutoRepairTaskMessage","patrolTaskListMessage","ossMessage","timeMessage","originalSignature","devicePatrolDetailsSelectMessage"]),
+    ...mapGetters(["userInfo","currentElectronicSignature"]),
      proId () {
         return this.userInfo.extendData.proId
       },
@@ -82,48 +90,18 @@ export default {
         return this.userInfo.name
       }
   },
-
+	
+	onLoad (options) {
+		this.currentTaskId = JSON.parse(decodeURIComponent(options.params))['taskId']
+	},
+	
   methods: {
-    ...mapMutations(["changeOssMessage","changeTimeMessage","changePatrolTaskListMessage"]),
-
-
-    resizeScreen() {
-      const _this = this;
-      // 利用 CSS3 旋转 对根容器逆时针旋转 90 度
-      const detectOrient = function() {
-        let width = document.documentElement.clientWidth,
-        height = document.documentElement.clientHeight,
-        $wrapper = _this.$refs.wrapper, // 页面最外层元素
-          style = "";
-        if (width >= height) {
-          // 横屏
-          style += "width:" + width + "px;"; // 注意旋转后的宽高切换
-          style += "height:" + height + "px;";
-          style += "-webkit-transform: rotate(0); transform: rotate(0);";
-          style += "-webkit-transform-origin: 0 0;";
-          style += "transform-origin: 0 0;";
-        } else {
-          // 竖屏
-          console.log('竖屏了');
-          style += "width:" + height + "px;";
-          style += "height:" + width + "px;";
-          style += "min-height:auto;";
-          style +=
-            "-webkit-transform: rotate(90deg); transform: rotate(90deg);";
-          // 注意旋转中点的处理
-          style +=
-            "-webkit-transform-origin: " +
-            width / 2 +
-            "px " +
-            width / 2 +
-            "px;";
-          style += "transform-origin: " + width / 2 + "px " + width / 2 + "px;";
-        }
-        $wrapper.style.cssText = style;
-      };
-      window.onresize = detectOrient;
-      detectOrient()
-    },
+    ...mapMutations([]),
+		
+		// 顶部导航返回事件
+		backTo () {
+			uni.navigateBack()
+		},
 
     // 签名重写
     rewrite () {
@@ -133,12 +111,9 @@ export default {
     // 签名确认
     sure () {
       this.$refs.mychild.commitSure();
-      if (this.currentElectronicSignature == this.originalSignature || !this.currentElectronicSignature) {
-        this.$toast('签名不能为空');
-        return
-      };
-      // canvas签名旋转
-      rotateBase64Img(this.currentElectronicSignature,-90,this.signatureRotateCallback)
+			setTimeout(() => {
+				rotateBase64Img(this.currentElectronicSignature,-90,this.signatureRotateCallback)
+			},1000)
   },
   
   //canvas签名旋转完成回调
@@ -146,7 +121,7 @@ export default {
     this.infoText = '上传中,请稍等···';
     this.showLoadingHint = true;
     let photoMsg = {
-      taskId: this.$route.params.taskId,  //任务ID
+      taskId: this.currentTaskId,  //任务ID
       images: []
     };
     photoMsg.images = [];
@@ -188,7 +163,7 @@ export default {
       this.showLoadingHint = true;
       completeRepairsTaskFinal({
         proId: this.proId,
-        taskId: this.$route.params.taskId
+        taskId: this.currentTaskId
       })
       .then((res) => {
         if (res && res.data.code == 200) {
@@ -222,7 +197,7 @@ export default {
       this.showLoadingHint = true;
       noAuditTask({
         proId: this.proId,
-        taskId: this.$route.params.taskId
+        taskId: this.currentTaskId
       })
       .then((res) => {
         if (res && res.data.code == 200) {
@@ -252,8 +227,8 @@ export default {
 
     // 签名取消
     cancel () {
-      this.$refs.mychild.overwrite();
-      this.$router.push({path: '/autoRepairList'})
+      this.$refs.mychild.overwrite()
+      this.backTo()
     }
   }
 };
@@ -268,6 +243,7 @@ page {
   @include content-wrapper;
   height: 100vh !important;
   box-sizing: border-box;
+  background: #f6f6f6;
   ::v-deep .u-popup {
   	flex: none !important
   };
@@ -283,25 +259,7 @@ page {
   };
   .nav {
     width: 100%;
-    height: 46px;
-    /deep/ .van-nav-bar {
-        .van-nav-bar__left {
-        .van-nav-bar__text {
-            color: #101010 !important;
-            margin-left: 8px !important;
-        }
-        }
-        .van-icon {
-            color: #101010 !important;
-            font-size: 22px !important;
-        }
-        .van-nav-bar__title {
-          color: #101010 !important;
-          font-size: 16px !important;
-          margin: 0 !important;
-          margin-left: 2% !important
-        }
-    }
+    height: 46px
   };
   .content {
     width: 92%;
@@ -314,16 +272,19 @@ page {
       display: flex;
       flex: 1;
       flex-direction: column;
-      .signature {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        /deep/ .signatureBox {
-            width: 100% !important;
-            flex: 1
-        }
-      };
+			.electronic-signature-box {
+				flex: 1;
+				::v-deep .signature {
+				  display: flex;
+				  flex-direction: column;
+				  width: 100%;
+				  .canvas-wrapper {
+						background: transparent !important;
+						width: 100% !important;
+						flex: 1
+				  }
+				}
+			};
       .btn-area {
         width: 100%;
         margin: 0 auto;

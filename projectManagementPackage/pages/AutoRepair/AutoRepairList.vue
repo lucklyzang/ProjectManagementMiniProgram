@@ -129,6 +129,9 @@
 			},
 			
 			onClickRight() {
+				uni.navigateTo({
+					url: '/projectManagementPackage/pages/AutoRepair/AutoRepairCreate'
+				})
 			},
 			
 			// 上拉加载数据
