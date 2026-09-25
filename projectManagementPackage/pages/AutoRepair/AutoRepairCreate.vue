@@ -223,7 +223,7 @@
 				<view class="participation-person-box">
 					<u-checkbox-group v-model="participationPersonIds" placement="column">
 						<u-empty text="暂无参与人" v-if="participationPersonList.length == 0"></u-empty>
-						<view class="participation-person-content" v-for="(item,index) in participationPersonList" :key="index">
+						<view class="participation-person-content" @click="participationPersonEvent(item)" v-for="(item,index) in participationPersonList" :key="index">
 							<view class="participation-person-content-left">
 								{{ item.text }}
 							</view>
@@ -232,13 +232,10 @@
 									size="26"
 									iconSize="22"
 									active-color="#3B9DF9"
-									:key="item.id"
-									:name="item.id"
-									shape="square" 
-									:checked="participationPersonIds.includes(item.id)"
-									@click.stop
-									@change="onCheckboxChange"
-									:disabled="item.disabled"
+									:key="item.value"
+									:name="item.value"
+									shape="circle" 
+									:checked="participationPersonIds.includes(item.value)"
 								>
 								</u-checkbox>
 							</view>
@@ -246,6 +243,43 @@
 					</u-checkbox-group>
 				</view>
 			</u-popup>
+		</view>
+		<!-- 图片放大弹框  -->
+		<view class="img-dislog-box">
+			<u-modal :show="imgBoxShow" @confirm="imgBoxShow = false" confirmText="关闭">
+			  <image :src="currentImgUrl" mode="widthFix"></image>
+			</u-modal> 
+		</view>
+		 <!-- 问题图片删除 -->
+		<u-modal :show="deleteInfoDialogShow" title="确定删除此图片?" 
+		  confirmColor="#218FFF" :showCancelButton="true"
+		  @confirm="sureDeleteEvent"
+		  @cancel="deleteInfoDialogShow = false"
+		  >
+		</u-modal>
+		<!-- 修复图片删除 -->
+		<u-modal :show="deleteRepairInfoDialogShow" title="确定删除此图片?" 
+		  confirmColor="#218FFF" :showCancelButton="true"
+		  @confirm="sureRepairDeleteEvent"
+		  @cancel="deleteRepairInfoDialogShow = false"
+		>
+		</u-modal>
+		<!-- 退出提示框   -->
+		<view class="quit-info-box">
+		   <u-modal :show="quitInfoShow"  :showCancelButton="true"
+			  @confirm="quitSure" @cancel="quitCancel" confirmText="是"
+			  cancelText="否"
+			>
+			  <view class="delete-icon">
+				<u-icon name="close" size="24" @click="quitInfoShow = false"></u-icon>
+			  </view>
+			  <view class="dialog-title">
+				是否保留本次填写的内容?
+			  </view>
+			  <view class="dialog-center">
+				你下次进入创建自主报修时,将恢复本次填写的内容。
+			  </view>
+		  </u-modal>
 		</view>
 	</view>
 </template>
@@ -365,7 +399,6 @@
 			// 顶部导航返回事件
 			backTo () {
 				this.quitInfoShow = true;
-				uni.navigateBack()
 			},
 			
 			onClickRight() {
@@ -399,7 +432,18 @@
 			// 关闭参与人弹窗事件
 			closeParticipationPersonDialogEvent () {
 				this.participationPersonDialogShow = false;
-				this.currentParticipant = this.participationPersonList.filter((item) => { return item.checked == true })
+				this.currentParticipant = this.participationPersonList.filter(item => this.participationPersonIds.includes(item.value));
+				console.log('选择的参与人',this.currentParticipant);
+			},
+			
+			// 参与人姓名点击事件
+			participationPersonEvent (item) {
+				const index = this.participationPersonIds.indexOf(item.value)
+				if (index > -1) {
+					this.participationPersonIds.splice(index, 1)
+				} else {
+					this.participationPersonIds.push(item.value)
+				}
 			},
 	
 			// 关闭目的房间弹窗事件
@@ -584,14 +628,15 @@
 	
 			// 确定退出(暂存)
 			quitSure () {
-				this.temporaryStorageEvent()
+				this.quitInfoShow = false;
+				this.temporaryStorageEvent();
+				uni.navigateBack()
 			},
 	
 			// 取消退出(不暂存)
 			quitCancel () {
-				uni.navigateTo({
-					url: '/projectManagementPackage/pages/AutoRepair/AutoRepairList'
-				})
+				this.quitInfoShow = false;
+				uni.navigateBack()
 			},
 	
 			// 并行查询任务类型、目的建筑、维修员、物料信息、维修工具
@@ -1268,12 +1313,14 @@
 	
 			// 图片确定删除提示框确定事件(问题图片)
 			sureDeleteEvent () {
+				this.deleteInfoDialogShow = false;
 				this.problemPicturesList.splice(this.imgIndex, 1);
 				this.problemFileList.splice(this.imgIndex, 1)
 			},
 	
 			// 图片确定删除提示框确定事件(修复图片)
 			sureRepairDeleteEvent () {
+				this.deleteRepairInfoDialogShow = false;
 				this.repairPicturesList.splice(this.imgIndex, 1);
 				this.repairFileList.splice(this.imgIndex, 1)
 			},
@@ -1281,6 +1328,13 @@
 			// 问题拍照照片删除
 			issueDelete (index,item) {
 				this.deleteInfoDialogShow = true;
+				this.imgIndex = index;
+				this.imgDeleteUrl = item
+			},
+			
+			// 修复拍照照片删除
+			repairDelete (index,item) {
+				this.deleteRepairInfoDialogShow = true;
 				this.imgIndex = index;
 				this.imgDeleteUrl = item
 			},
@@ -1403,13 +1457,6 @@
 				} catch (e) {
 					uni.showToast({ title: e.message || '发生异常', icon: 'none' });
 				}
-			},
-	
-			// 修复拍照照片删除
-			repairDelete (index,item) {
-				this.deleteRepairInfoDialogShow = true;
-				this.imgIndex = index;
-				this.imgDeleteUrl = item
 			},
 	
 			// 拍照取消
@@ -1991,7 +2038,7 @@
 				};
 				.u-checkbox-group--column {
 					flex: 1;
-					height: 0;
+					min-height: 0 !important;
 					overflow: auto;
 					position: relative;
 					.u-empty {
@@ -2033,6 +2080,64 @@
 					}
 				}
 			}
+		};
+		.img-dislog-box {
+			::v-deep .u-modal {
+				top: 50% !important;
+				.u-modal__content {
+					max-height: 70vh;
+					overflow: auto;
+					>image {
+						width: 100%;
+					}
+				}
+			}
+		};
+		.quit-info-box {
+		    ::v-deep .u-modal {
+		      .u-modal__content {
+		          padding: 20px 20px 0 20px !important;
+		          box-sizing: border-box;
+		          display: flex;
+		          flex-direction: column;
+		          .delete-icon {
+		            .u-icon {
+		              justify-content: flex-end !important;
+		            }
+		          };
+		          .dialog-title {
+		            padding: 10px 0;
+		            box-sizing: border-box;
+		            color: #101010;
+		            font-size: 16px;
+		          };
+		          .dialog-center {
+		            line-height: 20px;
+		            padding: 20px 0;
+		            box-sizing: border-box;
+		            color: #101010;
+		            font-size: 12px
+		          }
+		        };
+				.u-modal__button-group {
+					padding: 10px 40px 20px 40px !important;
+					box-sizing: border-box;
+					justify-content: space-between;
+					.u-modal__button-group__wrapper--cancel {
+						height: 40px;
+						color: #3B9DF9 !important;
+						border: 1px solid #3B9DF9;
+						border-radius: 8px;
+						margin-right: 20px
+					};
+					.u-modal__button-group__wrapper--confirm {
+						height: 40px;
+						 color: #fff;
+						 background: #3B9DF9;
+						 border-radius: 8px
+					}
+				}
+		    }
 		};
 		.top-background-area {
 			width: 100%;
