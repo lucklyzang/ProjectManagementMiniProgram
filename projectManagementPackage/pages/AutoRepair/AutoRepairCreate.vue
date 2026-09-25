@@ -133,11 +133,11 @@
 						</view>
 						<view class="circulation-area">
 							<view v-for="(item,index) in consumableMsgList" :key="item.id">
-								<text>{{index+1}}</text>
-								<text>
+								<view>{{index+1}}</view>
+								<view>
 									{{item.mateName}}-{{item.model}}
-								</text>
-								<text>
+								</view>
+								<view>
 									<u-number-box v-model.number="item.number"
 										button-size="36"
 										color="#ffffff"
@@ -149,10 +149,10 @@
 										:max="item.quantity+1"
 										>
 									</u-number-box>
-								</text>
-								<text>
-									<u-icon name="trash" color="red" @click="deleteEvent(item,index)"></u-icon>
-								</text>
+								</view>
+								<view>
+									<u-icon name="trash" color="red" size="22" @click="deleteEvent(item,index)"></u-icon>
+								</view>
 							</view>
 						</view>
 					</view>
@@ -281,6 +281,109 @@
 			  </view>
 		  </u-modal>
 		</view>
+		<!-- 物料弹框  -->
+		<view class="material-box">
+		  <u-modal :show="materialShow"  :showCancelButton="true"
+			  @confirm="materialSure" @cancel="materialCancel" confirmText="添加"
+			  cancelText="取消"
+			>
+			  <view class="dialog-top">
+				<view class="select-title">添加耗材</view>
+				<van-icon name="cross" size="24" @click="closeScreenDialogEvent" />
+			  </view>
+			  <view class="tool-name-list">
+				<view class="tool-name-list-title-innner">
+					<view class="search-input">
+					  <u--input
+						v-model="searchValue"
+						placeholder="物资"
+					  >
+					  </u--input>
+					  <text class="icon-span">
+						<u-icon name="search" color="#B7B6B6"></u-icon>
+					  </text>
+					</view>
+					<view class="search-btn" @click="searchEvent">搜索</view>
+				</view>
+				<view class="tool-name-list-content">
+				  <view class="static-row">
+					<view class="circulation-area-title-box">
+					  <text>物资名称</text>
+					  <text>单位</text>
+					  <text>型号</text>
+					  <text>规格</text>
+					</view>
+					<view class="circulation-area-content-box"> 
+					  <view v-for="(item,index) in inventoryMsgList" :key="item.id" class="circulation-area-content">
+						<text @click="mateNameEvent(item,index)">
+						  {{item.mateName}}
+						</text>
+						<text>
+						  {{item.unit ? item.unit : '无'}}
+						</text>
+						<text>
+						  {{ item.model ?  item.model : '无'}}
+						</text>
+						<text>
+						  {{ item.norms ?  item.norms : '无' }}
+						</text>
+					  </view>
+					  <u-empty text="暂无数据" v-if="inventoryMsgList.length == 0"></u-empty>
+					</view>
+				  </view>
+				  <view class="absolute-row">
+					<view class="absolute-title">
+					  占位
+					</view>
+					<view class="absolute-operate">
+						<u-checkbox-group v-model="selectedMaterialIds" placement="column">
+						  <view v-for="(item,index) in inventoryMsgList" :key="item.id">
+							<view>
+								<u-checkbox
+									size="26"
+									iconSize="22"
+									active-color="#3B9DF9"
+									:key="item.id"
+									:name="item.id"
+									shape="square"
+									:checked="selectedMaterialIds.includes(item.id)"
+									@click.stop
+									:disabled="item.disabled"
+								>
+								</u-checkbox>
+							</view>
+						  </view>
+						</u-checkbox-group>
+					</view>
+				  </view>
+				  <view class="shadow-box"></view> 
+				</view>
+				<view class="page-area">
+				  <view class="page-left" @click="pageClickEvent('previous')" :class="{'pageSpanStyle' : currentPage == 1}">上一页</view>
+				  <view class="page-center">
+					<text>{{ totalPage == 0 ? 0 : currentPage }}</text>
+					<text>/</text>
+					<text>{{ totalPage }}</text>
+				  </view>
+				  <view class="page-right" @click="pageClickEvent('next')" :class="{'pageSpanStyle' : currentPage == totalPage}">下一页</view>
+				</view>
+			  </view>
+		  </u-modal>
+		</view>
+		<!-- 物料删除提示框 -->
+		<view class="material-delete-box">
+		   <u-modal :show="materialDeleteShow"  :showCancelButton="true"
+			  @confirm="materialDeleteSure" @cancel="materialDeleteCancel" confirmText="确定"
+			  cancelText="取消"
+			>
+			  <view class="dialog-top">
+				<image :src="deleteInfoPng" mode="widthFix"></image>
+			  </view>
+			  <view class="dialog-center">
+			   {{`是否删除:${deleteMaterial}?`}}
+			  </view>
+		  </u-modal>
+		</view>
 	</view>
 </template>
 
@@ -311,6 +414,7 @@
 				currentDepartmentIndex: null,
 				currentTierIndex: null,
 				participationPersonIds: [],
+				selectedMaterialIds: [],
 				isIssuePhoto: false,
 				isRepairPhoto: false,
 				roomDialogShow: false,
@@ -1707,12 +1811,13 @@
 	
 			// 删除物料弹框确定事件
 			materialDeleteSure () {
+				this.materialDeleteShow = false;
 				this.consumableMsgList.splice(this.deleteMaterialIndex,1)
 			},
 	
 			// 删除物料弹框取消事件
 			materialDeleteCancel () {
-				
+				this.materialDeleteShow = false;
 			},
 	
 			// 删除物料事件
@@ -1757,8 +1862,8 @@
 	
 			// 添加物料确认
 			materialSure () {
-				let count = this.echoInventoryMsgList.some((item)=> {return item.checked == true && !item.disabled});
-				if (!count) {
+				const checkConsumableList = this.echoInventoryMsgList.filter(order => this.selectedMaterialIds.includes(order.id) && !order.disabled);
+				if (checkConsumableList.length == 0) {
 					this.$refs.uToast.show({
 						message: '至少要选择一种耗材',
 						type: 'error',
@@ -1767,7 +1872,6 @@
 				} else {
 					this.materialShow = false;
 					this.materialContentShow = true;
-					let checkConsumableList = this.echoInventoryMsgList.filter((item) => {return item.checked == true && !item.disabled });
 					for (let item of checkConsumableList) {
 						this.consumableMsgList.push({
 							number: 0,
@@ -1786,6 +1890,7 @@
 	
 			// 添加物料取消
 			materialCancel () {
+				this.materialShow = false;
 				this.currentPage = 1
 			},
 	
@@ -1828,7 +1933,21 @@
 					this.currentPage++
 				};
 				// 根据页码分割展示对应的数据
+				this.selectedMaterialIds = [];
 				this.inventoryMsgList = this.temporaryInventoryMsgList.slice((this.currentPage - 1) * this.pageSize,(this.currentPage - 1) * this.pageSize + this.pageSize);
+				for (let item of this.inventoryMsgList) {
+					let isExist = this.consumableMsgList.filter((innerItem) => { return innerItem.mateId == item.id});
+					if (isExist.length > 0) {
+						item['disabled'] = true;
+						this.selectedMaterialIds.push(item.id);
+					} else {
+						if (item.quantity > 0) {
+							item['disabled'] = false
+						} else {
+							item['disabled'] = true
+						}
+					}
+				}
 			},
 	
 			// 暂存事件
@@ -1850,19 +1969,19 @@
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['imgOnlinePathArr'] = this.imgOnlinePathArr;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['imgRepairOnlinePathArr'] = this.imgRepairOnlinePathArr;
 					this.changeCreateAutoRepairTaskMessage(casuallyTemporaryStorageCreateAutoRepairTaskMessage);
-					this.$refs.alertToast.show({
-						type: 'success',
+					this.$refs.uToast.show({
 						message: '暂存成功',
-						isShow: true
-					})
+						type: 'success',
+						position: 'center'
+					});
 					uni.navigateTo({
 						url: '/projectManagementPackage/pages/AutoRepair/AutoRepairList'
 					})
 				} catch (err) {
-					this.$dialog.alert({
-						message: `${err}`,
-						closeOnPopstate: true
-					}).then(() => {
+					this.$refs.uToast.show({
+						message: err,
+						type: 'error',
+						position: 'center'
 					})
 				}  
 			}
@@ -1881,6 +2000,11 @@
 		height: 100vh !important;
 		box-sizing: border-box;
 		background: #f6f6f6;
+		::v-deep .u-toast{
+			.u-transition {
+				z-index: 1000000 !important;
+			}
+		};
 		::v-deep .u-popup {
 			flex: none !important
 		};
@@ -2139,6 +2263,318 @@
 				}
 		    }
 		};
+		.material-box {
+		      ::v-deep .u-modal {
+		        top: auto !important;
+		        left: 0 !important;
+		        border-right: 1px solid #fff;
+		        bottom: 0 !important;
+		        border-top-left-radius: 20px !important;
+		        border-top-right-radius: 20px !important;
+		        border-bottom-left-radius: 0 !important;
+		        border-bottom-right-radius: 0 !important;
+		        transform: translate3d(0,0,0) !important;
+		        .u-modal__content {
+		            padding: 0 20px 0 20px !important;
+		            box-sizing: border-box;
+		            height: 60vh;
+		            display: flex;
+		            flex-direction: column;
+		            .dialog-top {
+		              height: 60px;
+		              position: relative;
+		              display: flex;
+		              align-items: center;
+		              justify-content: center;
+		              .select-title {
+		                font-size: 18px;
+		                color: #101010;
+		                text-align: center
+		              };
+		              .u-icon {
+		                position: absolute;
+		                top: 50%;
+		                transform: translateY(-50%);
+		                right: 0
+		              }
+		            };
+		            .tool-name-list {
+		              flex: 1;
+		              display: flex;
+		              height: 0;
+		              display: flex;
+		              position: relative;
+		              flex-direction: column;
+		              .tool-name-list-title-innner {
+		                display: flex;
+		                justify-content: space-between;
+		                align-items: center;
+		                height: 52px;
+		                .search-input {
+		                  flex: 1;
+		                  padding: 10px;
+		                  position: relative;
+		                  .van-cell {
+		                    padding: 4px 4px 4px 30px;
+		                    background: #F7F7F9;
+		                    box-sizing: border;
+		                    border-radius: 10px;
+		                  };
+		                  .icon-span {
+		                    position: absolute;
+		                    top: 50%;
+		                    transform: translateY(-50%);
+		                    display: inline-block;
+		                    left: 16px;
+		                    .van-icon {
+		                      font-size: 23px
+		                    }
+		                  }
+		                };
+		                .search-btn {
+		                  font-size: 14px;
+		                  color: #3B9DF9;
+		                  margin-left: 6px;
+		                }
+		              };
+		              .tool-name-list-content {
+		                width: 100%;
+		                position: relative;
+		                flex: 1;
+		                padding: 20px 6px 10px 6px;
+		                display: flex;
+		                flex-direction: column;
+		                height: 0;
+		                box-sizing: border-box;
+		                border-top: 1px solid #b2b2b2;
+		                .static-row {
+		                  &::-webkit-scrollbar {
+		                    height: 0;
+		                    display: none
+		                  };
+		                  width: 90%;
+		                  height: 100%;
+		                  overflow-x: auto;
+		                  white-space: nowrap;
+		                  .circulation-area-content-box {
+		                    flex: 1;
+							position: relative;
+							.u-empty {
+								position: absolute;
+								top: 50%;
+								left: 50%;
+								transform: translate(-50%,-50%)
+							};
+		                    .circulation-area-content {
+		                      padding: 10px 0;
+		                      box-sizing: border-box;
+		                      font-size: 0;
+		                      background: #fff;
+		                      > text {
+		                        line-height: 20px;
+		                        font-size: 15px;
+		                        display: inline-block;
+		                        @include no-wrap;
+		                        &:first-child {
+		                          width: 50%;
+		                        };
+		                        &:nth-child(2) {
+		                          width: 20%;
+		                          text-align: center
+		                        };
+		                        &:nth-child(3) {
+		                          width: 25%;
+		                          text-align: center
+		                        };
+		                        &:nth-child(4) {
+		                          width: 30%;
+		                          text-align: center
+		                        }
+		                      }
+		                    }
+		                  };  
+		                  .circulation-area-title-box {
+		                    font-size: 0;
+		                    text {
+		                      height: 40px;
+		                      line-height: 40px;
+		                      display: inline-block;
+		                      width: 20%;
+		                      font-size: 16px;
+		                      font-weight: bold;
+		                      &:first-child {
+		                        width: 50%;
+		                        text-align: center
+		                      };
+		                      &:nth-child(2) {
+		                        width: 20%;
+		                        text-align: center;
+		                      };
+		                      &:nth-child(3) {
+		                        width: 25%;
+		                        text-align: center;
+		                      };
+		                      &:nth-child(4) {
+		                        width: 30%;
+		                        text-align: center;
+		                      }
+		                    }
+		                  }
+		                };
+		                .absolute-row {
+		                  height: 90%;
+		                  width: 10%;
+		                  z-index: 100;
+		                  position: absolute;
+		                  top: 20px;
+		                  display: flex;
+		                  flex-direction: column;
+		                  right: 0;
+		                  background: #fff;
+						  .u-checkbox-group--column {
+						  	flex: 1;
+						  };
+		                  .absolute-title {
+		                    line-height: 20px;
+		                    width: 100%;
+		                    font-size: 0;
+		                    padding: 10px 0;
+		                    box-sizing: border-box;
+		                  };
+		                  .absolute-operate {
+		                    width: 100%;
+		                    flex: 1;
+							min-height: 0;
+							display: flex;
+		                    overflow-y: auto;
+		                    >view {
+		                      >view {
+		                        line-height: 20px;
+		                        display: flex;
+		                        justify-content: center;
+		                        align-items: center;
+								flex: 1;
+		                        .u-checkbox {
+		                        	.u-checkbox__icon-wrap {
+		                        		margin-right: 0 !important;
+		                        	}
+		                        }
+		                      }
+		                    }  
+		                  }
+		                };
+		                .shadow-box {
+		                  position: absolute;
+		                  background: #fff;
+		                  right: 0;
+		                  width: 10%;
+		                  height: 90%;
+		                  box-shadow: -3px 0 3px 0 #dddddd;
+		                }  
+		              };
+		              .page-area {
+		                height: 40px;
+		                width: 70%;
+		                margin: 0 auto;
+		                display: flex;
+		                align-items: center;
+		                justify-content: space-between;
+		                .page-left {
+		                  font-size: 14px;
+		                  padding: 4px 6px;
+		                  border-radius: 2px;
+		                  box-sizing: border-box;
+		                  border: 1px solid #d0d0d0
+		
+		                };
+		                .page-center {
+		                  >text {
+		                    font-size: 12px;
+		                    color: #333;
+		                    &:nth-child(1) {
+		                      color: #3B9DF9
+		                    }
+		                  }
+		                };
+		                .page-right {
+		                  font-size: 14px;
+		                  border-radius: 2px;
+		                  padding: 4px 6px;
+		                  box-sizing: border-box;
+		                  border: 1px solid #d0d0d0
+		                };
+		                .pageSpanStyle {
+		                  color: #d0d0d0 !important
+		                }
+		              }
+		            }
+		        };
+		        .u-modal__button-group {
+		          padding: 10px 20px 20px 20px !important;
+		          box-sizing: border-box;
+		          justify-content: space-between;
+		        .u-modal__button-group__wrapper--cancel {
+		            color: #1864FF;
+		            box-shadow: 0px 2px 6px 0 rgba(36, 149, 213, 1);
+		            background: #fff;
+		            border-radius: 30px;
+		            margin-right: 20px
+		        };
+		        .u-modal__button-group__wrapper--confirm {
+		            background: linear-gradient(to right, #6cd2f8, #2390fe);
+		            box-shadow: 0px 2px 6px 0 rgba(36, 149, 213, 1);
+		            color: #fff !important;
+		            border-radius: 30px;
+		        }
+		        }
+		      }
+		  };
+		  .material-delete-box {
+		    ::v-deep .u-modal {
+		      .u-modal__content {
+		          padding: 20px 20px 0 20px !important;
+		          box-sizing: border-box;
+		          display: flex;
+		          flex-direction: column;
+		          .dialog-top {
+		            text-align: center;
+					image {
+						width: 100%;
+					}
+		          };
+		          .dialog-center {
+		            text-align: center;
+		            line-height: 20px;
+		            padding: 20px 0;
+		            box-sizing: border-box;
+		            font-weight: bold;
+		            color: #101010;
+		            font-size: 16px
+		          }
+		        };
+		        .u-modal__button-group {
+		          padding: 10px 40px 20px 40px !important;
+		          box-sizing: border-box;
+		          justify-content: space-between;
+		        .u-modal__button-group__wrapper--cancel {
+		            height: 40px;
+		            color: #3B9DF9;
+		            border: 1px solid #3B9DF9;
+		            border-radius: 8px;
+		            margin-right: 20px
+		        };
+		        .u-modal__button-group__wrapper--confirm {
+		            height: 40px;
+		            background: #3B9DF9;
+		            color: #fff !important;
+		            border-radius: 8px;
+		        }
+		        };
+		        .van-hairline--top::after {
+		          border-top-width: 0 !important
+		        }
+		    }
+		  };
 		.top-background-area {
 			width: 100%;
 			background: #3890EE;
@@ -2546,63 +2982,53 @@
 							 background: #fff;
 							 font-size: 14px;
 							 margin-top: 10px;
-							 .circulation-area {
-								
-							 > view {
+							.circulation-area {
+								max-height: 90%;
+								margin: 0 auto;
+								overflow: auto;
+								font-size: 0;
+							> view {
 								 height: 50px;
-								 border-radius: 4px;
+								 background: #fff;
+								 margin-bottom: 6px;
 								 display: flex;
 								 align-items: center;
-								 background: #F8F8F8;
-								 margin-bottom: 4px;
 								 &:last-child {
 									 margin-bottom:0
-								 };
-								 > text {
+								 }
+								 > view {
 									 height: 50px;
 									 line-height: 50px;
 									 font-size: 16px;
-									 display: inline-block;
 									 text-align: center;
 									 &:first-child {
-										 width: 10%
+										 width: 5%;
+										 @include no-wrap
 									 };
 									 &:nth-child(2) {
-										 text-align: left;
-										 margin-right: 4px;
-										 flex: 1;
-										 white-space: nowrap;
-										 overflow-x: auto;
-										 ::v-deep .van-cell {
-											 .van-cell__value--alone {
-												 .van-field__control {
-													 text-align: center
-												 }
-											 }
-										 }
+										width: 53%;
+										overflow-x: auto;
+										white-space: nowrap;
+										text-align: left;
+										margin-right: 2%;
 									 };
 									 &:nth-child(3) {
-										 margin-right: 4px;
-										 ::v-deep .van-stepper {
-											 .van-stepper__minus {
-												 color: #3B9DF9;
-												 border-left: 1px solid #b5b5b5;
-												 border-top: 1px solid #b5b5b5;
-												 border-bottom: 1px solid #b5b5b5;
+										 width: 30%;
+										 display: flex;
+										 align-items: center;
+										 ::v-deep .u-number-box {
+											 .u-number-box__minus  {
+												 color: #fff;
+												 background-color: #2db8f9;
+												 border: 1px solid #2db8f9;
 												 &:before {
 													 height: 3px
 												 }
 											 };
-											 .van-stepper__input {
-												 border: 1px solid #b5b5b5;
-												 width: 45px;
-												 margin: 0 !important
-											 };
-											 .van-stepper__plus {
-												 color: #3B9DF9;
-												 border-right: 1px solid #b5b5b5;
-												 border-top: 1px solid #b5b5b5;
-												 border-bottom: 1px solid #b5b5b5;
+											 .u-number-box__plus {
+												 color: #fff;
+												 background-color: #2db8f9;
+												 border: 1px solid #2db8f9;
 												 &:before {
 													 height: 3px
 												 };
@@ -2613,15 +3039,15 @@
 										 }
 									 };
 									 &:last-child {
-										 display: inline-block;
-										 font-size: 22px;
-										 color: #2db8f9;
-										 ::v-deep .u-icon {
-											 top: 2px
-										 }
+										 width: 10%;
+										 @include no-wrap
+										 display: flex;
+										 justify-content: center;
+										 align-items: center;
 									 }
 								 }
-							 }
+							}
+							 
 						 };
 						 .circulation-area-title {
 							 display: flex;
