@@ -132,7 +132,7 @@
 							<text @click="materialShowEvent">添加</text>
 						</view>
 						<view class="circulation-area">
-							<view v-for="(item,index) in consumableMsgList" :key="item.id">
+							<view v-for="(item,index) in consumableMsgList" :key="item.mateId">
 								<view>{{index+1}}</view>
 								<view>
 									{{item.mateName}}-{{item.model}}
@@ -143,8 +143,10 @@
 										color="#ffffff"
 										bgColor="#2db8f9"
 										iconStyle="color: #fff"
-										@change="(value,detail) => {stepperEvent(value,detail,item,index)}"
-										theme="round" integer @plus="stepperPlusEvent(item,index)"
+										@change="function(val){stepperEvent(item,index,value)}"
+										theme="round" 
+										integer 
+										@plus="stepperPlusEvent(item,index)"
 										min="0"
 										:max="item.quantity+1"
 										>
@@ -308,25 +310,25 @@
 				<view class="tool-name-list-content">
 				  <view class="static-row">
 					<view class="circulation-area-title-box">
-					  <text>物资名称</text>
-					  <text>单位</text>
-					  <text>型号</text>
-					  <text>规格</text>
+					  <view>物资名称</view>
+					  <view>单位</view>
+					  <view>型号</view>
+					  <view>规格</view>
 					</view>
 					<view class="circulation-area-content-box"> 
-					  <view v-for="(item,index) in inventoryMsgList" :key="item.id" class="circulation-area-content">
-						<text @click="mateNameEvent(item,index)">
+					  <view v-for="(item,index) in inventoryMsgList" @click="mateNameEvent(item,index)" :key="item.id" class="circulation-area-content">
+						<view>
 						  {{item.mateName}}
-						</text>
-						<text>
+						</view>
+						<view>
 						  {{item.unit ? item.unit : '无'}}
-						</text>
-						<text>
+						</view>
+						<view>
 						  {{ item.model ?  item.model : '无'}}
-						</text>
-						<text>
+						</view>
+						<view>
 						  {{ item.norms ?  item.norms : '无' }}
-						</text>
+						</view>
 					  </view>
 					  <u-empty text="暂无数据" v-if="inventoryMsgList.length == 0"></u-empty>
 					</view>
@@ -820,9 +822,6 @@
 								this.temporaryInventoryMsgList = [];
 								this.echoInventoryMsgList = [];
 								if (item4.length > 0) {
-									for (let item of item4) {
-										item['checked'] = false
-									};
 									this.inventoryMsgList = item4;
 									this.temporaryInventoryMsgList = item4;
 									this.echoInventoryMsgList = item4;
@@ -1828,7 +1827,7 @@
 			},
 	
 			// 物料数量变化事件
-			stepperEvent (value,detail,item,index) {
+			stepperEvent (item,index,value) {
 				if (item.number > item.quantity) {
 					this.$nextTick(() => {
 						this.$set(this.consumableMsgList[index],'number',item.quantity)
@@ -1856,8 +1855,13 @@
 			},
 	
 			// 耗材名称点击事件
-			mateNameEvent (name,index) {
-				this.inventoryMsgList[index]['checked'] = !this.inventoryMsgList[index]['checked'];
+			mateNameEvent (item,index) {
+				const innerIndex = this.selectedMaterialIds.indexOf(item.id)
+				if (innerIndex > -1) {
+					this.selectedMaterialIds.splice(innerIndex, 1)
+				} else {
+					this.selectedMaterialIds.push(item.id)
+				}
 			},
 	
 			// 添加物料确认
@@ -1899,15 +1903,19 @@
 			materialShowEvent () {
 				this.materialShow = true;
 				this.searchValue = '';
+				this.selectedMaterialIds = [];
 				for (let item of this.echoInventoryMsgList) {
 					// 添加过的物料不允许再次添加
 					let isExist = this.consumableMsgList.filter((innerItem) => { return innerItem.mateId == item.id});
 					if (isExist.length > 0) {
 						item['disabled'] = true;
-						item['checked'] = true
+						this.selectedMaterialIds.push(item.id);
 					} else {
-						item['disabled'] = false
-						item['checked'] = false
+						if (item.quantity > 0) {
+							item['disabled'] = false
+						} else {
+							item['disabled'] = true
+						}
 					}
 				};
 				// 打开物料弹框就显示全部物料信息
@@ -2165,6 +2173,7 @@
 					min-height: 0 !important;
 					overflow: auto;
 					position: relative;
+					overflow-x: hidden;
 					.u-empty {
 						position: absolute;
 						top: 50%;
@@ -2366,57 +2375,56 @@
 								transform: translate(-50%,-50%)
 							};
 		                    .circulation-area-content {
-		                      padding: 10px 0;
-		                      box-sizing: border-box;
+		                      height: 40px;
 		                      font-size: 0;
 		                      background: #fff;
-		                      > text {
-		                        line-height: 20px;
+							  display: flex;
+							  align-items: center;
+							  width: 100%;
+		                      > view {
 		                        font-size: 15px;
-		                        display: inline-block;
-		                        @include no-wrap;
+		                        overflow-x: auto;
+		                        white-space: nowrap;
+								box-sizing: border-box;
+								padding: 0 4px;
+								text-align: center;
 		                        &:first-child {
-		                          width: 50%;
+								  flex: 0 0 60%;
+								  text-align: left !important; 
 		                        };
 		                        &:nth-child(2) {
-		                          width: 20%;
-		                          text-align: center
+		                          flex: 0 0 20%;
 		                        };
 		                        &:nth-child(3) {
-		                          width: 25%;
-		                          text-align: center
+		                          flex: 0 0 25%;
 		                        };
 		                        &:nth-child(4) {
-		                          width: 30%;
-		                          text-align: center
+		                          flex: 0 0 30%;
 		                        }
 		                      }
 		                    }
 		                  };  
 		                  .circulation-area-title-box {
-		                    font-size: 0;
-		                    text {
-		                      height: 40px;
-		                      line-height: 40px;
-		                      display: inline-block;
-		                      width: 20%;
-		                      font-size: 16px;
-		                      font-weight: bold;
+							width: 100%;
+							height: 40px;
+		                    display: flex;
+		                    align-items: center;
+		                    >view {
+								text-align: center;
+								font-size: 16px;
+								font-weight: bold;
 		                      &:first-child {
-		                        width: 50%;
-		                        text-align: center
+		                        flex: 0 0 60%;
+		                        text-align: left !important;
 		                      };
 		                      &:nth-child(2) {
-		                        width: 20%;
-		                        text-align: center;
+		                        flex: 0 0 20%;
 		                      };
 		                      &:nth-child(3) {
-		                        width: 25%;
-		                        text-align: center;
+		                        flex: 0 0 25%;
 		                      };
 		                      &:nth-child(4) {
-		                        width: 30%;
-		                        text-align: center;
+		                        flex: 0 0 30%;
 		                      }
 		                    }
 		                  }
@@ -2453,7 +2461,8 @@
 		                        display: flex;
 		                        justify-content: center;
 		                        align-items: center;
-								flex: 1;
+								padding: 7px 0;
+								box-sizing: border-box;
 		                        .u-checkbox {
 		                        	.u-checkbox__icon-wrap {
 		                        		margin-right: 0 !important;
@@ -2539,7 +2548,7 @@
 		          .dialog-top {
 		            text-align: center;
 					image {
-						width: 100%;
+						width: 60px;
 					}
 		          };
 		          .dialog-center {
