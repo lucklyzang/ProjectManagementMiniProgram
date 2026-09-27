@@ -159,7 +159,7 @@
 						</view>
 					</view>
 				 <view class="operation-box">
-					 <text class="operate-one" @click="sureEvent">确认</text>
+					<text class="operate-one" @click="sureEvent">确认</text>
 					<text class="operate-three" @click="cancelEvent">取消</text>
 				 </view>
 			</view>
@@ -400,6 +400,7 @@
 		removeAllLocalStorage,
 	} from '@/common/js/utils'
 	import store from '@/store'
+	import { getAliyunSign } from '@/api/login.js'
 	import { scanDepartment, completeAutoRepairsTask } from '@/api/autoRepairCreate.js'
 	import { getTransporter, querySpace, queryDepartment, queryRepairsTaskTool, queryStructure, queryRepairsTaskMaterial, getRepairsTaskType} from '@/api/taskScheduling.js'
 	import navBar from "@/components/zhouWei-navBar"
@@ -476,6 +477,8 @@
 		},
 		computed: {
 			...mapGetters([
+				'ossMessage',
+				'timeMessage',
 				'userInfo',
 				'createAutoRepairTaskMessage',
 				'statusBarHeight',
@@ -499,7 +502,9 @@
 		},
 		methods: {
 			...mapMutations([
-				'changeCreateAutoRepairTaskMessage'
+				'changeCreateAutoRepairTaskMessage',
+				'changeOssMessage',
+				'changeTimeMessage'
 			]),
 			
 			// 顶部导航返回事件
@@ -521,17 +526,21 @@
 				this.currentDepartment = casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentDepartment'];
 				this.currentRoom = casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentRoom'];
 				this.problemPicturesList = casuallyTemporaryStorageCreateAutoRepairTaskMessage['problemPicturesList'];
+				this.problemFileList = [].concat(this.problemPicturesList);
 				this.issueDescribe = casuallyTemporaryStorageCreateAutoRepairTaskMessage['issueDescribe'];
 				this.currentParticipant = casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentParticipant'];
 				this.repairPicturesList = casuallyTemporaryStorageCreateAutoRepairTaskMessage['repairPicturesList'];
+				this.repairFileList = [].concat(this.repairPicturesList);
 				this.consumableMsgList = casuallyTemporaryStorageCreateAutoRepairTaskMessage['consumableMsgList'];
 				this.imgOnlinePathArr = casuallyTemporaryStorageCreateAutoRepairTaskMessage['imgOnlinePathArr'];
 				this.imgRepairOnlinePathArr = casuallyTemporaryStorageCreateAutoRepairTaskMessage['imgRepairOnlinePathArr'];
 				if (this.fromSource == '/autoRepairTaskSignature') {
 					this.problemPicturesList = this.imgOnlinePathArr.concat(this.problemPicturesList.filter((item) => { return item.indexOf('https://') != -1}));
 					this.imgOnlinePathArr = [];
+					this.problemFileList = this.imgOnlinePathArr.concat(this.problemPicturesList.filter((item) => { return item.indexOf('https://') != -1}));
 					this.repairPicturesList = this.imgRepairOnlinePathArr.concat(this.repairPicturesList.filter((item) => { return item.indexOf('https://') != -1}));
-					this.imgRepairOnlinePathArr = []
+					this.imgRepairOnlinePathArr = [];
+					this.repairFileList = this.imgRepairOnlinePathArr.concat(this.repairPicturesList.filter((item) => { return item.indexOf('https://') != -1}));
 				}
 			},
 	
@@ -691,43 +700,50 @@
 				return new Promise((resolve, reject) => {
 					// OSS地址
 					const aliyunServerURL = this.ossMessage.host;
-					// 存储路径(后台固定位置+随即数+文件格式)
-					const aliyunFileKey = this.ossMessage.dir + new Date().getTime() + Math.floor(Math.random() * 100) + base64ImgtoFile(filePath).name;
-					// 临时AccessKeyID0
-					const OSSAccessKeyId = this.ossMessage.accessid;
-					// 加密策略
-					const policy = this.ossMessage.policy;
-					// 签名
-					const signature = this.ossMessage.signature;
-					let formData = new FormData();
-					formData.append('key',aliyunFileKey);
-					formData.append('policy',policy);
-					formData.append('OSSAccessKeyId',OSSAccessKeyId);
-					formData.append('success_action_status','200');
-					formData.append('Signature',signature);
-					formData.append('file',base64ImgtoFile(filePath));
-					axios({
-						url: aliyunServerURL,
-						method: 'post',
-						data: formData,
-						headers: {'Content-Type': 'multipart/form-data'}
-					}).then((res) => {
-						if (text == "issue") {
-							this.imgOnlinePathArr.push(`${aliyunServerURL}/${aliyunFileKey}`);
-						} else if (text == "repair") {
-							this.imgRepairOnlinePathArr.push(`${aliyunServerURL}/${aliyunFileKey}`);
-						};
-						resolve()
-					})
-					.catch((err) => {
-						this.infoText = '';
-						this.showLoadingHint = false;
-						this.$refs.uToast.show({
-							message: err,
-							type: 'error',
-							position: 'center'
-						});
-						reject()
+					const ext = filePath.split('.').pop() || 'jpg';
+					const aliyunFileKey = this.ossMessage.dir 
+					  + new Date().getTime() 
+					  + Math.floor(Math.random() * 100) 
+					  + '.' + ext;
+					uni.uploadFile({
+					    url: aliyunServerURL,
+					    filePath: filePath,
+					    name: 'file',
+					    formData: {
+					        key: aliyunFileKey,
+					        policy: this.ossMessage.policy,
+					        OSSAccessKeyId: this.ossMessage.accessid,
+					        success_action_status: '200',
+					        Signature: this.ossMessage.signature
+					    },
+						success: (uploadRes) => {
+							if (uploadRes.statusCode === 200) {
+							  const onlineUrl = `${aliyunServerURL}/${aliyunFileKey}`;
+							  if (text === 'issue') {
+								this.imgOnlinePathArr.push(onlineUrl);
+							  } else if (text === 'repair') {
+								this.imgRepairOnlinePathArr.push(onlineUrl);
+							  };
+							  resolve(onlineUrl);
+							} else {
+							  this.$refs.uToast.show({
+								message: `上传失败(${uploadRes.statusCode})`,
+								type: 'error',
+								position: 'center'
+							  });
+							  reject(new Error(`OSS returned ${uploadRes.statusCode}`));
+							}
+						},
+					    fail: (err) => {
+					        this.infoText = '';
+					        this.showLoadingHint = false;
+					        this.$refs.uToast.show({
+					          message: err.errMsg || '网络异常',
+					          type: 'error',
+					          position: 'center'
+					        });
+					        reject(err)
+					    }
 					})
 				})
 			},
@@ -1074,11 +1090,17 @@
 			// 自主报修提交事件
 			async sureEvent () {
 				if (JSON.stringify(this.currentTaskType) == '{}') {
-					this.$toast('任务类型不能为空');
+					this.$refs.uToast.show({
+						message: '任务类型不能为空',
+						position: 'center'
+					});
 					return
 				};
 				if (!this.currentDepartment['value'] && this.currentDepartment['value'] !== 0) {
-					this.$toast('目的科室不能为空');
+					this.$refs.uToast.show({
+						message: '目的科室不能为空',
+						position: 'center'
+					});
 					return
 				};
 				// if (this.currentParticipant.length == 0) {
@@ -1086,15 +1108,21 @@
 				//   return
 				// };
 				if (this.problemPicturesList.length == 0) {
-					this.$toast('问题图片不能为空');
+					this.$refs.uToast.show({
+						message: '问题图片不能为空',
+						position: 'center'
+					});
 					return
 				};
 				if (this.repairPicturesList.length == 0) {
-					this.$toast('修复图片不能为空');
+					this.$refs.uToast.show({
+						message: '修复图片不能为空',
+						position: 'center'
+					});
 					return
 				};
 				// 上传图片到阿里云服务器(问题图片)
-				let temporaryProblemPicturesList = this.problemPicturesList.filter((item) => { return item.indexOf('https://') == -1});
+				let temporaryProblemPicturesList = this.problemFileList.filter((item) => { return item.indexOf('https://') == -1});
 				this.infoText = '图片上传中···';
 				this.showLoadingHint = true;
 				for (let imgI of temporaryProblemPicturesList) {
@@ -1112,7 +1140,7 @@
 					}
 				};
 				// 上传图片到阿里云服务器(修复图片)
-				let temporaryRepairPicturesList = this.repairPicturesList.filter((item) => { return item.indexOf('https://') == -1});
+				let temporaryRepairPicturesList = this.repairFileList.filter((item) => { return item.indexOf('https://') == -1});
 				this.infoText = '图片上传中···';
 				this.showLoadingHint = true;
 				for (let imgI of temporaryRepairPicturesList) {

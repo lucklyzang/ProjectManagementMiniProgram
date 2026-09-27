@@ -19,6 +19,14 @@ export default {
 			state.departmentMessage = getCache('departmentMessage') ? getCache('departmentMessage') : {};
 			return state.departmentMessage
 		},
+		ossMessage:(state) => {
+			state.ossMessage = getCache('ossMessage') ? getCache('ossMessage') : {};
+			return state.ossMessage
+		},
+		timeMessage:(state) => {
+			state.timeMessage = getCache('timeMessage') ? getCache('timeMessage') : {};
+			return state.timeMessage
+		},
 		baseURL:(state) => {
 			return state.baseURL
 		}
@@ -46,6 +54,18 @@ export default {
 			if (playLoad && playLoad != 'null') {
 				setCache('departmentMessage', playLoad);
 				state.departmentMessage = playLoad
+			}
+		},
+		changeOssMessage(state, playLoad) {
+			if (playLoad && playLoad != 'null') {
+				setCache('ossMessage', playLoad);
+				state.ossMessage = playLoad
+			}
+		},
+		changeTimeMessage(state, playLoad) {
+			if (playLoad && playLoad != 'null') {
+				setCache('timeMessage', playLoad);
+				state.timeMessage = playLoad
 			}
 		},
 		//重置公共信息的状态

@@ -23,6 +23,8 @@ export function getDefaultCommonState() {
 		capsuleMessage: {},
 		// 科室信息
 		departmentMessage: {},
+		ossMessage: {},
+		timeMessage: {},
 		// 生产域名 https://blinktech.cn/nblink
 		// 开发域名 https://blink.blinktech.cn/nblink
 		// 准生产域名 https://ver.blinktech.cn
