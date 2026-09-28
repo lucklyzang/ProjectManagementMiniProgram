@@ -39,6 +39,7 @@
 								bgColor="#2db8f9"
 								iconStyle="color: #fff"
 								@change="function(val){stepValueChange(item,index,val)}"
+								@blur="function(val){stepValueChange(item,index,val)}"
 								theme="round" integer @focus="function(val){stepValueFocus(item,index,val)}"
 								min="0">
 							</u-number-box>
@@ -421,7 +422,9 @@
 
 			// 步进器值变化事件
 			stepValueChange (item,index,val) {
-				if (val['value'] === "") {return};
+				if (item.quantity == null) { return};
+				item['number'] = value['value'];
+				if (val['value'] === "") { item['number'] = 0; return};
 				this.consumableIndex = index;
 				if (val['value'] == 0) {
 					if (!this.isDeleteShow) {
@@ -429,7 +432,7 @@
 						return
 					}
 				};
-				if (val > item.quantity) {
+				if (val['value'] > item.quantity) {
 					this.$refs.uToast.show({
 						message: "数量已经超过耗材库存数量",
 						type: 'error',

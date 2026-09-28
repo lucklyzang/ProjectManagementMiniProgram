@@ -19,7 +19,7 @@
 				<u-empty text="暂无数据" mode="list" v-if="repairsTaskEmptyShow"></u-empty>
 				<view class="list-box">
 					<scroll-view class="scroll-view" scroll-y="true"  @scrolltolower="scrolltolower">
-						<view class="repair-list" @click="enterTaskDetailsEvent(item)" v-for="(item,index) in repairsTaskList" :key="index">
+						<view class="repair-list" @click="enterTaskDetailsEvent(item,index)" v-for="(item,index) in repairsTaskList" :key="index">
 							<view class="list-line-one">
 								<view class="list-line-one-left">
 									<text>工单号: </text>
@@ -89,6 +89,7 @@
 				moveInfo: {
 					startX: ''
 				},
+				currentOrderIndex: 0,
 				loadFreshTimer: null,
 				isLoadMore: true,
 				isShowNoMoreData: false,
@@ -132,6 +133,15 @@
 				uni.navigateTo({
 					url: '/projectManagementPackage/pages/AutoRepair/AutoRepairCreate'
 				})
+			},
+			
+			loadData () {
+				this.currentPageNum = 1;
+				this.getRepairsList(this.currentPageNum,this.pageSize,this.workerId,1,this.proId,false,true)
+			},
+			
+			setState () {
+				this.$set(this.repairsTaskList[this.currentOrderIndex],'state',8)
 			},
 			
 			// 上拉加载数据
@@ -189,6 +199,8 @@
 								type: 'success',
 								position: 'center'
 							})
+						} else {
+							this.repairsTaskList = []
 						};
 						this.repairsTaskList = this.repairsTaskList.concat(this.currentPageList);
 						if (this.repairsTaskList.length == 0) {
@@ -259,11 +271,12 @@
 			},
 	
 			// 进入任务详情事件
-			enterTaskDetailsEvent (item) {
+			enterTaskDetailsEvent (item,index) {
 				if (item.state == 4) {
 					// 去往签字页
+					this.currentOrderIndex = index;
 					uni.navigateTo({
-						url: `/projectManagementPackage/pages/AutoRepair/AutoRepairTaskSignature?params=${encodeURIComponent(JSON.stringify({ taskId: item.id }))}`
+						url: `/projectManagementPackage/pages/AutoRepair/AutoRepairTaskSignature?params=${encodeURIComponent(JSON.stringify({ taskId: item.id, source: 'autoRepairList' }))}`
 					})
 				} else {
 					uni.navigateTo({

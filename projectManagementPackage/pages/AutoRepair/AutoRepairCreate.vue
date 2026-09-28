@@ -138,15 +138,16 @@
 									{{item.mateName}}-{{item.model}}
 								</view>
 								<view>
-									<u-number-box v-model.number="item.number"
+									<u-number-box 
+									  v-model="item.number"
 										button-size="36"
 										color="#ffffff"
 										bgColor="#2db8f9"
 										iconStyle="color: #fff"
-										@change="function(val){stepperEvent(item,index,value)}"
+										@change="function(value){stepperEvent(item,index,value)}"
+										@blur="function(value){stepperEvent(item,index,value)}"
 										theme="round" 
 										integer 
-										@plus="stepperPlusEvent(item,index)"
 										min="0"
 										:max="item.quantity+1"
 										>
@@ -518,7 +519,7 @@
 			
 			// 回显暂存的创建自主报修任务信息
 			echoTemporaryStorageMessage () {
-				let casuallyTemporaryStorageCreateAutoRepairTaskMessage = this._.cloneDeep(this.createAutoRepairTaskMessage);
+				let casuallyTemporaryStorageCreateAutoRepairTaskMessage = _.cloneDeep(this.createAutoRepairTaskMessage);
 				this.taskTypeIndex = casuallyTemporaryStorageCreateAutoRepairTaskMessage['taskTypeIndex'];
 				this.currentTaskType = casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentTaskType'];
 				this.currentConstructionIndex = casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentConstructionIndex'];
@@ -526,29 +527,21 @@
 				this.currentDepartment = casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentDepartment'];
 				this.currentRoom = casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentRoom'];
 				this.problemPicturesList = casuallyTemporaryStorageCreateAutoRepairTaskMessage['problemPicturesList'];
-				this.problemFileList = [].concat(this.problemPicturesList);
+				this.problemFileList = casuallyTemporaryStorageCreateAutoRepairTaskMessage['problemFileList'];
 				this.issueDescribe = casuallyTemporaryStorageCreateAutoRepairTaskMessage['issueDescribe'];
 				this.currentParticipant = casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentParticipant'];
+				this.participationPersonIds = casuallyTemporaryStorageCreateAutoRepairTaskMessage['participationPersonIds'];
 				this.repairPicturesList = casuallyTemporaryStorageCreateAutoRepairTaskMessage['repairPicturesList'];
-				this.repairFileList = [].concat(this.repairPicturesList);
+				this.repairFileList = casuallyTemporaryStorageCreateAutoRepairTaskMessage['repairFileList'];;
 				this.consumableMsgList = casuallyTemporaryStorageCreateAutoRepairTaskMessage['consumableMsgList'];
 				this.imgOnlinePathArr = casuallyTemporaryStorageCreateAutoRepairTaskMessage['imgOnlinePathArr'];
-				this.imgRepairOnlinePathArr = casuallyTemporaryStorageCreateAutoRepairTaskMessage['imgRepairOnlinePathArr'];
-				if (this.fromSource == '/autoRepairTaskSignature') {
-					this.problemPicturesList = this.imgOnlinePathArr.concat(this.problemPicturesList.filter((item) => { return item.indexOf('https://') != -1}));
-					this.imgOnlinePathArr = [];
-					this.problemFileList = this.imgOnlinePathArr.concat(this.problemPicturesList.filter((item) => { return item.indexOf('https://') != -1}));
-					this.repairPicturesList = this.imgRepairOnlinePathArr.concat(this.repairPicturesList.filter((item) => { return item.indexOf('https://') != -1}));
-					this.imgRepairOnlinePathArr = [];
-					this.repairFileList = this.imgRepairOnlinePathArr.concat(this.repairPicturesList.filter((item) => { return item.indexOf('https://') != -1}));
-				}
+				this.imgRepairOnlinePathArr = casuallyTemporaryStorageCreateAutoRepairTaskMessage['imgRepairOnlinePathArr']
 			},
 	
 			// 关闭参与人弹窗事件
 			closeParticipationPersonDialogEvent () {
 				this.participationPersonDialogShow = false;
-				this.currentParticipant = this.participationPersonList.filter(item => this.participationPersonIds.includes(item.value));
-				console.log('选择的参与人',this.currentParticipant);
+				this.currentParticipant = this.participationPersonList.filter(item => this.participationPersonIds.includes(item.value))
 			},
 			
 			// 参与人姓名点击事件
@@ -705,7 +698,7 @@
 					  + new Date().getTime() 
 					  + Math.floor(Math.random() * 100) 
 					  + '.' + ext;
-					uni.uploadFile({
+						uni.uploadFile({
 					    url: aliyunServerURL,
 					    filePath: filePath,
 					    name: 'file',
@@ -716,34 +709,34 @@
 					        success_action_status: '200',
 					        Signature: this.ossMessage.signature
 					    },
-						success: (uploadRes) => {
-							if (uploadRes.statusCode === 200) {
-							  const onlineUrl = `${aliyunServerURL}/${aliyunFileKey}`;
-							  if (text === 'issue') {
-								this.imgOnlinePathArr.push(onlineUrl);
-							  } else if (text === 'repair') {
-								this.imgRepairOnlinePathArr.push(onlineUrl);
-							  };
-							  resolve(onlineUrl);
-							} else {
-							  this.$refs.uToast.show({
-								message: `上传失败(${uploadRes.statusCode})`,
-								type: 'error',
-								position: 'center'
-							  });
-							  reject(new Error(`OSS returned ${uploadRes.statusCode}`));
+							success: (uploadRes) => {
+								if (uploadRes.statusCode === 200) {
+									const onlineUrl = `${aliyunServerURL}/${aliyunFileKey}`;
+									if (text === 'issue') {
+										this.imgOnlinePathArr.push(onlineUrl);
+									} else if (text === 'repair') {
+										this.imgRepairOnlinePathArr.push(onlineUrl);
+									};
+									resolve(onlineUrl);
+								} else {
+									this.$refs.uToast.show({
+										message: `上传失败(${uploadRes.statusCode})`,
+										type: 'error',
+										position: 'center'
+									});
+									reject(new Error(`OSS returned ${uploadRes.statusCode}`));
+								}
+							},
+							fail: (err) => {
+								this.infoText = '';
+								this.showLoadingHint = false;
+								this.$refs.uToast.show({
+									message: err.errMsg || '网络异常',
+									type: 'error',
+									position: 'center'
+								});
+								reject(err)
 							}
-						},
-					    fail: (err) => {
-					        this.infoText = '';
-					        this.showLoadingHint = false;
-					        this.$refs.uToast.show({
-					          message: err.errMsg || '网络异常',
-					          type: 'error',
-					          position: 'center'
-					        });
-					        reject(err)
-					    }
 					})
 				})
 			},
@@ -787,7 +780,7 @@
 								};
 								if (JSON.stringify(this.createAutoRepairTaskMessage) != '{}') {
 									if (this.createAutoRepairTaskMessage['currentTaskType']['value'] || this.createAutoRepairTaskMessage['currentTaskType']['value'] === 0) {
-										let casuallyTemporaryStorageCreateAutoRepairTaskMessage = this._.cloneDeep(this.createAutoRepairTaskMessage);
+										let casuallyTemporaryStorageCreateAutoRepairTaskMessage = _.cloneDeep(this.createAutoRepairTaskMessage);
 										let TemporaryIndex = this.taskTypeOption.findIndex((innerItem) => { return innerItem.value == this.createAutoRepairTaskMessage['currentTaskType']['value']});
 										casuallyTemporaryStorageCreateAutoRepairTaskMessage['taskTypeIndex'] = TemporaryIndex;
 										this.changeCreateAutoRepairTaskMessage(casuallyTemporaryStorageCreateAutoRepairTaskMessage);
@@ -805,7 +798,7 @@
 								};
 								if (JSON.stringify(this.createAutoRepairTaskMessage) != '{}') {
 									if (this.createAutoRepairTaskMessage['currentConstruction']['value'] || this.createAutoRepairTaskMessage['currentConstruction']['value'] === 0) {
-										let casuallyTemporaryStorageCreateAutoRepairTaskMessage = this._.cloneDeep(this.createAutoRepairTaskMessage);
+										let casuallyTemporaryStorageCreateAutoRepairTaskMessage = _.cloneDeep(this.createAutoRepairTaskMessage);
 										let TemporaryIndex = this.constructionList.findIndex((innerItem) => { return innerItem.value == this.createAutoRepairTaskMessage['currentConstruction']['value']});
 										casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentConstructionIndex'] = TemporaryIndex;
 										this.changeCreateAutoRepairTaskMessage(casuallyTemporaryStorageCreateAutoRepairTaskMessage);
@@ -903,7 +896,7 @@
 								})
 							};
 							if (text == '扫码') {
-								let casuallyTemporaryStorageCreateAutoRepairTaskMessage = this._.cloneDeep(this.createAutoRepairTaskMessage);
+								let casuallyTemporaryStorageCreateAutoRepairTaskMessage = _.cloneDeep(this.createAutoRepairTaskMessage);
 								let TemporaryIndex = this.departmentList.findIndex((innerItem) => { return innerItem.value == this.currentDepartment['value']});
 								casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentDepartmentIndex'] = TemporaryIndex;
 								this.currentDepartmentIndex = TemporaryIndex;
@@ -913,7 +906,7 @@
 								// 根据科室查询房间信息
 								if (JSON.stringify(this.createAutoRepairTaskMessage) != '{}') {
 									if (this.createAutoRepairTaskMessage['currentDepartment']['value'] || this.createAutoRepairTaskMessage['currentDepartment']['value'] === 0) {
-										let casuallyTemporaryStorageCreateAutoRepairTaskMessage = this._.cloneDeep(this.createAutoRepairTaskMessage);
+										let casuallyTemporaryStorageCreateAutoRepairTaskMessage = _.cloneDeep(this.createAutoRepairTaskMessage);
 										let TemporaryIndex = this.departmentList.findIndex((innerItem) => { return innerItem.value == this.createAutoRepairTaskMessage['currentDepartment']['value']});
 										casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentDepartmentIndex'] = TemporaryIndex;
 										this.currentDepartmentIndex = TemporaryIndex;
@@ -1246,7 +1239,7 @@
 						this.changeCreateAutoRepairTaskMessage({});
 						// 去往签字页
 						uni.navigateTo({
-							url: `/projectManagementPackage/pages/AutoRepair/AutoRepairTaskSignature?params=${encodeURIComponent(JSON.stringify({ taskId: res.data.data }))}`
+							url: `/projectManagementPackage/pages/AutoRepair/AutoRepairTaskSignature?params=${encodeURIComponent(JSON.stringify({ taskId: res.data.data,source: 'autoRepairCreate' }))}`
 						})
 					} else {
 						this.imgOnlinePathArr = [];
@@ -1369,7 +1362,7 @@
 								});
 								continue;
 							};
-							that.problemFileList.push(res.tempFiles[imgI]['path']);
+							that.problemFileList.push(res.tempFilePaths[imgI]);
 							uni.getFileSystemManager().readFile({
 								filePath: res.tempFilePaths[imgI],
 								encoding: 'base64',
@@ -1477,7 +1470,7 @@
 			},
 			
 			/**
-			 *  问题图片选择
+			 *  修复图片选择
 			*/
 			executeRepairChooseImage() {
 				let that = this;
@@ -1516,7 +1509,7 @@
 								});
 								continue;
 							};
-							that.repairFileList.push(res.tempFiles[imgI]['path']);
+							that.repairFileList.push(res.tempFilePaths[imgI]);
 							uni.getFileSystemManager().readFile({
 								filePath: res.tempFilePaths[imgI],
 								encoding: 'base64',
@@ -1856,30 +1849,23 @@
 	
 			// 物料数量变化事件
 			stepperEvent (item,index,value) {
-				if (item.number > item.quantity) {
-					this.$nextTick(() => {
-						this.$set(this.consumableMsgList[index],'number',item.quantity)
-					});
-					this.$refs.uToast.show({
-						message: '已超出库存数量',
-						type: 'error',
-						position: 'center'
-					})
-				}
-			},
-	
-			// 点击物料加事件
-			stepperPlusEvent(item,index) {
-				if (item.number  >= item.quantity) {
-					this.$nextTick(() => {
-						this.$set(this.consumableMsgList[index],'number',item.quantity)
-					});
-					this.$refs.uToast.show({
-						message: '已超出库存数量',
-						type: 'error',
-						position: 'center'
-					})
-				}
+				if (item.quantity == null) { return};
+				item['number'] = value['value'];
+				if (value['value'] === "") { item['number'] = 0; return};
+				if (item.quantity > 0) {
+					if (value['value'] > item.quantity) {
+						this.$refs.uToast.show({
+							message: `已超出库存数量${item.quantity}`,
+							type: 'error',
+							position: 'center'
+						});
+						this.$nextTick(() => {
+							this.$set(this.consumableMsgList[index],'number',item.quantity);
+							console.log('saa',this.consumableMsgList);
+						});
+						return
+					}
+				} 
 			},
 	
 			// 耗材名称点击事件
@@ -1989,7 +1975,7 @@
 			// 暂存事件
 			temporaryStorageEvent () {
 				try {
-					let casuallyTemporaryStorageCreateAutoRepairTaskMessage = this._.cloneDeep(this.createAutoRepairTaskMessage);
+					let casuallyTemporaryStorageCreateAutoRepairTaskMessage = _.cloneDeep(this.createAutoRepairTaskMessage);
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['taskTypeIndex'] = this.taskTypeIndex;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentTaskType'] = this.currentTaskType;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentConstructionIndex'] = this.currentConstructionIndex;
@@ -1998,9 +1984,12 @@
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentDepartmentIndex'] = this.currentDepartmentIndex;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentRoom'] = this.currentRoom;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['problemPicturesList'] = this.problemPicturesList;
+					casuallyTemporaryStorageCreateAutoRepairTaskMessage['problemFileList'] = this.problemFileList;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['issueDescribe'] = this.issueDescribe;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['currentParticipant'] = this.currentParticipant;
+					casuallyTemporaryStorageCreateAutoRepairTaskMessage['participationPersonIds'] = this.participationPersonIds;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['repairPicturesList'] = this.repairPicturesList;
+					casuallyTemporaryStorageCreateAutoRepairTaskMessage['repairFileList'] = this.repairFileList;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['consumableMsgList'] = this.consumableMsgList;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['imgOnlinePathArr'] = this.imgOnlinePathArr;
 					casuallyTemporaryStorageCreateAutoRepairTaskMessage['imgRepairOnlinePathArr'] = this.imgRepairOnlinePathArr;
@@ -2010,9 +1999,7 @@
 						type: 'success',
 						position: 'center'
 					});
-					uni.navigateTo({
-						url: '/projectManagementPackage/pages/AutoRepair/AutoRepairList'
-					})
+					uni.navigateBack();
 				} catch (err) {
 					this.$refs.uToast.show({
 						message: err,
@@ -2256,46 +2243,56 @@
 		};
 		.quit-info-box {
 		    ::v-deep .u-modal {
-		      .u-modal__content {
-		          padding: 20px 20px 0 20px !important;
-		          box-sizing: border-box;
-		          display: flex;
-		          flex-direction: column;
-		          .delete-icon {
-		            .u-icon {
-		              justify-content: flex-end !important;
-		            }
-		          };
-		          .dialog-title {
-		            padding: 10px 0;
-		            box-sizing: border-box;
-		            color: #101010;
-		            font-size: 16px;
-		          };
-		          .dialog-center {
-		            line-height: 20px;
-		            padding: 20px 0;
-		            box-sizing: border-box;
-		            color: #101010;
-		            font-size: 12px
-		          }
-		        };
+		    .u-modal__content {
+					padding: 20px 20px 0 20px !important;
+					box-sizing: border-box;
+					display: flex;
+					flex-direction: column;
+					.delete-icon {
+						.u-icon {
+							justify-content: flex-end !important;
+						}
+					};
+					.dialog-title {
+						padding: 10px 0;
+						box-sizing: border-box;
+						color: #101010;
+						font-size: 16px;
+					};
+					.dialog-center {
+						line-height: 20px;
+						padding: 20px 0;
+						box-sizing: border-box;
+						color: #101010;
+						font-size: 12px
+					}
+		    };
+				.u-line {
+					display: none !important;
+				};
 				.u-modal__button-group {
 					padding: 10px 40px 20px 40px !important;
 					box-sizing: border-box;
 					justify-content: space-between;
+					.u-line {
+						display: none !important;
+					};
 					.u-modal__button-group__wrapper--cancel {
 						height: 40px;
-						color: #3B9DF9 !important;
 						border: 1px solid #3B9DF9;
 						border-radius: 8px;
-						margin-right: 20px
+						margin-right: 20px;
+						.u-modal__button-group__wrapper__text {
+								color: #3B9DF9 !important;
+						}
 					};
 					.u-modal__button-group__wrapper--confirm {
-						height: 40px;
-						 color: #fff;
+						 height: 40px;
 						 background: #3B9DF9;
-						 border-radius: 8px
+						 border-radius: 8px;
+						 .u-modal__button-group__wrapper__text {
+								color: #fff !important;
+						 }
 					}
 				}
 		    }
@@ -2546,22 +2543,32 @@
 		              }
 		            }
 		        };
+						.u-line {
+							display: none !important;
+						};
 		        .u-modal__button-group {
 		          padding: 10px 20px 20px 20px !important;
 		          box-sizing: border-box;
 		          justify-content: space-between;
+							.u-line {
+								display: none !important;
+							};
 		        .u-modal__button-group__wrapper--cancel {
-		            color: #1864FF;
 		            box-shadow: 0px 2px 6px 0 rgba(36, 149, 213, 1);
 		            background: #fff;
 		            border-radius: 30px;
-		            margin-right: 20px
+		            margin-right: 20px;
+								.u-modal__button-group__wrapper__text {
+									color: #1864FF !important;
+								}
 		        };
 		        .u-modal__button-group__wrapper--confirm {
 		            background: linear-gradient(to right, #6cd2f8, #2390fe);
 		            box-shadow: 0px 2px 6px 0 rgba(36, 149, 213, 1);
-		            color: #fff !important;
 		            border-radius: 30px;
+								.u-modal__button-group__wrapper__text {
+									color: #fff !important;
+								}
 		        }
 		        }
 		      }
@@ -2589,26 +2596,33 @@
 		            font-size: 16px
 		          }
 		        };
+						.u-line {
+							display: none !important;
+						};
 		        .u-modal__button-group {
 		          padding: 10px 40px 20px 40px !important;
 		          box-sizing: border-box;
 		          justify-content: space-between;
+							.u-line {
+								display: none !important;
+							};
 		        .u-modal__button-group__wrapper--cancel {
 		            height: 40px;
-		            color: #3B9DF9;
 		            border: 1px solid #3B9DF9;
 		            border-radius: 8px;
-		            margin-right: 20px
+		            margin-right: 20px;
+								.u-modal__button-group__wrapper__text {
+									color: #3B9DF9 !important;
+								}
 		        };
 		        .u-modal__button-group__wrapper--confirm {
 		            height: 40px;
 		            background: #3B9DF9;
-		            color: #fff !important;
 		            border-radius: 8px;
+								.u-modal__button-group__wrapper__text {
+									color: #fff !important;
+								}
 		        }
-		        };
-		        .van-hairline--top::after {
-		          border-top-width: 0 !important
 		        }
 		    }
 		  };

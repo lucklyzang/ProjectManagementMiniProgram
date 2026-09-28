@@ -10,7 +10,7 @@
    		<u-loading-icon :show="showLoadingHint" :text="infoText" size="18" textSize="16"></u-loading-icon>
    	</view>
    </u-transition>
-    <view class="nav">
+    <view class="nav" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }">
     <!-- <NavBar path="/AutoRepairCreate" title="工单完成签名" :leftArrow="false" :leftText="null" /> -->
     </view>
     <view class="content">
@@ -69,14 +69,20 @@ export default {
       taskSetName: '',
       taskSetNameIndex: 0,
       allPatrolTaskDetailsData: [],
-      timeList: []
+      timeList: [],
+			source: ''
     }
   },
 	
   watch: {},
 
   computed: {
-    ...mapGetters(["userInfo","currentElectronicSignature"]),
+    ...mapGetters([
+			"userInfo",
+			"currentElectronicSignature",
+			"statusBarHeight",
+			"navigationBarHeight"
+		]),
      proId () {
         return this.userInfo.extendData.proId
       },
@@ -92,7 +98,8 @@ export default {
   },
 	
 	onLoad (options) {
-		this.currentTaskId = JSON.parse(decodeURIComponent(options.params))['taskId']
+		this.currentTaskId = JSON.parse(decodeURIComponent(options.params))['taskId'];
+		this.source = JSON.parse(decodeURIComponent(options.params))['source']
 	},
 	
   methods: {
@@ -171,7 +178,25 @@ export default {
             title: res.data.msg,
             icon: 'success'
           });
-          this.$router.push({ path: "/autoRepairList" })
+          if (this.source == 'autoRepairCreate') {
+          	const pages = getCurrentPages();
+          	const prevPageInner = pages[pages.length-3];
+          	if (prevPageInner) {
+          		prevPageInner.$vm.loadData();
+          	};
+          	uni.navigateBack({
+          		delta:2
+          	})
+          } else if (this.source == 'autoRepairList') {
+          	const pages = getCurrentPages();
+          	const prevPageInner = pages[pages.length-2];
+          	if (prevPageInner) {
+          		prevPageInner.$vm.setState();
+          	};
+          	uni.navigateBack({
+          		delta:1
+          	})
+          }
         } else {
           uni.showToast({
             title: res.data.msg,
@@ -205,7 +230,25 @@ export default {
             title: res.data.msg,
             icon: 'success'
           });
-          this.$router.push({ path: "/autoRepairList" })
+					if (this.source == 'autoRepairCreate') {
+						const pages = getCurrentPages();
+						const prevPageInner = pages[pages.length-3];
+						if (prevPageInner) {
+							prevPageInner.$vm.loadData();
+						};
+						uni.navigateBack({
+							delta:2
+						})
+					} else if (this.source == 'autoRepairList') {
+						const pages = getCurrentPages();
+						const prevPageInner = pages[pages.length-2];
+						if (prevPageInner) {
+							prevPageInner.$vm.setState();
+						};
+						uni.navigateBack({
+							delta:1
+						})
+					}
         } else {
           uni.showToast({
             title: res.data.msg,
@@ -279,9 +322,7 @@ page {
 				  flex-direction: column;
 				  width: 100%;
 				  .canvas-wrapper {
-						background: transparent !important;
-						width: 100% !important;
-						flex: 1
+						margin: 0 !important
 				  }
 				}
 			};

@@ -122,6 +122,7 @@
 									bgColor="#2db8f9"
 									iconStyle="color: #fff"
 									@change="function(val){stepValueChange(item,index,val)}"
+									@blur="function(val){stepValueChange(item,index,val)}"
 									theme="round" integer @focus="function(val){stepValueFocus(item,index,val)}"
 									:disabled="repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? true : false" min="0">
 								</u-number-box>
@@ -828,7 +829,8 @@
 		// 步进器值变化事件
 		stepValueChange (item,index,val) {
 			if (item.quantity == null) { return};
-			if (val['value'] === "") {return};
+			item['number'] = value['value'];
+			if (val['value'] === "") { item['number'] = 0; return};
 			this.consumableIndex = index;
 			if (val['value'] == 0) {
 				if (!this.isDeleteShow) {
@@ -837,7 +839,7 @@
 				}
 			};
 			if (item.quantity > 0) {
-				if (val > item.quantity) {
+				if (val['value'] > item.quantity) {
 					this.$refs.uToast.show({
 						message: `数量不能超过耗材库存数量${item.quantity}`,
 						type: 'error',
