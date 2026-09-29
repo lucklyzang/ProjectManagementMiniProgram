@@ -33,7 +33,7 @@
 		</view>
 		<view class="content-bottom">
 			<view class="back-home"  @click="fillConsumable" v-if="showFillConsumable">填写耗材</view>
-			<view class="quit-account" @click="sure">确认</view>
+			<view class="quit-account" @click="$noMultipleClicks(sure)">确认</view>
 		</view>
 	</view>
 	<u-modal :show="issueShow" title="是否反馈该问题到调度中心" :showCancelButton="true"  :closeOnClickOverlay="true"
@@ -75,6 +75,7 @@
 			return {
 				infoText: '加载中···',
 				showLoadingHint: false,
+				noClick: true,
 				issueShow: false,
 				isBackShow: false,
 				showFillConsumable: false,

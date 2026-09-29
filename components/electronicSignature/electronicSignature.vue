@@ -5,7 +5,7 @@
 				type="2d" 
 				id="signCanvas"
 				class="sign-canvas"
-				:style="{ width: canvasWidth + 'px', height: canvasHeight + 'px' }"
+				:style="{ width: canvasWidth + 'px', height: canvasHeight + 'px',display: 'block' }"
 				@touchstart="onTouchStart"
 				@touchmove="onTouchMove"
 				@touchend="onTouchEnd"
@@ -219,7 +219,7 @@ import { base64ImgtoFile } from '@/common/js/utils'
 				//导出 Base64
 				exportBase64() {
 					return new Promise((resolve, reject) => {
-						uni.canvasToTempFilePath({
+						wx.canvasToTempFilePath({
 							canvas: this.canvas,
 							x: 0,
 							y: 0,
@@ -230,7 +230,6 @@ import { base64ImgtoFile } from '@/common/js/utils'
 							fileType: 'png',
 							quality: 1,
 							success: (res) => {
-								console.log('临时路径:', res.tempFilePath)
 								this.tempFileToBase64(res.tempFilePath)
 									.then(resolve)
 									.catch(reject)

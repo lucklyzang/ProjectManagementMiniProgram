@@ -10,7 +10,7 @@
 		<view class="nav" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }">
 			<nav-bar :home="false" :isShowBackText="true" backState='3000' fontColor="#FFF" bgColor="none" title="自主报修" @backClick="backTo">
 				<template slot="right">
-					<u-icon name="scan" color="#fff" size="24" @click="onClickRight"></u-icon>
+					<u-icon name="scan" color="#fff" size="26" @click="onClickRight"></u-icon>
 				</template>
 			</nav-bar> 
 		</view>
@@ -160,7 +160,7 @@
 						</view>
 					</view>
 				 <view class="operation-box">
-					<text class="operate-one" @click="sureEvent">确认</text>
+					<text class="operate-one" @click="$noMultipleClicks(sureEvent)">确认</text>
 					<text class="operate-three" @click="cancelEvent">取消</text>
 				 </view>
 			</view>
@@ -339,7 +339,7 @@
 					  占位
 					</view>
 					<view class="absolute-operate">
-						<u-checkbox-group v-model="selectedMaterialIds" placement="column">
+						<u-checkbox-group v-model="currentPageIds" @change="checkboxChange" placement="column">
 						  <view v-for="(item,index) in inventoryMsgList" :key="item.id">
 							<view>
 								<u-checkbox
@@ -349,7 +349,6 @@
 									:key="item.id"
 									:name="item.id"
 									shape="square"
-									:checked="selectedMaterialIds.includes(item.id)"
 									@click.stop
 									:disabled="item.disabled"
 								>
@@ -413,12 +412,15 @@
 			return {
 				infoText: '修改中···',
 				showLoadingHint: false,
+				noClick: true,
 				deleteInfoPng: require('@/static/img/delete-info.png'),
 				currentConstructionIndex: null,
 				currentDepartmentIndex: null,
 				currentTierIndex: null,
 				participationPersonIds: [],
 				selectedMaterialIds: [],
+				allSelectedIds: [],
+				currentPageIds: [],  
 				isIssuePhoto: false,
 				isRepairPhoto: false,
 				roomDialogShow: false,
@@ -1234,6 +1236,8 @@
 				completeAutoRepairsTask(temporaryMessage).then((res) => {
 					this.infoText = '';
 					this.showLoadingHint = false;
+					this.imgOnlinePathArr = [];
+					this.imgRepairOnlinePathArr = [];
 					if (res && res.data.code == 200) {
 						// 清除保存的创建自主报修任务信息
 						this.changeCreateAutoRepairTaskMessage({});
@@ -1242,8 +1246,6 @@
 							url: `/projectManagementPackage/pages/AutoRepair/AutoRepairTaskSignature?params=${encodeURIComponent(JSON.stringify({ taskId: res.data.data,source: 'autoRepairCreate' }))}`
 						})
 					} else {
-						this.imgOnlinePathArr = [];
-						this.imgRepairOnlinePathArr = [];
 						this.$refs.uToast.show({
 							message: res.data.msg,
 							type: 'error',
@@ -1810,6 +1812,34 @@
 						break
 				}
 			},
+			
+			// 专门用于根据 allSelectedIds 恢复 currentPageIds 的方法
+			restoreCurrentPageSelection() {
+			  this.currentPageIds = [];
+			    // 遍历当前页展示的数据
+			    for (let item of this.inventoryMsgList) {
+					let isExist = this.consumableMsgList.filter((innerItem) => { 
+						return innerItem.mateId == item.id 
+					});
+					if (isExist.length > 0) {
+						item['disabled'] = true;
+						this.currentPageIds.push(item.id);
+						if (!this.allSelectedIds.includes(item.id)) {
+							this.allSelectedIds.push(item.id);
+						}
+					} else {
+						if (item.quantity > 0) {
+							item['disabled'] = false;
+							if (this.allSelectedIds.includes(item.id)) {
+									this.currentPageIds.push(item.id);
+							}
+						} else {
+							item['disabled'] = true;
+						}
+					}
+				};
+				this.currentPageIds = [...this.currentPageIds]
+			},
 	
 			// 搜索物料事件
 			searchEvent () {
@@ -1820,6 +1850,7 @@
 					this.totalPage =  Math.ceil(this.temporaryInventoryMsgList.length/this.pageSize);
 					// 根据页码分割展示对应的数据
 					this.inventoryMsgList = this.temporaryInventoryMsgList.slice((this.currentPage - 1) * this.pageSize,(this.currentPage - 1) * this.pageSize + this.pageSize);
+					this.restoreCurrentPageSelection();
 					return
 				};
 				this.inventoryMsgList = this.echoInventoryMsgList.filter((item) => {return item.mateName.indexOf(this.searchValue) != -1});
@@ -1827,11 +1858,19 @@
 				this.currentPage = 1;
 				this.totalPage =  Math.ceil(this.temporaryInventoryMsgList.length/this.pageSize);
 				this.inventoryMsgList = this.temporaryInventoryMsgList.slice((this.currentPage - 1) * this.pageSize,(this.currentPage - 1) * this.pageSize + this.pageSize);
+				this.restoreCurrentPageSelection()
 			},
 	
 			// 删除物料弹框确定事件
 			materialDeleteSure () {
 				this.materialDeleteShow = false;
+				const deletedItem = this.consumableMsgList[this.deleteMaterialIndex];
+				if (deletedItem) {
+					const idIndex = this.allSelectedIds.indexOf(deletedItem.mateId);
+					if (idIndex > -1) {
+						this.allSelectedIds.splice(idIndex, 1);
+					}
+				};
 				this.consumableMsgList.splice(this.deleteMaterialIndex,1)
 			},
 	
@@ -1860,22 +1899,11 @@
 							position: 'center'
 						});
 						this.$nextTick(() => {
-							this.$set(this.consumableMsgList[index],'number',item.quantity);
-							console.log('saa',this.consumableMsgList);
+							this.$set(this.consumableMsgList[index],'number',item.quantity)
 						});
 						return
 					}
 				} 
-			},
-	
-			// 耗材名称点击事件
-			mateNameEvent (item,index) {
-				const innerIndex = this.selectedMaterialIds.indexOf(item.id)
-				if (innerIndex > -1) {
-					this.selectedMaterialIds.splice(innerIndex, 1)
-				} else {
-					this.selectedMaterialIds.push(item.id)
-				}
 			},
 	
 			// 添加物料确认
@@ -1917,31 +1945,71 @@
 			materialShowEvent () {
 				this.materialShow = true;
 				this.searchValue = '';
-				this.selectedMaterialIds = [];
-				for (let item of this.echoInventoryMsgList) {
-					// 添加过的物料不允许再次添加
-					let isExist = this.consumableMsgList.filter((innerItem) => { return innerItem.mateId == item.id});
-					if (isExist.length > 0) {
+				this.currentPage = 1; // 每次打开默认回到第一页
+				this.currentPageIds = [];
+				// 打开物料弹框就显示全部物料信息
+				this.temporaryInventoryMsgList = this.echoInventoryMsgList;
+				this.totalPage = Math.ceil(this.temporaryInventoryMsgList.length / this.pageSize);
+				// 截取第一页数据
+				this.inventoryMsgList = this.temporaryInventoryMsgList.slice(
+						(this.currentPage - 1) * this.pageSize, 
+						(this.currentPage - 1) * this.pageSize + this.pageSize
+				);
+				for (let item of this.inventoryMsgList) {
+					// 判断是否已经在外部页面添加过
+					let isExist = this.consumableMsgList.some((innerItem) => { 
+							return innerItem.mateId == item.id 
+					});
+					if (isExist) {
+						// 已经添加过的，禁用并默认勾选
 						item['disabled'] = true;
-						this.selectedMaterialIds.push(item.id);
+						this.currentPageIds.push(item.id);
+						// 确保它在全局记录中
+						if (!this.allSelectedIds.includes(item.id)) {
+							this.allSelectedIds.push(item.id);
+						}
 					} else {
+						// 未添加过的
 						if (item.quantity > 0) {
-							item['disabled'] = false
+							item['disabled'] = false;
+							// 如果在弹框中被用户手动勾选过（且没被删除），则恢复勾选状态
+							if (this.allSelectedIds.includes(item.id)) {
+									this.currentPageIds.push(item.id);
+							}
 						} else {
-							item['disabled'] = true
+							// 库存为0，禁用且不勾选
+							item['disabled'] = true;
 						}
 					}
 				};
-				// 打开物料弹框就显示全部物料信息
-				this.temporaryInventoryMsgList = this.echoInventoryMsgList;
-				this.totalPage = Math.ceil(this.temporaryInventoryMsgList.length/this.pageSize);
-				this.inventoryMsgList = this.temporaryInventoryMsgList.slice((this.currentPage - 1) * this.pageSize,(this.currentPage - 1) * this.pageSize + this.pageSize)
+				this.currentPageIds = [...this.currentPageIds];
 			},
 	
 			// 关闭耗材弹框
 			closeScreenDialogEvent () {
 				this.materialShow = false;
 				this.currentPage = 1
+			},
+			
+			// 耗材名称点击事件
+			mateNameEvent (item,index) {
+				if (item.disabled) return;
+				const innerIndex = this.currentPageIds.indexOf(item.id);
+				if (innerIndex > -1) {
+						this.currentPageIds.splice(innerIndex, 1);
+				} else {
+						this.currentPageIds.push(item.id);
+				};
+				this.currentPageIds = [...this.currentPageIds];
+				this.checkboxChange(this.currentPageIds);
+			},
+			
+			// 耗材复选框变化事件
+			checkboxChange(value) {
+				const currentPageItemIds = this.inventoryMsgList.map(item => item.id);
+				this.allSelectedIds = this.allSelectedIds.filter(id => !currentPageItemIds.includes(id));
+				this.allSelectedIds = [...new Set([...this.allSelectedIds, ...value])];
+				this.selectedMaterialIds = this.allSelectedIds;
 			},
 	
 			// 物料分页点击事件
@@ -1955,21 +2023,8 @@
 					this.currentPage++
 				};
 				// 根据页码分割展示对应的数据
-				this.selectedMaterialIds = [];
 				this.inventoryMsgList = this.temporaryInventoryMsgList.slice((this.currentPage - 1) * this.pageSize,(this.currentPage - 1) * this.pageSize + this.pageSize);
-				for (let item of this.inventoryMsgList) {
-					let isExist = this.consumableMsgList.filter((innerItem) => { return innerItem.mateId == item.id});
-					if (isExist.length > 0) {
-						item['disabled'] = true;
-						this.selectedMaterialIds.push(item.id);
-					} else {
-						if (item.quantity > 0) {
-							item['disabled'] = false
-						} else {
-							item['disabled'] = true
-						}
-					}
-				}
+				this.restoreCurrentPageSelection()
 			},
 	
 			// 暂存事件

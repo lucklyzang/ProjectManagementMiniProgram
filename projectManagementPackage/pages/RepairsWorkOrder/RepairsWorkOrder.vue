@@ -55,10 +55,12 @@
 									<text class="tit">类型:</text>
 									<text class="name">{{item.typeName}}</text>
 								</view>
-								<view class="work-info-other">
-									<text class="tit">地点:</text>
-									<text class="name">{{item.depName}}</text>
-									<text v-for="(innerItem,innerIndex) in item.spaces" :key="innerIndex">-{{innerItem.name}}</text>
+								<view class="work-info-other-space">
+									<view class="tit">地点:</view>
+									<view class="name-space">
+										<text class="name">{{item.depName}}</text>
+										<text v-for="(innerItem,innerIndex) in item.spaces" :key="innerIndex">-{{innerItem.name ? innerItem.name : ''}}</text>
+									</view>	
 								</view>
 							</view>
 						</u-checkbox-group>
@@ -82,9 +84,12 @@
 								<text class="tit">类型:</text>
 								<text class="name">{{item.typeName}}</text>
 							</view>
-							<view class="work-info-other">
-								<text class="tit">地点:</text>
-								<text class="name">{{item.depName}}</text>
+							<view class="work-info-other-space">
+								<view class="tit">地点:</view>
+								<view class="name-space">
+									<text class="name">{{item.depName}}</text>
+									<text v-for="(innerItem,innerIndex) in item.spaces" :key="innerIndex">-{{innerItem.name ? innerItem.name : ''}}</text>
+								</view>	
 							</view>
 						</view>
 					</view>
@@ -1070,6 +1075,12 @@
 								flex: 1;
 								word-break: break-all;
 							}
+						 }
+					 };
+					 .work-info-other-space {
+						 .name-space {
+							 flex: 1;
+							 word-break: break-all;
 						 }
 					 };
 					 .work-order-number {

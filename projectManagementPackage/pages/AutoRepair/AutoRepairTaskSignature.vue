@@ -27,7 +27,7 @@
             <text>重</text>
             <text>写</text>
           </view>
-          <view class="sure-btn" @click="sure">
+          <view class="sure-btn" @click="$noMultipleClicks(sure)">
             <text>确</text>
             <text>认</text>
           </view>
@@ -58,6 +58,7 @@ export default {
     return {
       showLoadingHint: false,
       isExpire: false,
+			noClick: true,
       isAllTaskComplete: true,
       infoText: '提交中',
 			currentTaskId: '',
@@ -107,7 +108,21 @@ export default {
 		
 		// 顶部导航返回事件
 		backTo () {
-			uni.navigateBack()
+			const pages = getCurrentPages();
+			if (this.source == 'autoRepairCreate') {
+				const prevPageInner = pages[pages.length-3];
+				if (prevPageInner) {
+					prevPageInner.$vm.loadData();
+				};
+				uni.navigateBack({
+					delta:2
+				})
+			} else if (this.source == 'autoRepairList') {
+				const prevPageInner = pages[pages.length-2];
+				uni.navigateBack({
+					delta:1
+				})
+			}
 		},
 
     // 签名重写
@@ -178,8 +193,8 @@ export default {
             title: res.data.msg,
             icon: 'success'
           });
+					const pages = getCurrentPages();
           if (this.source == 'autoRepairCreate') {
-          	const pages = getCurrentPages();
           	const prevPageInner = pages[pages.length-3];
           	if (prevPageInner) {
           		prevPageInner.$vm.loadData();
@@ -188,7 +203,6 @@ export default {
           		delta:2
           	})
           } else if (this.source == 'autoRepairList') {
-          	const pages = getCurrentPages();
           	const prevPageInner = pages[pages.length-2];
           	if (prevPageInner) {
           		prevPageInner.$vm.setState();
@@ -230,8 +244,8 @@ export default {
             title: res.data.msg,
             icon: 'success'
           });
+					const pages = getCurrentPages();
 					if (this.source == 'autoRepairCreate') {
-						const pages = getCurrentPages();
 						const prevPageInner = pages[pages.length-3];
 						if (prevPageInner) {
 							prevPageInner.$vm.loadData();
@@ -240,7 +254,6 @@ export default {
 							delta:2
 						})
 					} else if (this.source == 'autoRepairList') {
-						const pages = getCurrentPages();
 						const prevPageInner = pages[pages.length-2];
 						if (prevPageInner) {
 							prevPageInner.$vm.setState();

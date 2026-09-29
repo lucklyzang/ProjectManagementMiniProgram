@@ -116,6 +116,7 @@
 		setCache,
 		removeAllLocalStorage,
 	} from '@/common/js/utils'
+	import { queryAutoRepairOne } from '@/api/autoRepairCreate.js'
 	import store from '@/store'
 	import navBar from "@/components/zhouWei-navBar"
 	export default {
@@ -132,7 +133,8 @@
 				},
 				currentImgUrl: '',
 				taskMessage: {},
-				imgBoxShow: false
+				imgBoxShow: false,
+				taskId: ''
 			}
 		},
 		computed: {
@@ -147,6 +149,8 @@
 		},
 		onLoad (options) {
 			this.taskMessage = JSON.parse(decodeURIComponent(options.params));
+			// this.taskId = JSON.parse(decodeURIComponent(options.params))['taskId'];
+			// this.getAutoRepairOne(this.taskId);
 			this.isLoadComplete = true
 		},
 		methods: {
@@ -234,6 +238,28 @@
 						return '待签字'
 						break
 				}
+			},
+			
+			// 查询单条自主报修任务信息
+			getAutoRepairOne (taskId) {
+				this.infoText = '加载中,请稍等···';
+				this.showLoadingHint = true;
+				queryAutoRepairOne(taskId).then((res) => {
+					if(res && res.data.code == 200) {
+						this.taskMessage = res.data.data;
+					};
+					this.infoText = '';
+					this.showLoadingHint = false;
+				})
+				.catch((err) => {
+					this.$refs.uToast.show({
+						message: err,
+						type: 'error',
+						position: 'center'
+					});
+					this.infoText = '';
+					this.showLoadingHint = false;
+				})
 			}
 		}
 	}
