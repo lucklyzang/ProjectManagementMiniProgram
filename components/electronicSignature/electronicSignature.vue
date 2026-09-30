@@ -54,7 +54,9 @@ import { base64ImgtoFile } from '@/common/js/utils'
      },
    
      onReady() {
-       this.initCanvas()
+      setTimeout(() => {
+				this.initCanvas();
+			}, 150)
      },
 
      computed:{
@@ -70,20 +72,17 @@ import { base64ImgtoFile } from '@/common/js/utils'
 			
 			// 初始化画布
 			initCanvas() {
-				// 第一步：获取外层容器尺寸
 				const query = uni.createSelectorQuery().in(this)
 				query
 				.select('#signWrapper')
 				.boundingClientRect()
 				.exec((res) => {
 					if (!res || !res[0]) {
-						console.error('未获取到容器尺寸')
 						return
-					}
+					};
 					const { width, height } = res[0]
 					this.canvasWidth = width
 					this.canvasHeight = height
-					// 第二步：等待 DOM 更新后再初始化 canvas 节点
 					this.$nextTick(() => {
 						this.setupCanvas()
 					})
@@ -97,30 +96,32 @@ import { base64ImgtoFile } from '@/common/js/utils'
 			setupCanvas() {
 				const query = uni.createSelectorQuery().in(this)
 				query
-					.select('#signCanvas')
-					.fields({ node: true, size: true })
-					.exec((res) => {
-						if (!res || !res[0]) {
-							console.error('未获取到 canvas 节点')
-							return
-						}
-						const { node, width, height } = res[0]
-						// 设置画布实际像素（适配高清屏）
-						node.width = width * this.dpr
-						node.height = height * this.dpr
-						const ctx = node.getContext('2d')
-						ctx.scale(this.dpr, this.dpr)
-						// 画笔样式
-						ctx.strokeStyle = '#000000'
-						ctx.lineWidth = 3
-						ctx.lineCap = 'round'
-						ctx.lineJoin = 'round'
-						// 绘制白色背景
-						ctx.fillStyle = '#ffffff'
-						ctx.fillRect(0, 0, width, height)
-						this.canvas = node
-						this.ctx = ctx
-					})
+				.select('#signCanvas')
+				.fields({ node: true, size: true })
+				.exec((res) => {
+					if (!res || !res[0]) {
+						return
+					}
+					const { node } = res[0]
+					const physicalWidth = Math.round(this.canvasWidth * this.dpr)
+					const physicalHeight = Math.round(this.canvasHeight * this.dpr)
+					
+					node.width = physicalWidth
+					node.height = physicalHeight
+					
+					const ctx = node.getContext('2d')
+					ctx.scale(this.dpr, this.dpr)
+					
+					ctx.strokeStyle = '#000000'
+					ctx.lineWidth = 3
+					ctx.lineCap = 'round'
+					ctx.lineJoin = 'round'
+					ctx.fillStyle = '#ffffff'
+					ctx.fillRect(-1, -1, this.canvasWidth + 2, this.canvasHeight + 2)
+					
+					this.canvas = node
+					this.ctx = ctx
+				})
 			},
 
 			/**
@@ -188,10 +189,10 @@ import { base64ImgtoFile } from '@/common/js/utils'
 			 */
 			overwrite() {
 				if (!this.ctx) return
-				this.ctx.fillStyle = '#ffffff'
-				this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight)
-				this.isEmpty = true
-				this.changeCurrentElectronicSignature({DtMsg: null})
+				this.ctx.fillStyle = '#ffffff';
+				this.ctx.fillRect(-1, -1, this.canvasWidth + 2, this.canvasHeight + 2);
+				this.isEmpty = true;
+				this.changeCurrentElectronicSignature({ DtMsg: null })
 			},
 
 			/**
@@ -218,25 +219,21 @@ import { base64ImgtoFile } from '@/common/js/utils'
 		
 				//导出 Base64
 				exportBase64() {
-					return new Promise((resolve, reject) => {
-						wx.canvasToTempFilePath({
-							canvas: this.canvas,
-							x: 0,
-							y: 0,
-							width: this.canvasWidth,
-							height: this.canvasHeight,
-							destWidth: this.canvasWidth * this.dpr,
-							destHeight: this.canvasHeight * this.dpr,
-							fileType: 'png',
-							quality: 1,
-							success: (res) => {
-								this.tempFileToBase64(res.tempFilePath)
-									.then(resolve)
-									.catch(reject)
-							},
-							fail: (err) => reject(err)
-						}, this)
-					})
+					 return new Promise((resolve, reject) => {
+					    wx.canvasToTempFilePath({
+					      canvas: this.canvas,
+					      destWidth: Math.round(this.canvasWidth * this.dpr),
+					      destHeight: Math.round(this.canvasHeight * this.dpr),
+					      fileType: 'png',
+					      quality: 1,
+					      success: (res) => {
+					        this.tempFileToBase64(res.tempFilePath)
+					          .then(resolve)
+					          .catch(reject)
+					      },
+					      fail: (err) => reject(err)
+					    }, this)
+					  })
 				},
 		
 			/**
@@ -341,7 +338,7 @@ import { base64ImgtoFile } from '@/common/js/utils'
     }
   }
 </script>
-<style lang='less' scoped>
+<style lang="scss" scoped>
   .signature {
     height: 100%;
 		display: flex;

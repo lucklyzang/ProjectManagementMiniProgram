@@ -196,7 +196,6 @@
 							this.isLoadingRepairsTask = false;
 							this.$refs.uToast.show({
 								message: '加载成功',
-								type: 'success',
 								position: 'center'
 							})
 						} else {

@@ -323,13 +323,15 @@ page {
     flex: 1;
     display: flex;
     flex-direction: row;
-    height: 0;
+    min-height: 0;
     .content-left {
+			width: 100%;
       display: flex;
       flex: 1;
       flex-direction: column;
 			.electronic-signature-box {
 				flex: 1;
+				width: 100%;
 				::v-deep .signature {
 				  display: flex;
 				  flex-direction: column;
