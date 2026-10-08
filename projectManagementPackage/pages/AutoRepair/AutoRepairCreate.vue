@@ -2390,7 +2390,7 @@
 		            .tool-name-list {
 		              flex: 1;
 		              display: flex;
-		              height: 0;
+		              min-height: 0;
 		              display: flex;
 		              position: relative;
 		              flex-direction: column;
@@ -2445,6 +2445,8 @@
 		                  height: 100%;
 		                  overflow-x: auto;
 		                  white-space: nowrap;
+											display: flex;
+											flex-direction: column;
 		                  .circulation-area-content-box {
 		                    flex: 1;
 							position: relative;

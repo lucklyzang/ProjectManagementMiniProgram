@@ -154,7 +154,8 @@
 						store.dispatch('resetLoginState');
 						store.dispatch('resetCommitState');
 						store.dispatch('resetAutoRepairTaskStore');
-						store.dispatch('resetCreateProjectStateAction')
+						store.dispatch('resetCreateProjectStateAction');
+						store.dispatch('resetTaskSchedulingStateAction')
 					} else {
 						this.changeOverDueWay(false);
 						this.$refs.uToast.show({

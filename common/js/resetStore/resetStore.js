@@ -60,3 +60,23 @@ export function getDefaultAutoRepairTaskState() {
 		submitAutoRepairTaskMessage: {} //提交自主报修任务信息
 	}
 }
+
+// 调度管理模块store的初始值
+export function getDefaultTaskSchedulingState() {
+	return {
+		// 任务调度类型
+		schedulingTaskType: {},
+		// 任务调度详情
+		schedulingTaskDetails: {},
+		// 任务调度相关信息
+		schedulingTaskAboutMessage: {},
+		//操作按钮点击记录
+		operateBtnClickRecord: {
+			allocationBtnClick: false,
+			delayBtnClick: false,
+			cancelBtnClick: false
+		},
+		// 暂存创建维修任务的信息
+		temporaryStorageCreateRepairsTaskMessage: {}
+	}
+}

@@ -46,7 +46,7 @@ export default {
 		completeRoomList:(state) => {
 			state.completeRoomList = getCache('completeRoomList') ? getCache('completeRoomList')['sweepCodeInfo'] : [];
 			return state.completeRoomList
-		},
+		}
   },
 
   mutations:{

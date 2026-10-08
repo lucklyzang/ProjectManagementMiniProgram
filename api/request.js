@@ -61,7 +61,8 @@ instance.interceptors.response.use(function (response) {
 		store.dispatch('resetLoginState');
 		store.dispatch('resetCommitState');
 		store.dispatch('resetAutoRepairTaskStore');
-		store.dispatch('resetCreateProjectStateAction')
+		store.dispatch('resetCreateProjectStateAction');
+		store.dispatch('resetTaskSchedulingStateAction')
 	};
 	return response
 }, function (error) {
@@ -88,7 +89,8 @@ instance.interceptors.response.use(function (response) {
 				store.dispatch('resetLoginState');
 				store.dispatch('resetCommitState');
 				store.dispatch('resetAutoRepairTaskStore');
-				store.dispatch('resetCreateProjectStateAction')
+				store.dispatch('resetCreateProjectStateAction');
+				store.dispatch('resetTaskSchedulingStateAction')
 			} else {
 			}
 		}

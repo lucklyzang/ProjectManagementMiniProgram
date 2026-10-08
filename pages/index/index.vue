@@ -72,7 +72,7 @@
 					{tit:'报修工单', imgUrl: repairsWorkOrderOnePng, value: 'bxTask', count: 0},
 					// {tit:'设备巡检', imgUrl: deviceServiceOnePng, value: 'sxTask', count: 0},
 					{tit:'区域巡检', imgUrl: departmentServiceOnePng, value: 'kxTask', count: 0},
-					// {tit:'调度管理', imgUrl: dispatchingManagementPng, value: 'dgTask', count: 0},
+					{tit:'调度管理', imgUrl: dispatchingManagementPng, value: 'dgTask', count: 0},
 					{tit:'自主报修', imgUrl: autoRepairPng, value: 'zizhuTask', count: 0}
 				],
 				defaultPersonPng: require('@/static/img/default-person-photo.png'),
@@ -276,6 +276,9 @@
 						url: '/projectManagementPackage/pages/DepartmentService/DepartmentService'
 					})
 				} else if (item.tit == '调度管理') {
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/EngineeringTaskManagement/EngineeringTaskManagement'
+					})
 				} else if (item.tit == '自主报修') {
 					uni.navigateTo({
 						url: '/projectManagementPackage/pages/AutoRepair/AutoRepairList'

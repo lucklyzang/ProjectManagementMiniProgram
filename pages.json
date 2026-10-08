@@ -176,6 +176,26 @@
 						"backgroundColorBottom": "#fff",
 						"navigationStyle" : "custom"
 					}
+				},
+				{
+					"path": "pages/EngineeringTaskManagement/EngineeringTaskManagement",
+					"style": {
+						"navigationBarTitleText": "",
+						"navigationBarBackgroundColor": "#ffffff",
+						"backgroundColorTop": "#fff,",
+						"backgroundColorBottom": "#fff",
+						"navigationStyle" : "custom"
+					}
+				},
+				{
+					"path": "pages/EngineeringTaskManagement/SchedulingRepairsTaskDetails",
+					"style": {
+						"navigationBarTitleText": "",
+						"navigationBarBackgroundColor": "#ffffff",
+						"backgroundColorTop": "#fff,",
+						"backgroundColorBottom": "#fff",
+						"navigationStyle" : "custom"
+					}
 				}
 			]
 		}
