@@ -1,14 +1,15 @@
 <template>
 	<view class="vue-dropdown">
 		<view class="cur-name" @click="curNameClickEvent">
-            <text :class="{'textStyle': current.indexOf('请选择')!=-1}">{{current}}</text>
-            <u-icon :name="isShow ? 'arrow-down':'arrow-up'" size="16"></u-icon>
-        </view>
+			<text :class="{'textStyle': current.indexOf('请选择')!=-1}">{{current}}</text>
+			<u-icon :name="isShow ? 'arrow-down':'arrow-up'" size="16"></u-icon>
+    </view>
+		<view class="dropdown-mask" v-if="isShow" @click="closeDropdown"></view>
 		<view class="list-and-search" :class="isShow?'on':''">
-			<view class="search-module clearfix" v-show="isNeedSearch">
+			<view class="search-module clearfix" v-if="isNeedSearch">
 				<u--input
 					:placeholder="placeholder"
-					suffixIcon="search"
+					prefixIcon="search"
 					@input='search'
 					:value="searchValue"
 				></u--input>
@@ -20,14 +21,14 @@
 					}
 				">
 					<text class="list-item-text">{{ item.text }}</text>
-					<text v-show="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">(</text>
-					<text v-show="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">{{ `${item.ongoing}` }}</text>
-					<text v-show="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">{{ `/ ${item.complete} /` }}</text>
-					<text v-show="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">{{ `${item.complete + item.ongoing}` }}</text>
-					<text v-show="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">)</text>
+					<text v-if="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">(</text>
+					<text v-if="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">{{ `${item.ongoing}` }}</text>
+					<text v-if="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">{{ `/ ${item.complete} /` }}</text>
+					<text v-if="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">{{ `${item.complete + item.ongoing}` }}</text>
+					<text v-if="item.text.indexOf('请选择')==-1 && isShowTaskCompleteMessage">)</text>
 				</view>
 			</view>
-			<view class="tip-nodata" v-show="searchValue.length && !datalist.length">暂无数据!</view>
+			<view class="tip-nodata" v-if="searchValue.length && !datalist.length">暂无数据!</view>
 			<!-- <view class="operation-btn" v-if="multiple">
 				<text @click="isShow = false">取消</text>
 				<text @click="sureEvent">确定</text>
@@ -161,16 +162,7 @@
 					};
 					this.current = this.curData.length > 0 ? temporaryArray.join(',') : this.itemData[0]['text']
 				}
-		};
-		//点击组件以外的地方，收起
-		// document.addEventListener('click', (e) => {
-		// 	if (!this.$el.contains(e.target)){
-		// 		this.isShow = false;
-		// 		if (this.multiple) {
-		// 			this.$emit('change',this.selectedItem)
-		// 		}
-		// 	}
-		// }, false)
+		}
   },
   methods:{
         curNameClickEvent () {
@@ -202,14 +194,19 @@
 					}
 				}
             } else {
-				if (this.multiple) {
-					this.$emit('change',this.selectedItem)
-				}
+						this.closeDropdown()
 			}
-        },
+    },
+		
+		closeDropdown() {
+			this.isShow = false;
+			if (this.multiple) {
+					this.$emit('change', this.selectedItem);
+			}
+		},
 
 		search(e){
-			this.searchValue = e.target.value;
+			this.searchValue = e;
 			//单选
 			this.datalist = this.itemData.filter((item)=>{
 				return item.text.indexOf(this.searchValue) != -1
@@ -289,7 +286,18 @@
  
 <style scoped lang="scss">
    @import "~@/common/stylus/variable.scss";
+	 .dropdown-mask {
+		 position: fixed;
+		 top: 0;
+		 left: 0;
+		 right: 0;
+		 bottom: 0;
+		 background: transparent;
+		 z-index: 99;
+	 };
 	.vue-dropdown {
+		position: relative;
+		z-index: 101; 
 		width: 100%;
 		border-radius:3px; 
 		border: 1px solid #ccc;
@@ -372,12 +380,13 @@
 		}
 	}
 	.list-and-search{
+		z-index: 100;
 		display: none;
 		z-index: 100;
 		background: #fff;
 		border: 1px solid #ccc;
 		position: absolute;
-        box-sizing: border-box;
+    box-sizing: border-box;
 		width: 100%;
 		&.on{
 			display: block

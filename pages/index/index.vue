@@ -167,28 +167,27 @@
 					};
 					if (res && res.data.code == 200) {
 						this.isTimeoutContinue = true;
-						Object.keys(res.data.data).forEach((item) => {
-							if (item != "all" && res.data.data[item] == true) {
-								this.temporaryNumList = this.newTaskName;
-								this.temporaryNumList.push(item);
-								// 新任务存入vuex中
-								this.changeNewTaskList(repeArray(this.temporaryNumList));
-								// 新任务存入localStore中
-								setStore('newTaskList',{taskName:repeArray(this.temporaryNumList)});
-								//更新任务数量
-								this.getTaskCount(this.proId,this.workerId);
-								//进行播放
-								audioCtx.play();
-								audioCtx.onPlay();
-								audio.onEnded = () => {
-								}
-							}
-						})
+						const resData = res.data.data || {};
+						let hasNewTask = false;
+						this.temporaryNumList = [...this.newTaskName];
+						Object.keys(resData).forEach((item) => {
+						  if (item !== "all" && resData[item] === true) {
+						    this.temporaryNumList.push(item);
+						    hasNewTask = true;
+						  }
+						});
+						if (hasNewTask) {
+						  this.changeNewTaskList(repeArray(this.temporaryNumList));
+						  this.getTaskCount(this.proId, this.workerId);
+						  audioCtx.play();
+						  audioCtx.onEnded(() => {})
+						}
 					}
 				})
 				.catch((err) => {
+					console.log('err',err);
 					this.$refs.uToast.show({
-						message: err,
+						message: err || '未知错误',
 						type: 'error',
 						position: 'center'
 					})
@@ -264,9 +263,8 @@
 				} else if (item.tit == '设备巡检') {
 					if (currentIndex != -1) {
 						this.temporaryNumList.splice(index,1);
-						this.changeNewTaskList(this.temporaryNumList);
-						setStore('newTaskList',{taskName:this.temporaryNumList})
-					};
+						this.changeNewTaskList(this.temporaryNumList)
+					}
 				} else if (item.tit == '区域巡检') {
 					if (currentIndex != -1) {
 						this.temporaryNumList.splice(index,1);

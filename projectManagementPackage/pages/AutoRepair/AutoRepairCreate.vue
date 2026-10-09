@@ -2193,6 +2193,8 @@
 		.choose-room {
 			::v-deep .u-popup {
 				.u-popup__content {
+					padding: 40px 0 10px 0;
+					box-sizing: border-box;
 					.u-popup__content__close {
 						.u-icon__icon {
 							font-size: 22px !important;
@@ -2204,6 +2206,7 @@
 					width: 100%;
 					height: 50vh;
 					display: flex;
+					flex-direction: column;
 					position: relative;
 					overflow: auto;
 					padding: 40px 0 10px 0;

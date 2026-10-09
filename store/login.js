@@ -21,7 +21,7 @@ export default {
 		},
 		overDueWay: state => state.overDueWay,
 		newTaskName:(state) => {
-			state.newTaskName = getCache('newTaskList') ? JSON.parse(getCache('newTaskList'))['taskName'] : [];
+			state.newTaskName = getCache('newTaskList') ? getCache('newTaskList')['taskName'] : [];
 			return state.newTaskName
 		},
 		globalTimer: state => state.globalTimer,

@@ -77,7 +77,7 @@
 												</view>
 												<view class="center-one-line-right">
 													<text>维修员:</text>
-													<text>{{ item.workerName }}</text>
+													<text>{{ item.workerName ? item.workerName : '无' }}</text>
 												</view>
 											</view>
 											<view class="issue-image">
@@ -117,44 +117,46 @@
 		</view>
 		<!-- 筛选弹窗 -->
 		<view class="screen-box">
-			<u-modal 
-				:show="screenDialogShow" 
-				:showCancelButton="true"
-				confirmColor="#2390fe"
-				:before-close="beforeCloseDialogEvent"
-				@confirm="screenDialogSure"
-				@cancel="screenDialogCancel"
-				confirmText="确认"
-				cancelText="重置"
+			<u-popup 
+				:show="screenDialogShow"
+				:round="10"
 			>
 				<view class="dialog-top">
 					<view class="select-title">全部筛选</view>
-					<van-icon name="cross" size="24" @click="closeScreenDialogEvent" />
+					<u-icon name="close" size="24" @click="closeScreenDialogEvent"></u-icon>
 				</view>
 				<view class="dialog-center">
 					<view class="dialog-center-one-line">
-						<text>目的区域选择</text>
-						<SelectSearch ref="departmentOption" :itemData="startPointDepartmentOption" :curData="startPointDepartmentValue" @change="startPointDepartmentOptionChange" />
-						<text @click="startPointDepartmentClear">清除</text>
+						<view>目的区域选择</view>
+						<view>
+							<SelectSearch ref="departmentOption" :itemData="startPointDepartmentOption" :curData="startPointDepartmentValue" @change="startPointDepartmentOptionChange" />
+						</view>
+						<view @click="startPointDepartmentClear">清除</view>
 					</view>
 					<view class="dialog-center-one-line">
-						<text>维修员</text>
-						<SelectSearch ref="transporterOption" :itemData="transporterOption" :curData="transporterValue" @change="transporterOptionChange" />
-						<text  @click="transporterValueClear">清除</text>
+						<view>维修员</view>
+						<view>
+							<SelectSearch ref="transporterOption" :itemData="transporterOption" :curData="transporterValue" @change="transporterOptionChange" />
+						</view>
+						<view  @click="transporterValueClear">清除</view>
 					</view>
 					<view class="priority-box">
 						<view class="priority-title">
 							优先级
 						</view>
-						<van-checkbox-group v-model="priorityResult" direction="horizontal">
-							<van-checkbox name="1" shape="square">正常</van-checkbox>
-							<van-checkbox name="2" shape="square">重要</van-checkbox>
-							<van-checkbox name="3" shape="square">紧急</van-checkbox>
-							<van-checkbox name="4" shape="square">紧急重要</van-checkbox>
-						</van-checkbox-group>
+						<u-checkbox-group v-model="priorityResult" direction="horizontal">
+							<u-checkbox name="1" label="正常" shape="square"></u-checkbox>
+							<u-checkbox name="2" label="重要" shape="square"></u-checkbox>
+							<u-checkbox name="3" label="紧急" shape="square"></u-checkbox>
+							<u-checkbox name="4" label="紧急重要" shape="square"></u-checkbox>
+						</u-checkbox-group>
 					</view>
 				</view>
-			</u-modal>
+				<view class="dialog-bottom">
+					<view class="reset-box" @click="screenDialogCancel">重置</view>
+					<view class="sure-box" @click="screenDialogSure">确认</view>
+				</view>
+			</u-popup>
 		</view>
 		<!-- 分配弹框   -->
 		<view class="allocation-box allocation-box-one">
@@ -235,9 +237,9 @@
 			</u-modal>
 		</view>
 		<!-- 右侧菜单 -->
-		<u-popup :show="rightMenuShow" mode="right" :round="10">
+		<u-popup :show="rightMenuShow" @close="rightMenuShow = false" :safeAreaInsetTop="true" mode="right" :round="10">
 				<view class="top-icon">
-						<image :src="switchHiddenPng" alt="切换隐藏" @click="switchHiddenEvent"></image>
+						<image :src="switchHiddenPng" mode="widthFix" alt="切换隐藏" @click="switchHiddenEvent"></image>
 				</view>
 				<view class="center-content">
 						<view class="function-list" :class="{'functionListStyle': functionListIndex == index}" v-for="(item, index) in taskList" :key="index" @click="taskRouterSkip(item.tit,index)">
@@ -250,7 +252,7 @@
 		</u-popup>
 		<!-- 图片放大弹框  -->
 		<view class="img-dislog-box">
-				<u-modal :show="imgBoxShow" @confirm="imgBoxShow = false" :close-on-click-overlay="true" confirm-button-text="关闭">
+				<u-modal :show="imgBoxShow" @confirm="imgBoxShow = false" confirmText="关闭">
 						<image :src="currentImgUrl" mode="widthFix"></image>
 				</u-modal> 
 		</view>
@@ -1269,25 +1271,29 @@
 				// 用户签退
 				userLoginOut (proId,workerId) {
 					this.changeOverDueWay(true);
-					setStore('storeOverDueWay',true);
 					userSignOut(proId,workerId).then((res) => {
 						if (res && res.data.code == 200) {
-							removeAllLocalStorage();
-							this.changeCatchComponent([]);
-							this.$router.push({path:'/'})
-						} else {
-							this.$dialog.alert({
-								message: `${res.data.msg}`,
-								closeOnPopstate: true
-							}).then(() => {
+							uni.redirectTo({
+								url: '/pages/login/login'
 							});
-							this.changeOverDueWay(false);
-							setStore('storeOverDueWay',false);
+							// 清空store和localStorage
+							removeAllLocalStorage();
+							store.dispatch('resetLoginState');
+							store.dispatch('resetCommitState');
+							store.dispatch('resetAutoRepairTaskStore');
+							store.dispatch('resetCreateProjectStateAction');
+							store.dispatch('resetTaskSchedulingStateAction')
+						} else {
+							this.$refs.uToast.show({
+								message: res.data.msg,
+								type: 'error',
+								position: 'center'
+							});
+							this.changeOverDueWay(false)
 						}
 					}).
 					catch((err) => {
 						this.changeOverDueWay(false);
-						setStore('storeOverDueWay',false);
 						this.$refs.uToast.show({
 							message: err,
 							type: 'error',
@@ -1353,6 +1359,306 @@
 		};
 		::v-deep .u-transition {
 			z-index: 100000 !important;
+		};
+		.img-dislog-box {
+			::v-deep .u-modal {
+				top: 50% !important;
+				.u-modal__content {
+					max-height: 70vh;
+					overflow: auto;
+					>image {
+						width: 100%;
+					}
+				}
+			}
+		};
+		.screen-box {
+			::v-deep .u-popup {
+				.u-popup__content {
+					padding: 0 20px 10px 20px !important;
+					box-sizing: border-box;
+				  width: 100%;
+					.dialog-top {
+						height: 60px;
+						position: relative;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						.select-title {
+							font-size: 18px;
+							color: #101010;
+							text-align: center
+						};
+						.u-icon {
+							position: absolute;
+							top: 50%;
+							transform: translateY(-50%);
+							right: 0
+						}
+					};
+					.dialog-center {
+						.dialog-center-one-line {
+							display: flex;
+							align-items: center;
+							justify-content: space-between;
+							margin-bottom: 10px;
+							>view {
+								&:nth-child(1) {
+									width: 30%;
+									font-size: 14px;
+									color: #101010;
+									font-weight: bold
+								};
+								&:nth-child(2) {
+									flex: 1;
+									margin: 0 10px 0 20px;
+								};
+								&:nth-child(3) {
+									color: #fff;
+									font-size: 12px;
+									padding: 4px;
+									box-sizing: border-box;
+									background: #E86F50
+								}
+							};
+							.vue-dropdown {
+								width: 100%
+							}
+						};
+						.priority-box {
+							.priority-title {
+								font-size: 14px;
+								color: #101010;
+								font-weight: bold;
+								padding-top: 10px;
+								margin-bottom: 20px
+							};
+							.u-checkbox-group {
+								display: flex;
+								justify-content: space-between;
+								.u-checkbox {
+									flex: 1 0 auto !important;
+									justify-content: center;
+									.u-checkbox__label {
+										margin-right: 9px;
+									}
+								}
+							}
+						}
+					};
+					.dialog-bottom {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						height: 90px;
+						.reset-box {
+							flex: 1;
+							height: 50px;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							margin-right: 20px;
+							box-shadow: 0px 2px 6px 0 rgba(36, 149, 213, 1);
+							background: #fff;
+							border-radius: 30px;
+							margin-right: 20px;
+							color: #1864FF
+						};
+						.sure-box {
+							flex: 1;
+							height: 50px;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							background: linear-gradient(to right, #6cd2f8, #2390fe);
+							box-shadow: 0px 2px 6px 0 rgba(36, 149, 213, 1);
+							border-radius: 30px;
+							color: #fff;
+						}
+					}
+				}
+			}
+		};
+		.complete-box {
+			 ::v-deep .u-modal {
+				.u-modal__content {
+						padding: 0 !important;
+						box-sizing: border-box;
+						.dialog-top {
+							border-top-left-radius: 10px !important;
+							border-top-right-radius: 10px !important;
+							height: 40px;
+							padding-left: 10px;
+							position: relative;
+							display: flex;
+							align-items: center;
+							font-size: 14px;
+							color: #fff;
+							background: #3B9DF9;
+							text-align: left
+						};
+						.dialog-center {
+							width: 80%;
+							height: 8vh;
+							text-align: center;
+							line-height: 8vh;
+							margin: 0 auto;
+							margin-top: 20px
+						}
+				};
+				.u-line {
+					display: none !important;
+				};
+				.u-modal__button-group {
+					padding: 20px !important;
+					box-sizing: border-box;
+					justify-content: center;
+					.u-line {
+						display: none !important;
+					};
+					.u-modal__button-group__wrapper--cancel {
+						height: 40px;
+						line-height: 40px;
+						flex: none !important;
+						width: 40%;
+						background: #3B9DF9;
+						border-radius: 10px;
+						margin-right: 30px;
+						.u-modal__button-group__wrapper__text {
+							color: #fff !important;
+						}
+					};
+					.u-modal__button-group__wrapper--confirm {
+						width: 40%;
+						height: 40px;
+						line-height: 40px;
+						background: #fff;
+						flex: none !important;
+						border-radius: 10px;
+						border: 1px solid #3B9DF9;
+						 .u-modal__button-group__wrapper__text {
+								color: #3B9DF9 !important;
+						 }
+					}
+				}
+			}
+		};
+		.allocation-box {
+			::v-deep .u-modal {
+				.u-modal__content {
+						padding: 0 !important;
+						box-sizing: border-box;
+						flex-direction: column !important;
+						.dialog-top {
+							height: 40px;
+							padding-left: 10px;
+							position: relative;
+							display: flex;
+							align-items: center;
+							font-size: 14px;
+							color: #fff;
+							background: #3B9DF9;
+							text-align: left
+						};
+						.dialog-center {
+							width: 80%;
+							height: 20vh;
+							margin: 0 auto;
+							margin-top: 20px
+						}
+				};
+				.u-line {
+					display: none !important;
+				};
+				.u-modal__button-group {
+					padding: 20px !important;
+					box-sizing: border-box;
+					justify-content: center;
+					.u-line {
+						display: none !important;
+					};
+					.u-modal__button-group__wrapper--cancel {
+						width: 40%;
+						height: 40px;
+						line-height: 40px;
+						background: #fff;
+						flex: none !important;
+						border-radius: 10px;
+						border: 1px solid #3B9DF9;
+						margin-right: 30px;
+						.u-modal__button-group__wrapper__text {
+								color: #3B9DF9 !important;
+						}
+					};
+					.u-modal__button-group__wrapper--confirm {
+						 height: 40px;
+						 line-height: 40px;
+						 flex: none !important;
+						 width: 40%;
+						 background: #3B9DF9;
+						 border-radius: 10px;
+						 .u-modal__button-group__wrapper__text {
+								color: #fff !important;
+						 }
+					}
+				}
+			}  
+		};
+		.allocation-box-one {
+			::v-deep .dialog-center {
+				.list-module {
+					max-height: 260px !important
+				}
+			}
+		};
+		::v-deep .u-popup {
+			.u-popup__content {
+				padding: 20px 0 80px 0;
+				box-sizing: border-box;
+				width: 30vh;
+			};
+			.top-icon {
+				padding-left: 10px;
+				box-sizing: border-box;
+				>image {
+					width: 24px;
+				}
+			};
+			.center-content {
+				margin-top: 20px;
+				.function-list {
+					width: 153px;
+					height: 40px;
+					line-height: 40px;
+					text-align: center;
+					margin: 0 auto;
+					border: 1px solid #3B9DF9;
+					box-sizing: border-box;
+					font-size: 16px;
+					color: #3B9DF9;
+					border-radius: 8px;
+					margin-bottom: 20px
+				};
+				.functionListStyle {
+					color: #fff !important;
+					border: none !important;
+					background: #3B9DF9 !important
+				}
+			};
+			.signout-box {
+				position: absolute;
+				bottom: 80px;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 153px;
+				height: 40px;
+				line-height: 40px;
+				text-align: center;
+				background: #E86F50;
+				font-size: 16px;
+				color: #fff;
+				border-radius: 8px
+			}
 		};
 		.top-background-area {
 			width: 100%;

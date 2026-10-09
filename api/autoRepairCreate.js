@@ -27,10 +27,9 @@ export function getHistoryAutoRepairsTaskList(data) {
 };
 
 // 查询单条自主报修任务
-export function queryAutoRepairOne(taskId) {
+export function queryAutoRepairOne(id) {
   return request({
-    url: 'project/bxTask/isOwn4App/selectByPage',
-    method: 'get',
-    params: taskId
+    url: `project/bxTask/query/${id}`,
+    method: 'get'
   })
 };

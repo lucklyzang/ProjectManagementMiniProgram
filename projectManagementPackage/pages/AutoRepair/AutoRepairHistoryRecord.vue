@@ -20,15 +20,15 @@
 					 <view class="problem-description-content">
 						 <view class="line-content">
 							 <text>类型</text>
-							 <text>{{ taskMessage.typeName }}</text>
+							 <text>{{ taskMessage.typeName ? taskMessage.typeName : ''  }}</text>
 						 </view>
 						 <view class="line-content">
 							 <text>建筑</text>
-							 <text>{{ taskMessage.structName }}</text>
+							 <text>{{ taskMessage.structName ?taskMessage.structName : '' }}</text>
 						 </view>
 						 <view class="line-content">
 							 <text>科室</text>
-							 <text>{{ taskMessage.depName }}</text>
+							 <text>{{ taskMessage.depName ?taskMessage.depName : '' }}</text>
 						 </view>
 						 <view class="line-content">
 							 <text>房间</text>
@@ -36,7 +36,7 @@
 						 </view>
 						 <view class="list-line-image">
 								<view>问题图片</view>
-								<view>
+								<view v-if="taskMessage.images != null">
 									<image v-for="(innerItem,innerIndex) in taskMessage.images" :key="innerIndex" :src="innerItem.path" alt="" @click.stop="enlareEvent(innerItem.path)"></image>
 								</view>
 							</view>
@@ -65,7 +65,7 @@
 						 </view>
 							<view class="list-line-image">
 								<view>修复图片</view>
-								<view>
+								<view v-if="taskMessage.repairImg != null">
 									<image v-for="(innerItem,innerIndex) in taskMessage.repairImg" :key="innerIndex" :src="innerItem.path" @click.stop="enlareEvent(innerItem.path)"></image>
 								</view>
 							</view>
@@ -148,10 +148,10 @@
 			}
 		},
 		onLoad (options) {
-			this.taskMessage = JSON.parse(decodeURIComponent(options.params));
-			// this.taskId = JSON.parse(decodeURIComponent(options.params))['taskId'];
-			// this.getAutoRepairOne(this.taskId);
-			this.isLoadComplete = true
+			this.taskId = JSON.parse(decodeURIComponent(options.params))['id'];
+			this.taskMessage = this.taskId = JSON.parse(decodeURIComponent(options.params));
+			this.isLoadComplete = true;
+			// this.getAutoRepairOne(this.taskId)
 		},
 		methods: {
 			...mapMutations([
@@ -164,8 +164,8 @@
 			
 			// 处理维修任务空间信息
 			disposeCheckType (item) {
-				if (!item) { return };
-				if (item.length == 0) { return ''};
+				if (!item) { return '无' };
+				if (item.length == 0) { return '无'};
 				let temporaryArray = [];
 				for (let innerItem of item) {
 					temporaryArray.push(innerItem.name)
@@ -175,8 +175,8 @@
 	
 			// 处理维修任务参与者
 			disposeTaskPresent (item) {
-				if (!item) { return };
-				if (item.length == 0) { return };
+				if (!item) { return '无' };
+				if (item.length == 0) { return '无' };
 				let temporaryArray = [];
 				for (let innerItem of item) {
 					temporaryArray.push(innerItem.name)
@@ -247,8 +247,15 @@
 				queryAutoRepairOne(taskId).then((res) => {
 					if(res && res.data.code == 200) {
 						this.taskMessage = res.data.data;
+					} else {
+						this.$refs.uToast.show({
+							message: res.data.msg,
+							type: 'error',
+							position: 'center'
+						})
 					};
 					this.infoText = '';
+					this.isLoadComplete = true;
 					this.showLoadingHint = false;
 				})
 				.catch((err) => {
@@ -257,6 +264,7 @@
 						type: 'error',
 						position: 'center'
 					});
+					this.isLoadComplete = true;
 					this.infoText = '';
 					this.showLoadingHint = false;
 				})
