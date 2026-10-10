@@ -91,7 +91,7 @@
 					<view class="signature-tit">
 						<text>签字</text>
 					</view>
-					<view class="signature-content">
+					<view class="signature-content" v-if="taskMessage.signImg != null">
 						<image v-if="taskMessage.signImg.length > 0 && taskMessage.signImg[0].hasOwnProperty('path')" :src="taskMessage.signImg[0]['path']"></image>
 					</view>
 				 </view>

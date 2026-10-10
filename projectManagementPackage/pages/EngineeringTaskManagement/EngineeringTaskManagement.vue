@@ -163,7 +163,6 @@
 			<u-modal :show="allocationShow"
 				:showCancelButton="true"
 				confirmColor="#2390fe"
-				:before-close="beforeCloseAllocationDialogEvent"
 				@confirm="allocationDialogSure"
 				@cancel="allocationDialogCancel"
 				confirmText="确定"
@@ -183,7 +182,6 @@
 				:show="delayReasonShow"
 				:showCancelButton="true"
 				confirmColor="#2390fe"
-				:before-close="beforeCloseDelayReasonDialogEvent"
 				@confirm="delayReasonDialogSure"
 				@cancel="delayReasonDialogCancel"
 				confirmText="确定"
@@ -203,7 +201,6 @@
 				:show="cancelReasonShow"
 				:showCancelButton="true"
 				confirmColor="#2390fe"
-				:before-close="beforeCloseCancelReasonDialogEvent"
 				@confirm="cancelReasonDialogSure"
 				@cancel="cancelReasonDialogCancel"
 				confirmText="确定"
@@ -237,24 +234,30 @@
 			</u-modal>
 		</view>
 		<!-- 右侧菜单 -->
-		<u-popup :show="rightMenuShow" @close="rightMenuShow = false" :safeAreaInsetTop="true" mode="right" :round="10">
-				<view class="top-icon">
-						<image :src="switchHiddenPng" mode="widthFix" alt="切换隐藏" @click="switchHiddenEvent"></image>
-				</view>
-				<view class="center-content">
-						<view class="function-list" :class="{'functionListStyle': functionListIndex == index}" v-for="(item, index) in taskList" :key="index" @click="taskRouterSkip(item.tit,index)">
-								{{ item.tit }}
-						</view>
-				</view>
-				<view class="signout-box" @click="signOutEvent">
-						下班签退
-				</view>
-		</u-popup>
+		<view class="right-menu-box">
+			<u-popup :show="rightMenuShow" @close="rightMenuShow = false" :safeAreaInsetTop="true" mode="right" :round="10">
+					<view class="top-icon">
+							<image :src="switchHiddenPng" mode="widthFix" alt="切换隐藏" @click="switchHiddenEvent"></image>
+					</view>
+					<view class="center-content">
+							<view class="function-list" :class="{'functionListStyle': functionListIndex == index}" v-for="(item, index) in taskList" :key="index" @click="taskRouterSkip(item.tit,index)">
+									{{ item.tit }}
+							</view>
+					</view>
+					<view class="signout-box" @click="signOutEvent">
+							下班签退
+					</view>
+			</u-popup>
+		</view>	
 		<!-- 图片放大弹框  -->
 		<view class="img-dislog-box">
 				<u-modal :show="imgBoxShow" @confirm="imgBoxShow = false" confirmText="关闭">
 						<image :src="currentImgUrl" mode="widthFix"></image>
 				</u-modal> 
+		</view>
+		<!-- 下班签退弹框  -->
+		<view class="signout-modal-box">
+			<u-modal :show="modalShow" title="确定签退?" :showCancelButton="true" confirmColor="#2db8f9" @confirm="sureCancel" @cancel="cancelSure"></u-modal>
 		</view>
 	</view>
 </template>
@@ -284,6 +287,7 @@
 				infoText: '修改中···',
 				showLoadingHint: false,
 				status: 'nomore',
+				modalShow: false,
 				taskTypeList: [{ name: '报修任务', value: 'repairsTask' }],
 				triggered: false,
 				isRefreshing: false,
@@ -383,6 +387,11 @@
 				uni.navigateBack()
 			},
 			
+			// 加载数据
+			loadData () {
+				this.getRepairsList(false)
+			},
+			
 			// 下拉刷新事件
 			onRefresh() {
 				if (this.isRefreshing) {
@@ -466,6 +475,7 @@
 	
 			// 处理维修任务空间信息
 			disposeCheckType (item) {
+				if (!item) { return '无' };
 				if (item.length == 0) { return };
 				let temporaryArray = [];
 				for (let innerItem of item) {
@@ -934,28 +944,17 @@
 				this.selectAllocation = item
 			},
 	
-			// 分配弹框关闭前事件
-			beforeCloseAllocationDialogEvent (action, done) {
-				if (action == 'confirm') {
-					if (this.selectAllocation.value == null) {
-						this.$refs.uToast.show({
-							message: '请选择运送员',
-							type: 'error',
-							position: 'center'
-						});
-						done(false)
-					} else {
-						done()
-					}
-				} else {
-					done()
-				}
-			},
-	
 			// 分配弹框确定事件
 			allocationDialogSure () {
+				if (this.selectAllocation.value == null) {
+					this.$refs.uToast.show({
+						message: '请选择运送员',
+						type: 'error',
+						position: 'center'
+					});
+					return 
+				};
 				this.allocationShow = false;
-				if (this.selectAllocation.value == null) { return };
 				this.showLoadingHint = true;
 				this.infoText = '分配中...';
 					if (this.activeName == 'repairsTask') {
@@ -1011,7 +1010,9 @@
 				let temporaryTaskType = this.schedulingTaskType;
 				if (text == '维修任务') {
 					temporaryTaskType['taskTypeName'] = 'repairsTask';
-					this.$router.push({path: '/editRepairsTask'})
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/EngineeringTaskManagement/EditRepairsTask'
+					})
 				};
 				// 保存调度页面任务详情
 				this.changeSchedulingTaskDetails(item);
@@ -1055,8 +1056,15 @@
 	
 			// 延迟原因弹框确定事件
 			delayReasonDialogSure () {
+				if (this.selectDelayReason.value == null) {
+					this.$refs.uToast.show({
+						message: '请选择延迟原因',
+						type: 'error',
+						position: 'center'
+					});
+					return 
+				};
 				this.delayReasonShow = false;
-				if (this.selectDelayReason.value == null) { return };
 				this.showLoadingHint = true;
 				this.infoText = '延迟中...';
 				// 维修任务延迟
@@ -1120,28 +1128,18 @@
 				this.selectCancelReason = item
 			},
 	
-			// 取消原因弹框关闭前事件
-			beforeCloseCancelReasonDialogEvent (action, done) {
-				if (action == 'confirm') {
-					if (this.selectCancelReason.value == null) {
-						this.$refs.uToast.show({
-							message: '请选择取消原因',
-							type: 'error',
-							position: 'center'
-						})
-						done(false)
-					} else {
-						done()
-					}
-				} else {
-					done()
-				}
-			},
 	
 			// 取消原因弹框确定事件
 			cancelReasonDialogSure () {
+				if (this.selectCancelReason.value == null) {
+					this.$refs.uToast.show({
+						message: '请选择取消原因',
+						type: 'error',
+						position: 'center'
+					});
+					return 
+				};
 				this.cancelReasonShow = false;
-				if (this.selectCancelReason.value == null) { return };
 				this.showLoadingHint = true;
 				this.infoText = '取消中...';
 				// 维修任务取消
@@ -1231,7 +1229,9 @@
 				let temporaryTaskType = this.schedulingTaskType;
 					if (text == '报修任务') {
 					temporaryTaskType['taskTypeName'] = 'repairsTask';
-					this.$router.push({path: '/createRepairsTask'})
+					uni.navigateTo({
+						url: '/projectManagementPackage/pages/EngineeringTaskManagement/CreateRepairsTask'
+					})
 				};
 				// 保存调度页面任务点击的类型
 				this.changeSchedulingTaskType(temporaryTaskType)
@@ -1243,33 +1243,38 @@
 					this.functionListIndex = index;
 					if (name === '报修任务') {
 						this.resetBtnClickStatus();
-						this.$router.push({path: 'repairsWorkOrder'});
-						this.changeTitleTxt({tit:'报修工单'});
-						setStore('currentTitle','报修工单')
+						uni.navigateTo({
+							url: '/projectManagementPackage/pages/RepairsWorkOrder/RepairsWorkOrder'
+						})
 					} else if (name === '区域巡检') {
 						this.resetBtnClickStatus();
-						this.$router.push({path: 'departmentService'});
-						this.changeTitleTxt({tit:'区域巡检'});
-						setStore('currentTitle','区域巡检')
+						uni.navigateTo({
+							url: '/projectManagementPackage/pages/DepartmentService/DepartmentService'
+						})
 					} else if (name === '调度管理') {
 					}
 				},
 	
 				// 下班签退事件
 				signOutEvent () {
-						this.$dialog.alert({
-							message: '确定签退?',
-							closeOnPopstate: true,
-							showCancelButton: true
-						}).then(() => {
-							this.userLoginOut(this.proId, this.userInfo.userName)
-						})
-						.catch(() => {
-						})
+					this.modalShow = true;
 				},
-	
+				
+				// 签退确定事件
+				sureCancel () {
+					this.modalShow = false;
+					this.userLoginOut(this.proId, this.userInfo.userName)
+				},
+				
+				// 签退取消事件
+				cancelSure () {
+					this.modalShow = false;
+				},
+				
 				// 用户签退
 				userLoginOut (proId,workerId) {
+					this.showLoadingHint = true;
+					this.infoText = '退出登录中...';
 					this.changeOverDueWay(true);
 					userSignOut(proId,workerId).then((res) => {
 						if (res && res.data.code == 200) {
@@ -1290,10 +1295,12 @@
 								position: 'center'
 							});
 							this.changeOverDueWay(false)
-						}
+						};
+						this.showLoadingHint = false;
 					}).
 					catch((err) => {
 						this.changeOverDueWay(false);
+						this.showLoadingHint = false;
 						this.$refs.uToast.show({
 							message: err,
 							type: 'error',
@@ -1347,6 +1354,11 @@
 		height: 100vh !important;
 		box-sizing: border-box;
 		background: #f6f6f6;
+		::v-deep .u-toast{
+			.u-transition {
+				z-index: 1000000 !important;
+			}
+		};
 		::v-deep .u-popup {
 			flex: none !important
 		};
@@ -1611,55 +1623,57 @@
 				}
 			}
 		};
-		::v-deep .u-popup {
-			.u-popup__content {
-				padding: 20px 0 80px 0;
-				box-sizing: border-box;
-				width: 30vh;
-			};
-			.top-icon {
-				padding-left: 10px;
-				box-sizing: border-box;
-				>image {
-					width: 24px;
-				}
-			};
-			.center-content {
-				margin-top: 20px;
-				.function-list {
+		.right-menu-box {
+			::v-deep .u-popup {
+				.u-popup__content {
+					padding: 20px 0 80px 0;
+					box-sizing: border-box;
+					width: 30vh;
+				};
+				.top-icon {
+					padding-left: 10px;
+					box-sizing: border-box;
+					>image {
+						width: 24px;
+					}
+				};
+				.center-content {
+					margin-top: 20px;
+					.function-list {
+						width: 153px;
+						height: 40px;
+						line-height: 40px;
+						text-align: center;
+						margin: 0 auto;
+						border: 1px solid #3B9DF9;
+						box-sizing: border-box;
+						font-size: 16px;
+						color: #3B9DF9;
+						border-radius: 8px;
+						margin-bottom: 20px
+					};
+					.functionListStyle {
+						color: #fff !important;
+						border: none !important;
+						background: #3B9DF9 !important
+					}
+				};
+				.signout-box {
+					position: absolute;
+					bottom: 80px;
+					left: 50%;
+					transform: translateX(-50%);
 					width: 153px;
 					height: 40px;
 					line-height: 40px;
 					text-align: center;
-					margin: 0 auto;
-					border: 1px solid #3B9DF9;
-					box-sizing: border-box;
+					background: #E86F50;
 					font-size: 16px;
-					color: #3B9DF9;
-					border-radius: 8px;
-					margin-bottom: 20px
-				};
-				.functionListStyle {
-					color: #fff !important;
-					border: none !important;
-					background: #3B9DF9 !important
+					color: #fff;
+					border-radius: 8px
 				}
-			};
-			.signout-box {
-				position: absolute;
-				bottom: 80px;
-				left: 50%;
-				transform: translateX(-50%);
-				width: 153px;
-				height: 40px;
-				line-height: 40px;
-				text-align: center;
-				background: #E86F50;
-				font-size: 16px;
-				color: #fff;
-				border-radius: 8px
 			}
-		};
+		};	
 		.top-background-area {
 			width: 100%;
 			background: #3890EE;
