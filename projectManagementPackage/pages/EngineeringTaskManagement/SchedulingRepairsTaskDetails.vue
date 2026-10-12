@@ -13,7 +13,7 @@
 		<u-toast ref="uToast" />
 		<view class="nav" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }">
 			<nav-bar :home="false" :isShowBackText="true" backState='3000' fontColor="#FFF" bgColor="none" title="任务详情" @backClick="backTo">
-				<template slot="right">
+				<template slot="right" style="height:24px">
 					<image :src="switchShowPng" mode="widthFix" alt="切换显示" @click="onClickRight"></image>
 				</template>
 			</nav-bar> 
@@ -26,7 +26,7 @@
 											<text>编号:</text>
 											<text>{{ schedulingTaskDetails.taskNumber }}</text>
 									</view>
-									<view class="message-one-right" :class="{'noAllocationStyle':schedulingTaskDetails.state == 0,'noLookupStyle':schedulingTaskDetails.state == 1,'noStartStyle': schedulingTaskDetails.state == 2,'underwayStyle':schedulingTaskDetails.state == 3,'tobeSigned':schedulingTaskDetails.state == 4}">
+									<view class="message-one-right" v-if="taskStatusTransition(schedulingTaskDetails.state) != ''" :class="{'noAllocationStyle':schedulingTaskDetails.state == 0,'noLookupStyle':schedulingTaskDetails.state == 1,'noStartStyle': schedulingTaskDetails.state == 2,'underwayStyle':schedulingTaskDetails.state == 3,'tobeSigned':schedulingTaskDetails.state == 4}">
 											{{ taskStatusTransition(schedulingTaskDetails.state) }}
 									</view>
 							</view>
@@ -98,7 +98,7 @@
 											<text>维修员</text>
 									</view>
 									<view class="message-two-right">
-											{{ schedulingTaskDetails.workerName }}
+											{{ schedulingTaskDetails.workerName ? schedulingTaskDetails.workerName : '' }}
 									</view>
 							</view>
 							<view class="message-one message-two">
@@ -316,7 +316,8 @@
 				'navigationBarHeight',
 				'schedulingTaskDetails',
 				'schedulingTaskAboutMessage',
-				'operateBtnClickRecord'
+				'operateBtnClickRecord',
+				'schedulingTaskType'
 			]),
 			proId () {
 				return this.userInfo.extendData.proId
@@ -331,7 +332,8 @@
 		methods: {
 			...mapMutations([
 				'changeOverDueWay',
-				'changeOperateBtnClickRecord'
+				'changeOperateBtnClickRecord',
+				'changeSchedulingTaskType'
 			]),
 			
 			// 顶部导航返回事件
@@ -371,8 +373,14 @@
 							message: '任务完成成功',
 							position: 'center'
 						});
-						// 返回任务调度页
-						this.onClickLeft()
+						const pages = getCurrentPages();
+						const prevPageInner = pages[pages.length-2];
+						if (prevPageInner) {
+							prevPageInner.$vm.taskComplateSuccessOperate();
+						};
+						uni.navigateBack({
+							delta:1
+						})	
 					} else {
 						this.$refs.uToast.show({
 							message: res.data.msg,
@@ -433,6 +441,7 @@
 					if (moveX < -50) {
 						if (this.rightMenuShow) return;
 						this.rightMenuShow = true;
+						this.functionListIndex = this.functionListIndex != 0 ? 0 : this.functionListIndex;
 					} 
 					// 右滑（隐藏右侧菜单）
 					else if (moveX > 50) {
@@ -519,8 +528,14 @@
 								message: '分配成功',
 								position: 'center'
 							});
-							// 返回任务调度页
-							this.onClickLeft()
+							const pages = getCurrentPages();
+							const prevPageInner = pages[pages.length-2];
+							if (prevPageInner) {
+								prevPageInner.$vm.taskAllocationSuccessOperate();
+							};
+							uni.navigateBack({
+								delta:1
+							})	
 						} else {
 							this.$refs.uToast.show({
 								message: res.data.msg,
@@ -581,8 +596,14 @@
 								message: '延迟成功',
 								position: 'center'
 							});
-							// 返回任务调度页
-							this.onClickLeft()
+							const pages = getCurrentPages();
+							const prevPageInner = pages[pages.length-2];
+							if (prevPageInner) {
+								prevPageInner.$vm.taskDelaySuccessOperate();
+							};
+							uni.navigateBack({
+								delta:1
+							})	
 						} else {
 							this.$refs.uToast.show({
 								message: res.data.msg,
@@ -652,8 +673,14 @@
 								message: '取消成功',
 								position: 'center'
 							});
-							// 返回任务调度页
-							this.onClickLeft()
+							const pages = getCurrentPages();
+							const prevPageInner = pages[pages.length-2];
+							if (prevPageInner) {
+								prevPageInner.$vm.taskCancelSuccessOperate();
+							};
+							uni.navigateBack({
+								delta:1
+							})	
 						} else {
 							this.$refs.uToast.show({
 								message: res.data.msg,
@@ -683,7 +710,8 @@
 	
 			// 切换显示右侧菜单事件
 			onClickRight () {
-				this.rightMenuShow = true
+				this.rightMenuShow = true;
+				this.functionListIndex = this.functionListIndex != 0 ? 0 : this.functionListIndex;
 			},
 	
 			// 切换隐藏右侧菜单事件
@@ -694,6 +722,7 @@
 			// 右侧菜单任务列表点击事件
 			taskRouterSkip (name, index) {
 				this.functionListIndex = index;
+				this.rightMenuShow = false;
 				if (name === '报修任务') {
 					uni.navigateTo({
 						url: '/projectManagementPackage/pages/RepairsWorkOrder/RepairsWorkOrder'
@@ -794,7 +823,12 @@
 	
 			// 编辑点击事件
 			editEvent () {
-				this.$router.push({path: '/editRepairsTask'})
+				let temporaryTaskType = this.schedulingTaskType;
+				temporaryTaskType['editSource'] = 'details';
+				uni.navigateTo({
+					url: '/projectManagementPackage/pages/EngineeringTaskManagement/EditRepairsTask'
+				});
+				this.changeSchedulingTaskType(temporaryTaskType)
 			},
 	
 			// 延迟点击事件
@@ -865,9 +899,8 @@
 				.u-modal__content {
 						padding: 0 !important;
 						box-sizing: border-box;
+						flex-direction: column !important;
 						.dialog-top {
-							border-top-left-radius: 10px !important;
-							border-top-right-radius: 10px !important;
 							height: 40px;
 							padding-left: 10px;
 							position: relative;
@@ -879,7 +912,6 @@
 							text-align: left
 						};
 						.dialog-center {
-							width: 80%;
 							height: 8vh;
 							text-align: center;
 							line-height: 8vh;

@@ -40,8 +40,8 @@
 			<BottomSelect :columns="participantOption" title="参与人" :currentSelectData="currentParticipant" @sure="participantSureEvent" @cancel="participantCancelEvent" @close="participantCloseEvent" />
 		</view>
 		<view class="nav" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }">
-			<nav-bar :home="false" :isShowBackText="true" backState='3000' fontColor="#FFF" bgColor="none" title="工程维保任务管理" @backClick="backTo">
-				<template slot="right">
+			<nav-bar :home="false" :isShowBackText="true" backState='3000' fontColor="#FFF" bgColor="none" title="创建维保任务" @backClick="backTo">
+				<template slot="right" style="height:24px">
 					<image :src="switchShowPng" mode="widthFix" alt="切换显示" @click="onClickRight"></image>
 				</template>
 			</nav-bar> 
@@ -222,8 +222,8 @@
 			  cancelText="取消"
 			>
 			  <view class="dialog-top">
-				<view class="select-title">添加耗材</view>
-				<van-icon name="cross" size="24" @click="closeScreenDialogEvent" />
+					<view class="select-title">添加耗材</view>
+					<u-icon name="close" size="24" @click="closeScreenDialogEvent"></u-icon>
 			  </view>
 			  <view class="tool-name-list">
 				<view class="tool-name-list-title-innner">
@@ -240,30 +240,30 @@
 					<view class="search-btn" @click="searchEvent">搜索</view>
 				</view>
 				<view class="tool-name-list-content">
-				  <view class="static-row" catchtouchmove="stopProp">
-					<view class="circulation-area-title-box">
-					  <view>物资名称</view>
-					  <view>单位</view>
-					  <view>型号</view>
-					  <view>规格</view>
-					</view>
-					<view class="circulation-area-content-box"> 
-					  <view v-for="(item,index) in inventoryMsgList" @click="mateNameEvent(item,index)" :key="item.id" class="circulation-area-content">
-						<view>
-						  {{item.mateName}}
+				  <view class="static-row">
+						<view class="circulation-area-title-box">
+							<view>物资名称</view>
+							<view>单位</view>
+							<view>型号</view>
+							<view>规格</view>
 						</view>
-						<view>
-						  {{item.unit ? item.unit : '无'}}
+						<view class="circulation-area-content-box"> 
+							<view v-for="(item,index) in inventoryMsgList" @click="mateNameEvent(item,index)" :key="item.id" class="circulation-area-content">
+							<view>
+								{{item.mateName}}
+							</view>
+							<view>
+								{{item.unit ? item.unit : '无'}}
+							</view>
+							<view>
+								{{ item.model ?  item.model : '无'}}
+							</view>
+							<view>
+								{{ item.norms ?  item.norms : '无' }}
+							</view>
+							</view>
+							<u-empty text="暂无数据" v-if="inventoryMsgList.length == 0"></u-empty>
 						</view>
-						<view>
-						  {{ item.model ?  item.model : '无'}}
-						</view>
-						<view>
-						  {{ item.norms ?  item.norms : '无' }}
-						</view>
-					  </view>
-					  <u-empty text="暂无数据" v-if="inventoryMsgList.length == 0"></u-empty>
-					</view>
 				  </view>
 				  <view class="absolute-row">
 					<view class="absolute-title">
@@ -481,10 +481,6 @@
 				uni.navigateBack()
 			},
 			
-			stopProp() {
-				return false
-			},
-			
 			// 回显暂存的信息
 			async echoTemporaryStorageMessage () {
 				let casuallyTemporaryStorageCreateRepairsTaskMessage = this.temporaryStorageCreateRepairsTaskMessage;
@@ -558,7 +554,11 @@
 					this.$nextTick(() => {
 						this.$set(this.consumableMsgList[index],'number',item.quantity)
 					});
-					this.$toast('已超出库存数量')
+					this.$refs.uToast.show({
+						message: '已超出库存数量',
+						type: 'error',
+						position: 'center'
+					})
 				}
 			},
 	
@@ -865,6 +865,7 @@
 					if (moveX < -50) {
 						if (this.rightMenuShow) return;
 						this.rightMenuShow = true;
+						this.functionListIndex = this.functionListIndex != 0 ? 0 : this.functionListIndex;
 					} 
 					// 右滑（隐藏右侧菜单）
 					else if (moveX > 50) {
@@ -1057,7 +1058,8 @@
 	
 			// 切换显示右侧菜单事件
 			onClickRight () {
-				this.rightMenuShow = true
+				this.rightMenuShow = true;
+				this.functionListIndex = this.functionListIndex != 0 ? 0 : this.functionListIndex;
 			},
 	
 			// 切换隐藏右侧菜单事件
@@ -1068,6 +1070,7 @@
 			// 右侧菜单任务列表点击事件
 			taskRouterSkip (name, index) {
 					this.functionListIndex = index;
+					this.rightMenuShow = false;
 					if (name === '报修任务') {
 						uni.navigateTo({
 							url: '/projectManagementPackage/pages/RepairsWorkOrder/RepairsWorkOrder'

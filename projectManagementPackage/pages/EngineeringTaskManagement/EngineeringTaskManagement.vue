@@ -13,7 +13,7 @@
 		<u-toast ref="uToast" />
 		<view class="nav" :style="{ 'height': statusBarHeight + navigationBarHeight + 5 + 'px' }">
 			<nav-bar :home="false" :isShowBackText="true" backState='3000' fontColor="#FFF" bgColor="none" title="工程维保任务管理" @backClick="backTo">
-				<template slot="right">
+				<template slot="right" style="height:24px">
 					<image :src="switchShowPng" mode="widthFix" alt="切换显示" @click="onClickRight"></image>
 				</template>
 			</nav-bar> 
@@ -365,10 +365,27 @@
 				return this.userInfo.extendData.userId
 			}
 		},
+		
 		onLoad () {
-			this.getRepairsList(false);
-			this.parallelFunction()
+			this.parallelFunction();
+			const pages = getCurrentPages();
+			const prevPageInner = pages[pages.length-2];
+			if (prevPageInner['route'] == 'pages/index/index') {
+			  this.getRepairsList(false)
+			} else {
+			  // 回显调度页面点击的任务类型
+			  if (this.schedulingTaskType.taskTypeName) {
+			    this.activeName = this.schedulingTaskType.taskTypeName;
+			    this.taskId = this.schedulingTaskDetails.id
+			  };
+			  if (this.schedulingTaskType.taskTypeName) {
+			    if (this.schedulingTaskType.taskTypeName == 'repairsTask') {
+			      this.getRepairsList(false)
+			    }
+			  }
+			}
 		},
+		
 		onHide () {
 		  if (this.loadFreshTimer) {clearTimeout(this.loadFreshTimer)}
 		},
@@ -384,6 +401,7 @@
 			
 			// 顶部导航返回事件
 			backTo () {
+				this.resetBtnClickStatus();
 				uni.navigateBack()
 			},
 			
@@ -450,9 +468,8 @@
 						this.$refs.uToast.show({
 							message: '任务完成成功',
 							position: 'center'
-						})
-						// 更新任务信息
-						this.getRepairsList(false)
+						});
+						this.taskComplateSuccessOperate();
 					} else {
 						this.$refs.uToast.show({
 							message: res.data.msg,
@@ -486,8 +503,10 @@
 	
 			// 维修任务列表
 			getRepairsList (flag) {
-				this.showLoadingHint = true;
-				this.infoText = flag ? '刷新中' : '加载中...';
+				if (!flag) {
+					this.showLoadingHint = true;
+					this.infoText = '加载中...';
+				};
 				this.repairsTaskEmptyShow = false;
 				repairsList(-3,this.proId,1)
 				.then((res) => {
@@ -513,7 +532,7 @@
 						};
 						this.repairsTaskList = res.data.data;
 						// 显示未完成(不包括已取消)的任务状态(0-未分配，1-未查阅,2-未开始，3-进行中，4-待签字，5-已完成，6-已取消)
-						this.repairsTaskList = this.repairsTaskList.filter(( item ) => { return item.state != 5 && item.state != 6});
+						this.repairsTaskList = this.repairsTaskList.filter(( item ) => { return item.state != 5 && item.state != 6 && item.state != 8});
 						this.echoRepairsTaskList = this.repairsTaskList;
 						if (this.repairsTaskList.length == 0) {
 							this.repairsTaskEmptyShow = true
@@ -764,6 +783,7 @@
 					if (moveX < -50) {
 						if (this.rightMenuShow) return;
 						this.rightMenuShow = true;
+						this.functionListIndex = this.functionListIndex != 0 ? 0 : this.functionListIndex;
 					} 
 					// 右滑（隐藏右侧菜单）
 					else if (moveX > 50) {
@@ -783,6 +803,38 @@
 			enlareEvent (item) {
 				this.currentImgUrl = item;
 				this.imgBoxShow = true
+			},
+			
+			// 任务分配成功后更新任务状态为未查阅-1
+			taskAllocationSuccessOperate () {
+				let currentOrderIndex = this.repairsTaskList.findIndex((item) => { return item.id == this.taskId });
+				if (currentOrderIndex != -1) {
+					this.$set(this.repairsTaskList[currentOrderIndex],'state',1);
+				}
+			},
+			
+			// 任务延迟成功后更新延迟状态hasDelay为-1
+			taskDelaySuccessOperate () {
+				let currentOrderIndex = this.repairsTaskList.findIndex((item) => { return item.id == this.taskId });
+				if (currentOrderIndex != -1) {
+					this.$set(this.repairsTaskList[currentOrderIndex],'hasDelay',1)
+				}
+			},
+			
+			// 任务取消后删除该条任务
+			taskCancelSuccessOperate () {
+				let currentOrderIndex = this.repairsTaskList.findIndex((item) => { return item.id == this.taskId });
+				if (currentOrderIndex != -1) {
+					this.repairsTaskList.splice(currentOrderIndex,1)
+				}
+			},
+			
+			// 任务完成成功后删除该条任务
+			taskComplateSuccessOperate () {
+				let currentOrderIndex = this.repairsTaskList.findIndex((item) => { return item.id == this.taskId });
+				if (currentOrderIndex != -1) {
+					this.repairsTaskList.splice(currentOrderIndex,1)
+				}
 			},
 	
 			// 筛选事件
@@ -936,7 +988,7 @@
 			allocationEvent (item,index,text) {
 				this.curentTaskInfo = item;
 				this.allocationShow = true;
-				this.taskId = item.id
+				this.taskId = item.id;
 			},
 	
 			// 分配弹框运送员下拉框选值变化事件
@@ -976,8 +1028,7 @@
 									message: '分配成功',
 									position: 'center'
 								});
-								// 更新任务信息
-								this.getRepairsList(false)
+								this.taskAllocationSuccessOperate()
 							} else {
 								this.$refs.uToast.show({
 									message: res.data.msg,
@@ -1010,6 +1061,7 @@
 				let temporaryTaskType = this.schedulingTaskType;
 				if (text == '维修任务') {
 					temporaryTaskType['taskTypeName'] = 'repairsTask';
+					temporaryTaskType['editSource'] = 'list';
 					uni.navigateTo({
 						url: '/projectManagementPackage/pages/EngineeringTaskManagement/EditRepairsTask'
 					})
@@ -1034,24 +1086,6 @@
 			// 延迟原因弹框下拉框选值变化事件
 			delayReasonOptionChange (item) {
 				this.selectDelayReason = item
-			},
-	
-			// 延迟原因弹框关闭前事件
-			beforeCloseDelayReasonDialogEvent (action, done) {
-				if (action == 'confirm') {
-					if (this.selectDelayReason.value == null) {
-						this.$refs.uToast.show({
-							message: '请选择延迟原因',
-							type: 'error',
-							position: 'center'
-						});
-						done(false)
-					} else {
-						done()
-					}
-				} else {
-					done()
-				}
 			},
 	
 			// 延迟原因弹框确定事件
@@ -1084,8 +1118,7 @@
 									message: '延迟成功',
 									position: 'center'
 								});
-								// 更新任务信息
-								this.getRepairsList(false)
+								this.taskDelaySuccessOperate()
 							} else {
 								this.$refs.uToast.show({
 									message: res.data.msg,
@@ -1159,8 +1192,7 @@
 									message: '取消成功',
 									position: 'center'
 								});
-								// 更新任务信息
-								this.getRepairsList(false)
+								this.taskCancelSuccessOperate()
 							} else {
 								this.$refs.uToast.show({
 									message: res.data.msg,
@@ -1191,7 +1223,8 @@
 	
 			// 切换显示右侧菜单事件
 			onClickRight () {
-				this.rightMenuShow = true
+				this.rightMenuShow = true;
+				this.functionListIndex = this.functionListIndex != 0 ? 0 : this.functionListIndex;
 			},
 	
 			// 切换隐藏右侧菜单事件
@@ -1201,6 +1234,7 @@
 	
 			// 进入任务详情事件
 			enterRepairsTaskEvent (item,index,text) {
+				this.taskId = item.id;
 				let temporaryTaskType = this.schedulingTaskType;
 				if (text == '维修任务') {
 					temporaryTaskType['taskTypeName'] = 'repairsTask';
@@ -1241,6 +1275,7 @@
 			// 右侧菜单任务列表点击事件
 			taskRouterSkip (name, index) {
 					this.functionListIndex = index;
+					this.rightMenuShow = false;
 					if (name === '报修任务') {
 						this.resetBtnClickStatus();
 						uni.navigateTo({
@@ -1496,9 +1531,8 @@
 				.u-modal__content {
 						padding: 0 !important;
 						box-sizing: border-box;
+						flex-direction: column !important;
 						.dialog-top {
-							border-top-left-radius: 10px !important;
-							border-top-right-radius: 10px !important;
 							height: 40px;
 							padding-left: 10px;
 							position: relative;
@@ -1510,7 +1544,6 @@
 							text-align: left
 						};
 						.dialog-center {
-							width: 80%;
 							height: 8vh;
 							text-align: center;
 							line-height: 8vh;

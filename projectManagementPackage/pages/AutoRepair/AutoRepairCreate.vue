@@ -292,7 +292,7 @@
 			>
 			  <view class="dialog-top">
 				<view class="select-title">添加耗材</view>
-				<van-icon name="cross" size="24" @click="closeScreenDialogEvent" />
+				<u-icon name="close" size="24" @click="closeScreenDialogEvent"></u-icon>
 			  </view>
 			  <view class="tool-name-list">
 				<view class="tool-name-list-title-innner">
