@@ -1,7 +1,7 @@
 <template>
 	<view class="content-box"
 		@touchstart="touchstartHandle"
-		@touchmove.stop.prevent="touchmoveHandle"
+		@touchmove="touchmoveHandle"
 		@touchend="touchendHandle"
 	>
 		<u-transition :show="showLoadingHint" mode="fade-down">
@@ -104,13 +104,12 @@
 							<text>问题概述</text>
 						</view>
 						<view class="transport-type-right">
-							<u--textarea 
+							<u-input
 								v-model="problemOverview" 
 								placeholder="请输入问题简要概述" 
 								border="none"
-								height="20"
 							>
-							</u--textarea>
+							</u-input>
 						</view>
 					</view>
 					<view class="select-box end-select-box">
@@ -182,9 +181,11 @@
 						<view class="circulation-area">
 							<view v-for="(item,index) in consumableMsgList" :key="item.mateId">
 								<view>{{index+1}}</view>
-								<view>
-									{{item.mateName}}-{{item.model}}
-								</view>
+								<scroll-view class="scroll-box" scroll-x @touchmove.stop>
+									<text class="scroll-item">
+										{{item.mateName}}-{{item.model}}
+									</text>
+								</scroll-view>
 								<view>
 									<u-number-box 
 									  v-model="item.number"
@@ -494,9 +495,14 @@
 				this.consumableMsgList = casuallyTemporaryStorageCreateRepairsTaskMessage['materials'];
 				this.contact = casuallyTemporaryStorageCreateRepairsTaskMessage['contact'];
 				// 处理目的建筑、目的科室显示信息
-				let trmporaryMessage = casuallyTemporaryStorageCreateRepairsTaskMessage['depName'].split("/");
-				this.currentStructure = trmporaryMessage[0] ? trmporaryMessage[0] : '请选择';
-				this.currentGoalDepartment = trmporaryMessage[1] ? trmporaryMessage[1] : '请选择';
+				if (casuallyTemporaryStorageCreateRepairsTaskMessage['depName'].indexOf('/') == -1) {
+					this.currentStructure = '请选择';
+					this.currentGoalDepartment = casuallyTemporaryStorageCreateRepairsTaskMessage['depName'];
+				} else {
+					let trmporaryMessage = casuallyTemporaryStorageCreateRepairsTaskMessage['depName'].split("/");
+					this.currentStructure = trmporaryMessage[0] ? trmporaryMessage[0] : '请选择';
+					this.currentGoalDepartment = trmporaryMessage[1] ? trmporaryMessage[1] : '请选择';
+				};
 				// 回显任务类型、目的建筑、维修员的滚动索引
 				try {
 					let currentTaskTypIndex = this.taskTypeOption.findIndex((item) => { return item.text == this.currentTaskType });
@@ -524,28 +530,6 @@
 				};
 				// 物料信息回显完毕时，再次添加物料时进行是否超过库存判断
 				setTimeout(() => {this.isMaterialChange = true},100)
-			},
-			
-			// 回显暂存的信息
-			async echoTemporaryStorageMessage () {
-				let casuallyTemporaryStorageCreateRepairsTaskMessage = this.temporaryStorageCreateRepairsTaskMessage;
-				this.priorityRadioValue = casuallyTemporaryStorageCreateRepairsTaskMessage['priorityRadioValue'];
-				this.currentTaskType = casuallyTemporaryStorageCreateRepairsTaskMessage['currentTaskType'];
-				this.currentTaskTypeDefaultIndex = casuallyTemporaryStorageCreateRepairsTaskMessage['currentTaskTypeDefaultIndex'];
-				this.currentStructure = casuallyTemporaryStorageCreateRepairsTaskMessage['currentStructure'];
-				this.currentStructureDefaultIndex	= casuallyTemporaryStorageCreateRepairsTaskMessage['currentStructureDefaultIndex'];
-				this.currentGoalDepartment = casuallyTemporaryStorageCreateRepairsTaskMessage['currentGoalDepartment'];
-				this.currentGoalDepartmentDefaultIndex = casuallyTemporaryStorageCreateRepairsTaskMessage['currentGoalDepartmentDefaultIndex'];
-				this.currentGoalSpaces = casuallyTemporaryStorageCreateRepairsTaskMessage['currentGoalSpaces'];
-				this.problemOverview = casuallyTemporaryStorageCreateRepairsTaskMessage['problemOverview'];
-				this.currentTransporter = casuallyTemporaryStorageCreateRepairsTaskMessage['currentTransporter'];
-				this.currentTransporterDefaultIndex = casuallyTemporaryStorageCreateRepairsTaskMessage['currentTransporterDefaultIndex'];
-				this.currentParticipant = casuallyTemporaryStorageCreateRepairsTaskMessage['currentParticipant'];
-				this.currentUseTool = casuallyTemporaryStorageCreateRepairsTaskMessage['currentUseTool'];
-				this.isMeRadioValue = casuallyTemporaryStorageCreateRepairsTaskMessage['isMeRadioValue'];
-				this.taskDescribe = casuallyTemporaryStorageCreateRepairsTaskMessage['taskDescribe'];
-				this.consumableMsgList = casuallyTemporaryStorageCreateRepairsTaskMessage['consumableMsgList'];
-				this.contact = casuallyTemporaryStorageCreateRepairsTaskMessage['contact'];
 			},
 	
 			// 处理维修任务参与者
@@ -650,7 +634,7 @@
 								if (this.currentGoalDepartment != '请选择') {
 									this.getSpacesByDepartmentId(this.goalDepartmentOption.filter((item) => { return item['text'] == this.currentGoalDepartment})[0]['value'],false)
 								};
-								// 回显目的建筑索引
+								// 回显目的科室索引
 								try {
 									let currentGoalDepartmentIndex = this.goalDepartmentOption.findIndex((item) => { return item.text == this.currentGoalDepartment });
 									if (currentGoalDepartmentIndex != -1) {
@@ -947,6 +931,9 @@
 					
 			// 滑动中（直接接收事件对象 e）
 			touchmoveHandle(e) {
+				if (this.materialShow || this.showGoalSpaces || this.showUseTool || this.showParticipant) {
+					return;
+				};
 				if (e.touches.length === 1) {
 					// 滑动距离
 					let moveX = e.touches[0].clientX - this.moveInfo.startX;
@@ -2176,6 +2163,15 @@
 							 }
 						 }
 					 };
+					 .problem-overview {
+						 .transport-type-right {
+							 ::v-deep .u-input {
+								 padding: 4px 6px !important;
+								 box-sizing: border-box;
+								 background: #F9F9F9;
+							 }
+						 }
+					 };
 					 .concat-box {
 						 width: 100%;
 						 padding: 8px 6px;
@@ -2201,7 +2197,7 @@
 						 }
 					 };
 					 .consumable-management-area {
-						 width: 100%;
+							width: 100%;
 							 padding: 8px 10px;
 							 box-sizing: border-box;
 							 background: #fff;
@@ -2220,7 +2216,22 @@
 								 align-items: center;
 								 &:last-child {
 									 margin-bottom:0
-								 }
+								 };
+								 .scroll-box {
+								   flex: 1;
+								   width: 0;
+								   height: 50px;
+								   white-space: nowrap;  
+								   margin-right: 2%;
+								   .scroll-item {
+								     display: inline-block;
+										 width: 100%;
+								     height: 100%;
+								     line-height: 50px;
+								     text-align: left;
+								     font-size: 16px;
+								   }
+								 };
 								 > view {
 									 height: 50px;
 									 line-height: 50px;

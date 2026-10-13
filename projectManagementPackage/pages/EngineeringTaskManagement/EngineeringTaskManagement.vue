@@ -1,7 +1,7 @@
 <template>
 	<view class="content-box"
 		@touchstart="touchstartHandle" 
-		@touchmove.stop.prevent="touchmoveHandle"
+		@touchmove="touchmoveHandle"
 		@touchend="touchendHandle"
 	>
 		<u-transition :show="showLoadingHint" mode="fade-down">
@@ -19,7 +19,7 @@
 			</nav-bar> 
 		</view>
 		<view class="content">
-			<scroll-view  refresher-enabled="true" scroll-y :refresher-triggered="triggered" @refresherrefresh="onRefresh">
+			<scroll-view :refresher-enabled="refresherEnabled" scroll-y :refresher-triggered="triggered" @refresherrefresh="onRefresh">
 				<view class="flex-container">
 					<view class="tab-list-wrapper">
 						<view class="tab-list" v-for="(item,index) in taskTypeList" :key="index" @click="vanTabsChangeEvent(item,index)">
@@ -37,7 +37,7 @@
 									<text @click="screenEvent">筛选</text>
 								</view>
 							</view>
-							<van-empty description="暂无数据" v-if="repairsTaskEmptyShow" />
+							<u-empty text="暂无数据" mode="list" v-if="repairsTaskEmptyShow"></u-empty>
 							<view class="backlog-task-list-box" ref="scrollRepairsTask" v-if="!repairsTaskEmptyShow">
 								<view class="backlog-task-list" v-for="(item,index) in repairsTaskList" :key="index" @click="enterRepairsTaskEvent(item,index,'维修任务')">
 										<view class="list-top appoint-list-top">
@@ -116,7 +116,7 @@
 			</scroll-view>
 		</view>
 		<!-- 筛选弹窗 -->
-		<view class="screen-box">
+		<view class="screen-box" v-if="screenDialogShow">
 			<u-popup 
 				:show="screenDialogShow"
 				:round="10"
@@ -158,8 +158,8 @@
 				</view>
 			</u-popup>
 		</view>
-		<!-- 分配弹框   -->
-		<view class="allocation-box allocation-box-one">
+		<!-- 分配弹框 -->
+		<view class="allocation-box allocation-box-one" v-if="allocationShow">
 			<u-modal :show="allocationShow"
 				:showCancelButton="true"
 				confirmColor="#2390fe"
@@ -167,6 +167,7 @@
 				@cancel="allocationDialogCancel"
 				confirmText="确定"
 				cancelText="取消"
+				:customStyle="{ overflow: 'visible' }"
 			>
 				<view class="dialog-top">
 					请选择分配至
@@ -177,7 +178,7 @@
 			</u-modal>
 		</view>
 		<!-- 延迟原因弹框 -->
-		<view class="allocation-box">
+		<view class="allocation-box" v-if="delayReasonShow">
 			<u-modal 
 				:show="delayReasonShow"
 				:showCancelButton="true"
@@ -186,6 +187,7 @@
 				@cancel="delayReasonDialogCancel"
 				confirmText="确定"
 				cancelText="取消"
+				:customStyle="{ overflow: 'visible' }"
 			>
 				<view class="dialog-top">
 					请选择延迟原因
@@ -196,7 +198,7 @@
 			</u-modal>
 		</view>
 		 <!-- 取消原因弹框 -->
-		<view class="allocation-box">
+		<view class="allocation-box" v-if="cancelReasonShow">
 			<u-modal 
 				:show="cancelReasonShow"
 				:showCancelButton="true"
@@ -205,6 +207,7 @@
 				@cancel="cancelReasonDialogCancel"
 				confirmText="确定"
 				cancelText="取消"
+				:customStyle="{ overflow: 'visible' }"
 			>
 				<view class="dialog-top">
 					请选择取消原因
@@ -288,6 +291,7 @@
 				showLoadingHint: false,
 				status: 'nomore',
 				modalShow: false,
+				refresherEnabled: true,
 				taskTypeList: [{ name: '报修任务', value: 'repairsTask' }],
 				triggered: false,
 				isRefreshing: false,
@@ -324,7 +328,6 @@
 				startPointDepartmentText: null,
 				startPointDepartmentOption: [],
 				transporterValue: null,
-				loadFreshTimer: null,
 				transporterText: null,
 				transporterOption: [],
 				selectAllocation: {},
@@ -365,7 +368,14 @@
 				return this.userInfo.extendData.userId
 			}
 		},
-		
+		onShow() {
+		  this.refresherEnabled = true;
+		},
+		onHide() {
+			this.refresherEnabled = false;
+			this.triggered = false;
+			this.isRefreshing = false;
+		},
 		onLoad () {
 			this.parallelFunction();
 			const pages = getCurrentPages();
@@ -384,10 +394,6 @@
 			    }
 			  }
 			}
-		},
-		
-		onHide () {
-		  if (this.loadFreshTimer) {clearTimeout(this.loadFreshTimer)}
 		},
 
 		methods: {
@@ -412,27 +418,10 @@
 			
 			// 下拉刷新事件
 			onRefresh() {
-				if (this.isRefreshing) {
-					return
-				};
+				if (this.isRefreshing || this.triggered || !this.refresherEnabled) return;
 				this.isRefreshing = true;
-				if (this.triggered) {
-					return
-				};
 				this.triggered = true;
-				this.getRepairsList(true);
-				// 刷新时间大于3秒,则关闭刷新动画
-				this.loadFreshTimer = setTimeout(() => {
-					this.isLoadingRepairsTask = false;
-					this.infoText = '';
-					this.showLoadingHint = false;
-					this.$refs.uToast.show({
-						message: '刷新失败,请检查网络',
-						type: 'error',
-						position: 'center'
-					});
-					if (this.loadFreshTimer) {clearTimeout(this.loadFreshTimer)}
-				}, 3100);
+				this.getRepairsList(true)
 			},
 	
 			// 完成任务确定事件
@@ -525,14 +514,11 @@
 							this.$refs.uToast.show({
 								message: '刷新成功',
 								position: 'center'
-							});
-							if (this.loadFreshTimer) {
-								clearTimeout(this.loadFreshTimer)
-							}
+							})
 						};
 						this.repairsTaskList = res.data.data;
 						// 显示未完成(不包括已取消)的任务状态(0-未分配，1-未查阅,2-未开始，3-进行中，4-待签字，5-已完成，6-已取消)
-						this.repairsTaskList = this.repairsTaskList.filter(( item ) => { return item.state != 5 && item.state != 6 && item.state != 8});
+						this.repairsTaskList = this.repairsTaskList.filter(( item ) => { return item.state != 5 && item.state != 6});
 						this.echoRepairsTaskList = this.repairsTaskList;
 						if (this.repairsTaskList.length == 0) {
 							this.repairsTaskEmptyShow = true
@@ -550,14 +536,6 @@
 					this.showLoadingHint = false;
 					if (flag) {
 						this.isLoadingRepairsTask = false;
-						this.$refs.uToast.show({
-							message: '刷新失败,请检查网络',
-							type: 'error',
-							position: 'center'
-						});
-						if (this.loadFreshTimer) {
-							clearTimeout(this.loadFreshTimer)
-						};
 						return
 					};
 					if (this.triggered) {
@@ -775,6 +753,9 @@
 		
 			// 滑动中（直接接收事件对象 e）
 			touchmoveHandle(e) {
+				if (this.screenDialogShow || this.allocationShow || this.delayReasonShow || this.cancelReasonShow || this.completeShow) {
+					return;
+				};
 				if (e.touches.length === 1) {
 					// 滑动距离
 					let moveX = e.touches[0].clientX - this.moveInfo.startX;
@@ -862,19 +843,6 @@
 			transporterOptionChange (item) {
 				this.transporterValue = item.value;
 				this.transporterText = item.text
-			},
-	
-			// 筛选弹框关闭前事件
-			beforeCloseDialogEvent (action, done) {
-				if (action == 'cancel') {
-					this.$refs['departmentOption'].clearSelectValue();
-					this.$refs['transporterOption'].clearSelectValue();
-					this.priorityResult = ['1','2','3','4'];
-					done(false);
-					return
-				} else {
-					done()
-				}
 			},
 	
 			// 根据科室名称获取科室id
@@ -976,7 +944,9 @@
 	
 			// 筛选弹框取消事件
 			screenDialogCancel () {
-				this.screenDialogShow = false;
+				this.$refs['departmentOption'].clearSelectValue();
+				this.$refs['transporterOption'].clearSelectValue();
+				this.priorityResult = ['1','2','3','4']
 			},
 	
 			// 关闭筛选弹框
@@ -1022,7 +992,6 @@
 						.then((res) => {
 							this.showLoadingHint = false;
 							this.infoText = '';
-							this.$refs['allocationOption'].clearSelectValue();
 							if (res && res.data.code == 200) {
 								this.$refs.uToast.show({
 									message: '分配成功',
@@ -1038,7 +1007,6 @@
 							}
 						})
 						.catch((err) => {
-							this.$refs['allocationOption'].clearSelectValue();
 							this.infoText = '';
 							this.showLoadingHint = false;
 							this.$refs.uToast.show({
@@ -1052,8 +1020,7 @@
 	
 			// 分配弹框取消事件
 			allocationDialogCancel () {
-				this.allocationShow = false;
-				this.$refs['allocationOption'].clearSelectValue()
+				this.allocationShow = false
 			},
 	
 			// 编辑点击事件
@@ -1112,7 +1079,6 @@
 						.then((res) => {
 							this.showLoadingHint = false;
 							this.infoText = '';
-							this.$refs['delayOption'].clearSelectValue();
 							if (res && res.data.code == 200) {
 								this.$refs.uToast.show({
 									message: '延迟成功',
@@ -1128,7 +1094,6 @@
 							}
 						})
 						.catch((err) => {
-							this.$refs['delayOption'].clearSelectValue();
 							this.infoText = '';
 							this.showLoadingHint = false;
 							this.$refs.uToast.show({
@@ -1142,8 +1107,7 @@
 	
 			// 延迟原因弹框取消事件
 			delayReasonDialogCancel () {
-				this.delayReasonShow = false;
-				this.$refs['delayOption'].clearSelectValue()
+				this.delayReasonShow = false
 			},
 	
 			// 取消点击事件
@@ -1186,7 +1150,6 @@
 						.then((res) => {
 							this.showLoadingHint = false;
 							this.infoText = '';
-							this.$refs['cancelOption'].clearSelectValue();
 							if (res && res.data.code == 200) {
 								this.$refs.uToast.show({
 									message: '取消成功',
@@ -1202,7 +1165,6 @@
 							}
 						})
 						.catch((err) => {
-							this.$refs['cancelOption'].clearSelectValue();
 							this.infoText = '';
 							this.showLoadingHint = false;
 							this.$refs.uToast.show({
@@ -1216,8 +1178,7 @@
 	
 			// 取消原因弹框取消事件
 			cancelReasonDialogCancel () {
-				this.cancelReasonShow = false;
-				this.$refs['cancelOption'].clearSelectValue()
+				this.cancelReasonShow = false
 			},
 	
 	
@@ -1594,6 +1555,7 @@
 						padding: 0 !important;
 						box-sizing: border-box;
 						flex-direction: column !important;
+						overflow: visible !important;
 						.dialog-top {
 							height: 40px;
 							padding-left: 10px;
@@ -1612,6 +1574,9 @@
 							margin-top: 20px
 						}
 				};
+				.u-modal__content__text {
+				  overflow: visible !important;
+				};	
 				.u-line {
 					display: none !important;
 				};

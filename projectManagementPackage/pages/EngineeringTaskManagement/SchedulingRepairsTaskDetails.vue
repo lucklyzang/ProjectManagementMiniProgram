@@ -1,7 +1,7 @@
 <template>
 	<view class="content-box"
 		@touchstart="touchstartHandle"
-		@touchmove.stop.prevent="touchmoveHandle"
+		@touchmove="touchmoveHandle"
 		@touchend="touchendHandle"
 	>
 		<u-transition :show="showLoadingHint" mode="fade-down">
@@ -146,7 +146,7 @@
 			</view>
 		</view>
 		<!-- 分配弹框   -->
-		<view class="allocation-box allocation-box-one">
+		<view class="allocation-box allocation-box-one" v-if="allocationShow">
 			<u-modal :show="allocationShow"
 				:showCancelButton="true"
 				confirmColor="#2390fe"
@@ -154,6 +154,7 @@
 				@cancel="allocationDialogCancel"
 				confirmText="确定"
 				cancelText="取消"
+				:customStyle="{ overflow: 'visible' }"
 			>
 				<view class="dialog-top">
 					请选择分配至
@@ -164,7 +165,7 @@
 			</u-modal>
 		</view>
 		<!-- 延迟原因弹框 -->
-		<view class="allocation-box">
+		<view class="allocation-box" v-if="delayReasonShow">
 			<u-modal 
 				:show="delayReasonShow"
 				:showCancelButton="true"
@@ -173,6 +174,7 @@
 				@cancel="delayReasonDialogCancel"
 				confirmText="确定"
 				cancelText="取消"
+				:customStyle="{ overflow: 'visible' }"
 			>
 				<view class="dialog-top">
 					请选择延迟原因
@@ -183,7 +185,7 @@
 			</u-modal>
 		</view>
 		 <!-- 取消原因弹框 -->
-		<view class="allocation-box">
+		<view class="allocation-box" v-if="cancelReasonShow">
 			<u-modal 
 				:show="cancelReasonShow"
 				:showCancelButton="true"
@@ -192,6 +194,7 @@
 				@cancel="cancelReasonDialogCancel"
 				confirmText="确定"
 				cancelText="取消"
+				:customStyle="{ overflow: 'visible' }"
 			>
 				<view class="dialog-top">
 					请选择取消原因
@@ -433,6 +436,9 @@
 					
 			// 滑动中（直接接收事件对象 e）
 			touchmoveHandle(e) {
+				if (this.screenDialogShow || this.allocationShow || this.delayReasonShow || this.cancelReasonShow || this.completeShow) {
+					return;
+				};
 				if (e.touches.length === 1) {
 					// 滑动距离
 					let moveX = e.touches[0].clientX - this.moveInfo.startX;
@@ -522,7 +528,6 @@
 					.then((res) => {
 						this.showLoadingHint = false;
 						this.infoText = '';
-						this.$refs['allocationOption'].clearSelectValue();
 						if (res && res.data.code == 200) {
 							this.$refs.uToast.show({
 								message: '分配成功',
@@ -545,7 +550,6 @@
 						}
 					})
 					.catch((err) => {
-						this.$refs['allocationOption'].clearSelectValue();
 						this.infoText = '';
 						this.showLoadingHint = false;
 						this.$refs.uToast.show({
@@ -559,7 +563,6 @@
 			// 分配弹框取消事件
 			allocationDialogCancel () {
 				this.allocationShow = false;
-				this.$refs['allocationOption'].clearSelectValue()
 			},
 	
 			// 延迟原因弹框下拉框选值变化事件
@@ -590,7 +593,6 @@
 					.then((res) => {
 						this.showLoadingHint = false;
 						this.infoText = '';
-						this.$refs['delayOption'].clearSelectValue();
 						if (res && res.data.code == 200) {
 							this.$refs.uToast.show({
 								message: '延迟成功',
@@ -613,7 +615,6 @@
 						}
 					})
 					.catch((err) => {
-						this.$refs['delayOption'].clearSelectValue();
 						this.infoText = '';
 						this.showLoadingHint = false;
 						this.$refs.uToast.show({
@@ -626,8 +627,7 @@
 	
 			// 延迟原因弹框取消事件
 			delayReasonDialogCancel () {
-				this.delayReasonShow = false;
-				this.$refs['delayOption'].clearSelectValue()
+				this.delayReasonShow = false
 			},
 	
 			// 取消点击事件
@@ -667,7 +667,6 @@
 					.then((res) => {
 						this.showLoadingHint = false;
 						this.infoText = '';
-						this.$refs['cancelOption'].clearSelectValue();
 						if (res && res.data.code == 200) {
 							this.$refs.uToast.show({
 								message: '取消成功',
@@ -690,7 +689,6 @@
 						}
 					})
 					.catch((err) => {
-						this.$refs['cancelOption'].clearSelectValue();
 						this.infoText = '';
 						this.showLoadingHint = false;
 						this.$refs.uToast.show({
@@ -703,8 +701,7 @@
 	
 			// 取消原因弹框取消事件
 			cancelReasonDialogCancel () {
-				this.cancelReasonShow = false;
-				this.$refs['cancelOption'].clearSelectValue()
+				this.cancelReasonShow = false
 			},
 	
 	
@@ -962,6 +959,7 @@
 						padding: 0 !important;
 						box-sizing: border-box;
 						flex-direction: column !important;
+						overflow: visible !important;
 						.dialog-top {
 							height: 40px;
 							padding-left: 10px;
@@ -982,6 +980,9 @@
 				};
 				.u-line {
 					display: none !important;
+				};
+				.u-modal__content__text {
+				  overflow: visible !important;
 				};
 				.u-modal__button-group {
 					padding: 20px !important;

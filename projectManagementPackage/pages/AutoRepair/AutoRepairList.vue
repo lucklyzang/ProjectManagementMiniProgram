@@ -331,7 +331,9 @@
 						break;
 					case 8 :
 						return '待审核'
-						break
+						break;
+					default:
+						return ''
 				}
 			}
 		}

@@ -1,7 +1,7 @@
 <template>
 	<view class="content-box"
 		@touchstart="touchstartHandle"
-		@touchmove.stop.prevent="touchmoveHandle"
+		@touchmove="touchmoveHandle"
 		@touchend="touchendHandle"
 	>
 		<u-transition :show="showLoadingHint" mode="fade-down">
@@ -104,13 +104,12 @@
 							<text>问题概述</text>
 						</view>
 						<view class="transport-type-right">
-							<u--textarea 
+							<u-input 
 								v-model="problemOverview" 
 								placeholder="请输入问题简要概述" 
 								border="none"
-								height="20"
 							>
-							</u--textarea>
+							</u-input>
 						</view>
 					</view>
 					<view class="select-box end-select-box">
@@ -182,9 +181,11 @@
 						<view class="circulation-area">
 							<view v-for="(item,index) in consumableMsgList" :key="item.mateId">
 								<view>{{index+1}}</view>
-								<view>
-									{{item.mateName}}-{{item.model}}
-								</view>
+								<scroll-view class="scroll-box" scroll-x @touchmove.stop>
+									<text class="scroll-item">
+										{{item.mateName}}-{{item.model}}
+									</text>
+								</scroll-view>
 								<view>
 									<u-number-box 
 									  v-model="item.number"
@@ -857,6 +858,9 @@
 					
 			// 滑动中（直接接收事件对象 e）
 			touchmoveHandle(e) {
+				if (this.materialShow || this.showGoalSpaces || this.showUseTool || this.showParticipant) {
+					return;
+				};
 				if (e.touches.length === 1) {
 					// 滑动距离
 					let moveX = e.touches[0].clientX - this.moveInfo.startX;
@@ -2095,7 +2099,16 @@
 					 .transport-type {
 						 .transport-type-right {
 							 ::v-deep .u-textarea {
-								 background: #F9F9F9
+								 background: #F9F9F9;
+							 }
+						 }
+					 };
+					 .problem-overview {
+						 .transport-type-right {
+							 ::v-deep .u-input {
+								 padding: 4px 6px !important;
+								 box-sizing: border-box;
+								 background: #F9F9F9;
 							 }
 						 }
 					 };
@@ -2119,6 +2132,7 @@
 							 flex: 1;
 							 ::v-deep .u-input {
 								 padding: 4px 6px !important;
+								 box-sizing: border-box;
 								 background: #F9F9F9
 							 }
 						 }
@@ -2143,7 +2157,22 @@
 								 align-items: center;
 								 &:last-child {
 									 margin-bottom:0
-								 }
+								 };
+								 .scroll-box {
+								   flex: 1;
+								   width: 0;
+								   height: 50px;
+								   white-space: nowrap;  
+								   margin-right: 2%;
+								   .scroll-item {
+								     display: inline-block;
+										 width: 100%;
+								     height: 100%;
+								     line-height: 50px;
+								     text-align: left;
+								     font-size: 16px;
+								   }
+								 };
 								 > view {
 									 height: 50px;
 									 line-height: 50px;
@@ -2152,13 +2181,6 @@
 									 &:first-child {
 										 width: 5%;
 										 @include no-wrap
-									 };
-									 &:nth-child(2) {
-										width: 53%;
-										overflow-x: auto;
-										white-space: nowrap;
-										text-align: left;
-										margin-right: 2%;
 									 };
 									 &:nth-child(3) {
 										 width: 30%;
