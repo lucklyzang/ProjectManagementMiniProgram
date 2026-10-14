@@ -91,7 +91,7 @@
 										</view>
 										<view class="issue-describe">
 											<text>问题描述:</text>
-											<text>{{ item.taskDesc }}</text>
+											<text>{{ item.taskDesc ? item.taskDesc : '' }}</text>
 										</view>
 									</view>
 									<view class="list-bottom appoint-list-bottom">

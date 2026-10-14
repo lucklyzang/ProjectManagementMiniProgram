@@ -149,8 +149,6 @@
 		},
 		onLoad (options) {
 			this.taskId = JSON.parse(decodeURIComponent(options.params))['id'];
-			// this.taskMessage = JSON.parse(decodeURIComponent(options.params));
-			// this.isLoadComplete = true;
 			this.getAutoRepairOne(this.taskId)
 		},
 		methods: {
