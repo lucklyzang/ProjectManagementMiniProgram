@@ -277,7 +277,9 @@
 			
 			// 顶部导航返回事件
 			backTo () {
-				uni.navigateBack()
+				uni.switchTab({
+					url: '/pages/index/index'
+				})
 			},
 			
 			// 任务状态转换

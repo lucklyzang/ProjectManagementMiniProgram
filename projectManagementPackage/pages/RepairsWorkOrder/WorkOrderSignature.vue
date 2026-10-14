@@ -178,21 +178,37 @@
 
 			// 清除上传成功后存储的照片
 			clearPhotoList () {
-				if (this.isCompleteRepairsWorkOrderPhotoList.length == 0) { return };
-				let echoIndex = this.isCompleteRepairsWorkOrderPhotoList.indexOf(this.isCompleteRepairsWorkOrderPhotoList.filter((item) => {return item.taskId == this.taskId})[0]);
-				if (echoIndex == -1) { return };
-				let temporaryPhotoList = deepClone(this.isCompleteRepairsWorkOrderPhotoList);
-				let temporaryPhotoId = [];
-				temporaryPhotoList[echoIndex]['completePhototList'] = temporaryPhotoId;
-				temporaryPhotoList[echoIndex]['issuePhototList'] = temporaryPhotoId;
-				this.changeIsCompletePhotoList(temporaryPhotoList)
+				try {
+					if (this.isCompleteRepairsWorkOrderPhotoList.length == 0) { return };
+					let echoIndex = this.isCompleteRepairsWorkOrderPhotoList.indexOf(this.isCompleteRepairsWorkOrderPhotoList.filter((item) => {return item.taskId == this.taskId})[0]);
+					if (echoIndex == -1) { return };
+					let temporaryPhotoList = deepClone(this.isCompleteRepairsWorkOrderPhotoList);
+					let temporaryPhotoId = [];
+					temporaryPhotoList[echoIndex]['completePhototList'] = temporaryPhotoId;
+					temporaryPhotoList[echoIndex]['issuePhototList'] = temporaryPhotoId;
+					this.changeIsCompletePhotoList(temporaryPhotoList)
+				} catch (err) {
+					this.$refs.uToast.show({
+						message: err.message,
+						type: 'error',
+						position: 'center'
+					})
+				}
 			},
 
 			// 清除该任务存储的照片信息
 			clearStoragePhoto () {
-				if (this.isCompleteRepairsWorkOrderPhotoList.length == 0) { return };
-				let temporaryPhotoList = this.isCompleteRepairsWorkOrderPhotoList.filter((item) => {return item.taskId !== this.taskId});
-				this.changeIsCompletePhotoList(temporaryPhotoList)
+				try {
+					if (this.isCompleteRepairsWorkOrderPhotoList.length == 0) { return };
+					let temporaryPhotoList = this.isCompleteRepairsWorkOrderPhotoList.filter((item) => {return item.taskId !== this.taskId});
+					this.changeIsCompletePhotoList(temporaryPhotoList)
+				} catch (err) {
+					this.$refs.uToast.show({
+						message: err.message,
+						type: 'error',
+						position: 'center'
+					})
+				}	
 			}
 		}
 	}

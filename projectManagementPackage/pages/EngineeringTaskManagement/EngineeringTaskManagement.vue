@@ -19,111 +19,110 @@
 			</nav-bar> 
 		</view>
 		<view class="content">
-			<scroll-view :refresher-enabled="refresherEnabled" scroll-y :refresher-triggered="triggered" @refresherrefresh="onRefresh">
-				<view class="flex-container">
-					<view class="tab-list-wrapper">
-						<view class="tab-list" v-for="(item,index) in taskTypeList" :key="index" @click="vanTabsChangeEvent(item,index)">
-							<text>{{ item.name }}</text>
-						</view>
+			<view class="flex-container">
+				<view class="tab-list-wrapper">
+					<view class="tab-list" v-for="(item,index) in taskTypeList" :key="index" @click="vanTabsChangeEvent(item,index)">
+						<text>{{ item.name }}</text>
 					</view>
-					<view class="content-box-inner">
-							<view class="task-message-top">
-								<view class="message-left">
-									<text>当前任务数:</text>
-									<text>{{ repairsTaskList.length }}</text>
-								</view>
-								<view class="message-right">
-									<text @click="createTask('报修任务')">创建任务</text>
-									<text @click="screenEvent">筛选</text>
-								</view>
+				</view>
+				<view class="content-box-inner">
+						<view class="task-message-top">
+							<view class="message-left">
+								<text>当前任务数:</text>
+								<text>{{ repairsTaskList.length }}</text>
 							</view>
-							<u-empty text="暂无数据" mode="list" v-if="repairsTaskEmptyShow"></u-empty>
-							<view class="backlog-task-list-box" ref="scrollRepairsTask" v-if="!repairsTaskEmptyShow">
-								<view class="backlog-task-list" v-for="(item,index) in repairsTaskList" :key="index" @click="enterRepairsTaskEvent(item,index,'维修任务')">
-										<view class="list-top appoint-list-top">
-											<view class="list-top-left">
-												<image :src="anxiousSignPng" alt="急" v-if="item.priority == 2 || item.priority == 3 || item.priority == 4"></image>
-												<text>{{ item.depName == '/' ? '' : item.depName }}</text>
-											</view>
-											<view class="list-top-right" :class="{'noAllocationStyle':item.state == 0,'noLookupStyle':item.state == 1,'noStartStyle': item.state == 2,'underwayStyle':item.state == 3,'tobeSigned':item.state == 4}">
-												{{ taskStatusTransition(item.state) }}
-											</view>
+							<view class="message-right">
+								<text @click="createTask('报修任务')">创建任务</text>
+								<text @click="screenEvent">筛选</text>
+							</view>
+						</view>
+						<u-empty text="暂无数据" mode="list" v-if="repairsTaskEmptyShow"></u-empty>
+						 <view class="backlog-task-list-box">
+							<view class="backlog-task-list" v-for="(item,index) in repairsTaskList" :key="index" @click="enterRepairsTaskEvent(item,index,'维修任务')">
+									<view class="list-top appoint-list-top">
+										<view class="list-top-left">
+											<image :src="anxiousSignPng" alt="急" v-if="item.priority == 2 || item.priority == 3 || item.priority == 4"></image>
+											<text>{{ item.depName == '/' ? '' : item.depName }}</text>
 										</view>
-										<view class="list-center appoint-list-center">
-											<view class="center-one-line">
-												<view class="center-one-line-left">
-													<text>创建时间:</text>
-													<text>{{ item.createTime ? item.createTime : '' }}</text>
-												</view>
-												<view class="center-one-line-right">
-													<text>已经历时间:</text>
-													<text>{{ elapsedTime(item.planStartTime) }}</text>
-												</view>
-											</view>
-											<view class="center-one-line">
-												<view class="center-one-line-left">
-													<text>响应时间:</text>
-													<text>{{ item.responseTime ? item.responseTime : '' }}</text>
-												</view>
-												<view class="center-one-line-right">
-													<text>开始时间:</text>
-													<text>{{ item.startTime ? item.startTime : '' }}</text>
-												</view>
-											</view>
-											<view class="center-one-line">
-												<view class="center-one-line-left">
-													<text>房间:</text>
-													<text>{{ disposeCheckType(item.spaces) }}</text>
-												</view>
-												<view class="center-one-line-right">
-													<text>维修员:</text>
-													<text>{{ item.workerName ? item.workerName : '无' }}</text>
-												</view>
-											</view>
-											<view class="issue-image">
-												<view class="issue-image-left">
-													<text>问题图片:</text>
-												</view>
-											<view class="issue-image-list" v-if="item.images && item.images.length > 0">
-													<view v-for="(innerItem,innerIndex) in item.images" :key="innerIndex" >
-															<image alt="" mode="widthFix" :src="innerItem.path ? innerItem.path : ''" @click.stop="enlareEvent(innerItem.path)"></image>
-													</view>
-											</view>
-											</view>
-											<view class="issue-describe">
-												<text>问题描述:</text>
-												<text>{{ item.taskDesc }}</text>
-											</view>
-										</view>
-										<view class="list-bottom appoint-list-bottom">
-											<view class="list-bottom-left">
-												<text @click.stop="() => { return }" class="delay-btn" v-if="item.hasDelay == 1">已延迟</text>
-												<!-- <text @click.stop="() => { return }" class="allocation-btn" v-if="item.state != 0">已分配</text> -->
-											</view>
-											<view class="list-bottom-right">
-												<text  v-if="item.state == 0" class="operate-one" @click.stop="allocationEvent(item,index,'维修任务')">分配</text>
-												<text class="operate-complete"  v-if="item.state == 3" @click.stop="completeTask(item,index)">完成</text>
-												<text class="operate-two" @click.stop="editEvent(item,index,'维修任务')">编辑</text>
-												<text v-if="item.hasDelay == 0" class="operate-three" @click.stop="delayReasonEvent(item,index,'维修任务')">延迟</text>
-												<text class="operate-four" @click.stop="cancelReasonEvent(item,index,'维修任务')">取消</text>
-											</view>
+										<view class="list-top-right" :class="{'noAllocationStyle':item.state == 0,'noLookupStyle':item.state == 1,'noStartStyle': item.state == 2,'underwayStyle':item.state == 3,'tobeSigned':item.state == 4}">
+											{{ taskStatusTransition(item.state) }}
 										</view>
 									</view>
-							</view>
+									<view class="list-center appoint-list-center">
+										<view class="center-one-line">
+											<view class="center-one-line-left">
+												<text>创建时间:</text>
+												<text>{{ item.createTime ? item.createTime : '' }}</text>
+											</view>
+											<view class="center-one-line-right">
+												<text>已经历时间:</text>
+												<text>{{ elapsedTime(item.planStartTime) }}</text>
+											</view>
+										</view>
+										<view class="center-one-line">
+											<view class="center-one-line-left">
+												<text>响应时间:</text>
+												<text>{{ item.responseTime ? item.responseTime : '' }}</text>
+											</view>
+											<view class="center-one-line-right">
+												<text>开始时间:</text>
+												<text>{{ item.startTime ? item.startTime : '' }}</text>
+											</view>
+										</view>
+										<view class="center-one-line">
+											<view class="center-one-line-left">
+												<text>房间:</text>
+												<text>{{ disposeCheckType(item.spaces) }}</text>
+											</view>
+											<view class="center-one-line-right">
+												<text>维修员:</text>
+												<text>{{ item.workerName ? item.workerName : '无' }}</text>
+											</view>
+										</view>
+										<view class="issue-image">
+											<view class="issue-image-left">
+												<text>问题图片:</text>
+											</view>
+										<view class="issue-image-list" v-if="item.images && item.images.length > 0">
+												<view v-for="(innerItem,innerIndex) in item.images" :key="innerIndex" >
+														<image alt="" mode="widthFix" :src="innerItem.path ? innerItem.path : ''" @click.stop="enlareEvent(innerItem.path)"></image>
+												</view>
+										</view>
+										</view>
+										<view class="issue-describe">
+											<text>问题描述:</text>
+											<text>{{ item.taskDesc }}</text>
+										</view>
+									</view>
+									<view class="list-bottom appoint-list-bottom">
+										<view class="list-bottom-left">
+											<text @click.stop="() => { return }" class="delay-btn" v-if="item.hasDelay == 1">已延迟</text>
+											<!-- <text @click.stop="() => { return }" class="allocation-btn" v-if="item.state != 0">已分配</text> -->
+										</view>
+										<view class="list-bottom-right">
+											<text  v-if="item.state == 0" class="operate-one" @click.stop="allocationEvent(item,index,'维修任务')">分配</text>
+											<text class="operate-complete"  v-if="item.state == 3" @click.stop="completeTask(item,index)">完成</text>
+											<text class="operate-two" @click.stop="editEvent(item,index,'维修任务')">编辑</text>
+											<text v-if="item.hasDelay == 0" class="operate-three" @click.stop="delayReasonEvent(item,index,'维修任务')">延迟</text>
+											<text class="operate-four" @click.stop="cancelReasonEvent(item,index,'维修任务')">取消</text>
+										</view>
+									</view>
+								</view>
 						</view>
-					</view>	
-				<u-loadmore :status="status" v-if="repairsTaskList.length > 0" />
-			</scroll-view>
+					</view>
+				</view>	
+			<u-loadmore :status="status" v-if="repairsTaskList.length > 0" />
 		</view>
 		<!-- 筛选弹窗 -->
 		<view class="screen-box" v-if="screenDialogShow">
 			<u-popup 
 				:show="screenDialogShow"
-				:round="10"
+				:round="20"
+				:safeAreaInsetBottom="false"
 			>
 				<view class="dialog-top">
 					<view class="select-title">全部筛选</view>
-					<u-icon name="close" size="24" @click="closeScreenDialogEvent"></u-icon>
+					<u-icon name="close" color="#000000" size="24" @click="closeScreenDialogEvent"></u-icon>
 				</view>
 				<view class="dialog-center">
 					<view class="dialog-center-one-line">
@@ -145,10 +144,10 @@
 							优先级
 						</view>
 						<u-checkbox-group v-model="priorityResult" direction="horizontal">
-							<u-checkbox name="1" label="正常" shape="square"></u-checkbox>
-							<u-checkbox name="2" label="重要" shape="square"></u-checkbox>
-							<u-checkbox name="3" label="紧急" shape="square"></u-checkbox>
-							<u-checkbox name="4" label="紧急重要" shape="square"></u-checkbox>
+							<u-checkbox name="1" label="正常" shape="square" iconSize="14" labelSize="16"></u-checkbox>
+							<u-checkbox name="2" label="重要" shape="square" iconSize="14" labelSize="16"></u-checkbox>
+							<u-checkbox name="3" label="紧急" shape="square" iconSize="14" labelSize="16"></u-checkbox>
+							<u-checkbox name="4" label="紧急重要" shape="square" iconSize="14" labelSize="16"></u-checkbox>
 						</u-checkbox-group>
 					</view>
 				</view>
@@ -292,6 +291,7 @@
 				status: 'nomore',
 				modalShow: false,
 				refresherEnabled: true,
+				scrollTop: 0,
 				taskTypeList: [{ name: '报修任务', value: 'repairsTask' }],
 				triggered: false,
 				isRefreshing: false,
@@ -376,6 +376,7 @@
 			this.triggered = false;
 			this.isRefreshing = false;
 		},
+		
 		onLoad () {
 			this.parallelFunction();
 			const pages = getCurrentPages();
@@ -394,6 +395,11 @@
 			    }
 			  }
 			}
+		},
+		
+		// 监听页面原生下拉刷新
+		onPullDownRefresh() {
+			this.getRepairsList(true)
 		},
 
 		methods: {
@@ -414,14 +420,6 @@
 			// 加载数据
 			loadData () {
 				this.getRepairsList(false)
-			},
-			
-			// 下拉刷新事件
-			onRefresh() {
-				if (this.isRefreshing || this.triggered || !this.refresherEnabled) return;
-				this.isRefreshing = true;
-				this.triggered = true;
-				this.getRepairsList(true)
 			},
 	
 			// 完成任务确定事件
@@ -482,7 +480,7 @@
 			// 处理维修任务空间信息
 			disposeCheckType (item) {
 				if (!item) { return '无' };
-				if (item.length == 0) { return };
+				if (item.length == 0) { return '无'};
 				let temporaryArray = [];
 				for (let innerItem of item) {
 					temporaryArray.push(innerItem.name)
@@ -499,12 +497,7 @@
 				this.repairsTaskEmptyShow = false;
 				repairsList(-3,this.proId,1)
 				.then((res) => {
-					if (this.triggered) {
-						this.$nextTick(() => {
-							this.triggered = false;
-							this.isRefreshing = false;
-						})
-					};
+					uni.stopPullDownRefresh();
 					this.showLoadingHint = false;
 					this.infoText = '';
 					if (res && res.data.code == 200) {
@@ -538,12 +531,7 @@
 						this.isLoadingRepairsTask = false;
 						return
 					};
-					if (this.triggered) {
-						this.$nextTick(() => {
-							this.triggered = false;
-							this.isRefreshing = false;
-						})
-					};
+					uni.stopPullDownRefresh();
 					this.$refs.uToast.show({
 						message: err,
 						type: 'error',
@@ -1405,6 +1393,7 @@
 						}
 					};
 					.dialog-center {
+						margin-bottom: 30px;
 						.dialog-center-one-line {
 							display: flex;
 							align-items: center;
@@ -1419,7 +1408,7 @@
 								};
 								&:nth-child(2) {
 									flex: 1;
-									margin: 0 10px 0 20px;
+									margin: 0 10px;
 								};
 								&:nth-child(3) {
 									color: #fff;
@@ -1445,8 +1434,6 @@
 								display: flex;
 								justify-content: space-between;
 								.u-checkbox {
-									flex: 1 0 auto !important;
-									justify-content: center;
 									.u-checkbox__label {
 										margin-right: 9px;
 									}
@@ -1693,10 +1680,6 @@
 			 height: 0;
 			 display: flex;
 			 flex-direction: column;
-			 scroll-view {
-				width: 100%;
-				height: 100%;
-			 };
 			 .flex-container {
 					height: 100%;
 					display: flex;
@@ -1784,9 +1767,10 @@
 					 }
 				 };
 				 .backlog-task-list-box {
-						overflow: scroll;
 						 flex: 1;
 						 height: 100%;
+						 overflow-y: auto;
+						 -webkit-overflow-scrolling: touch;
 						 .backlog-task-list {
 								 padding: 2px 8px 4px 8px;
 								 box-sizing: border-box;

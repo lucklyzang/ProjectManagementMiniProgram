@@ -440,6 +440,38 @@
 				contact: ''
 			}
 		},
+		watch: {
+			problemOverview:{
+				handler(newVal, oldVal){
+					this.$nextTick(() => {
+						// 如果新值包含空格，则重新赋值为去除空格后的字符串
+						if (/\s/g.test(newVal)) {
+							this.problemOverview = newVal.replace(/\s/g, '')
+						}
+					})
+				}
+			},
+			contact:{
+				handler(newVal, oldVal){
+					this.$nextTick(() => {
+						// 如果新值包含空格，则重新赋值为去除空格后的字符串
+						if (/\s/g.test(newVal)) {
+							this.contact = newVal.replace(/\s/g, '')
+						}
+					})
+				}
+			},
+			taskDescribe:{
+				handler(newVal, oldVal){
+					this.$nextTick(() => {
+						// 如果新值包含空格，则重新赋值为去除空格后的字符串
+						if (/\s/g.test(newVal)) {
+							this.taskDescribe = newVal.replace(/\s/g, '')
+						}
+					})
+				}
+			}
+		},
 		computed: {
 			...mapGetters([
 				'userInfo',
@@ -1230,7 +1262,7 @@
 					});
 					return
 				};
-				// 创建维修任务
+				// 编辑维修任务
 				let temporaryMessage = {
 					id: this.schedulingTaskDetails.id, //任务id
 					taskNumber: this.schedulingTaskDetails['taskNumber'], // 任务编号
