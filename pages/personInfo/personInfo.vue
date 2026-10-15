@@ -23,7 +23,7 @@
 				<view class="content-top-other">
 					<text>姓名</text>
 					<text>
-						{{userInfo.name}}
+						{{ userInfo.name ? userInfo.name : ''}}
 					</text>
 				</view>
 				<view class="content-top-other">
@@ -35,13 +35,13 @@
 				<view class="content-top-other">
 					<text>公司部门</text>
 					<text>
-						{{userInfo.extendData.proName}}
+						{{ userInfo.extendData.proName ? userInfo.extendData.proName : '' }}
 					</text>
 				</view>
 				<view class="content-top-other">
 					<text>职位</text>
 					<text>
-						{{userInfo.extendData.userType}}
+						{{ userInfo.extendData.userType ? userInfo.extendData.userType : '' }}
 					</text>
 				</view>
 			</view>
