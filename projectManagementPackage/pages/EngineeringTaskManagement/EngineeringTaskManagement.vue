@@ -42,7 +42,7 @@
 									<view class="list-top appoint-list-top">
 										<view class="list-top-left">
 											<image :src="anxiousSignPng" alt="急" v-if="item.priority == 2 || item.priority == 3 || item.priority == 4"></image>
-											<text>{{ item.depName == '/' ? '' : item.depName }}</text>
+											<text>{{disposeStructureDepName(item)}}</text>
 										</view>
 										<view class="list-top-right" :class="{'noAllocationStyle':item.state == 0,'noLookupStyle':item.state == 1,'noStartStyle': item.state == 2,'underwayStyle':item.state == 3,'tobeSigned':item.state == 4}">
 											{{ taskStatusTransition(item.state) }}
@@ -108,10 +108,10 @@
 										</view>
 									</view>
 								</view>
+								<u-loadmore :status="status" v-if="repairsTaskList.length > 0" />
 						</view>
 					</view>
 				</view>	
-			<u-loadmore :status="status" v-if="repairsTaskList.length > 0" />
 		</view>
 		<!-- 筛选弹窗 -->
 		<view class="screen-box" v-if="screenDialogShow">
@@ -475,7 +475,35 @@
 					})
 				})
 			},
-	
+			
+			// 处理建筑科室信息
+			disposeStructureDepName (item) {
+				if (item.structName) {
+					if (item['depName'].indexOf('/') != -1) {
+						let trmporaryMessage = item['depName'].split("/");
+						if (trmporaryMessage.length > 0) {
+							return `${trmporaryMessage[0]}/${trmporaryMessage[1]}`
+						}
+					} else {
+						return `${item.structName}/${item.depName}`
+					}
+				} else {
+					if (item['depName'] == '/') {
+						return ''
+					} else {
+						if (item['depName'].indexOf('/') != -1) {
+							let trmporaryMessage = item['depName'].split("/");
+							if (trmporaryMessage.length > 0) {
+								if (trmporaryMessage.length == 2) {
+									return item['depName']
+								} else {
+									return `${trmporaryMessage[0]}/${trmporaryMessage[1]}`	
+								}
+							}
+						}
+					}
+				}
+			},
 	
 			// 处理维修任务空间信息
 			disposeCheckType (item) {
