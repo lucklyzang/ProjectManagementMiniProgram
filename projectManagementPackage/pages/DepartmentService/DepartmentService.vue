@@ -146,9 +146,19 @@
 			
 			// 顶部导航返回事件
 			backTo () {
-				uni.switchTab({
-					url: '/pages/index/index'
-				})
+				const pages = getCurrentPages();
+				console.log('sa',pages);
+				const hasAPage = pages.some((page) => { 
+					return page.route === 'projectManagementPackage/pages/EngineeringTaskManagement/EngineeringTaskManagement'
+					|| page.route === 'projectManagementPackage/pages/EngineeringTaskManagement/SchedulingRepairsTaskDetails'
+					|| page.route === 'projectManagementPackage/pages/EngineeringTaskManagement/CreateRepairsTask'
+					|| page.route === 'projectManagementPackage/pages/EngineeringTaskManagement/EditRepairsTask'
+				});
+				if (hasAPage) {
+					uni.switchTab({ url: '/pages/index/index' })
+				} else {
+					uni.navigateBack({ delta: 1 })
+				}
 			},
 			
 			loadData () {

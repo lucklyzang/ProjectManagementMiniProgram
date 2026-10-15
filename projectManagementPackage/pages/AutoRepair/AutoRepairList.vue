@@ -454,6 +454,7 @@
 												 }
 										 };
 										 .list-line-one-right {
+											 display: flex;
 												 >text {
 														 font-size: 12px;
 														 color: #BEC7D1;

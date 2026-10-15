@@ -25,11 +25,11 @@ export function getDefaultCommonState() {
 		departmentMessage: {},
 		ossMessage: {},
 		timeMessage: {},
-		// 生产域名 https://blinktech.cn/nblink
-		// 开发域名 https://blink.blinktech.cn/nblink
+		// 生产域名 https://blinktech.cn
+		// 开发域名 https://blink.blinktech.cn
 		// 准生产域名 https://ver.blinktech.cn
-		// 测试域名 https://show.blinktech.cn/nblink
-		// 新测试域名 https://act.blinktech.cn/nblink
+		// 测试域名 https://show.blinktech.cn
+		// 新测试域名 https://act.blinktech.cn
 		baseURL: 'https://ver.blinktech.cn'
 	}	
 }

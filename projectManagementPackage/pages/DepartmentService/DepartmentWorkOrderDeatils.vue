@@ -18,25 +18,25 @@
 				<view class="content-top-other">
 					<text>巡检编号</text>
 					<text>
-						{{oneRepairsMsg.taskNumber}}
+						{{oneRepairsMsg.taskNumber ? oneRepairsMsg.taskNumber : ''}}
 					</text>
 				</view>
 				<view class="content-top-other">
 					<text>巡检名称</text>
 					<text>
-						{{oneRepairsMsg.taskName}}
+						{{oneRepairsMsg.taskName ? oneRepairsMsg.taskName : ''}}
 					</text>
 				</view>
 				<view class="content-top-other">
 					<text>当前次数</text>
 					<text>
-						{{oneRepairsMsg.currentTimes}}
+						{{oneRepairsMsg.currentTimes ? oneRepairsMsg.currentTimes : ''}}
 					</text>
 				</view>
 				<view class="content-top-other">
 					<text>时间</text>
 					<text>
-						{{oneRepairsMsg.startTime}}
+						{{oneRepairsMsg.startTime ? oneRepairsMsg.startTime : ''}}
 					</text>
 				</view>
 			</view>

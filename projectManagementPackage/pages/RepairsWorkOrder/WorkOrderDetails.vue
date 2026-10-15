@@ -16,19 +16,19 @@
 				<view class="content-top-other">
 					<text>工单编号</text>
 					<text>
-						{{oneRepairsMsg.taskNumber}}
+						{{oneRepairsMsg.taskNumber ? oneRepairsMsg.taskNumber : ''}}
 					</text>
 				</view>
 				<view class="content-top-other">
 					<text>工单标题</text>
 					<text>
-						{{oneRepairsMsg.taskDesc}}
+						{{oneRepairsMsg.taskDesc ? oneRepairsMsg.taskDesc : ''}}
 					</text>
 				</view>
 				<view class="content-top-other">
 					<text>工单类型</text>
 					<text>
-						{{oneRepairsMsg.typeName}}
+						{{oneRepairsMsg.typeName ? oneRepairsMsg.typeName : ''}}
 					</text>
 				</view>
 				<view class="task-attribution-box">
@@ -44,7 +44,7 @@
 				<view class="content-top-other">
 					<text>时间</text>
 					<text>
-						{{oneRepairsMsg.planStartTime}}
+						{{oneRepairsMsg.planStartTime ? oneRepairsMsg.planStartTime : ''}}
 					</text>
 				</view>
 				<view class="content-top-other">
@@ -63,7 +63,7 @@
 				<view class="content-top-other">
 					<text>地点</text>
 					<text>
-						{{oneRepairsMsg.depName}}
+						{{oneRepairsMsg.depName ? oneRepairsMsg.depName : ''}}
 					</text>
 				</view>
 				<view class="content-top-space">
@@ -75,7 +75,7 @@
 				<view class="content-top-name">
 					<text>工单内容</text>
 					<text>
-						{{oneRepairsMsg.taskRemark ? oneRepairsMsg.taskRemark : '无'}}
+						{{oneRepairsMsg.taskRemark ? oneRepairsMsg.taskRemark : ''}}
 					</text>
 				</view>
 			</view>
@@ -124,7 +124,7 @@
 									@change="function(val){stepValueChange(item,index,val)}"
 									@blur="function(val){stepValueChange(item,index,val)}"
 									theme="round" integer @focus="function(val){stepValueFocus(item,index,val)}"
-									:disabled="repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6? true : false" min="0">
+									:disabled="repairsWorkOrderMsg.state == 5 || repairsWorkOrderMsg.state == 6 ? true : false" min="0">
 								</u-number-box>
 							</view>
 						</view>
@@ -829,7 +829,7 @@
 		// 步进器值变化事件
 		stepValueChange (item,index,val) {
 			if (item.quantity == null) { return};
-			item['number'] = value['value'];
+			item['number'] = val['value'];
 			if (val['value'] === "") { item['number'] = 0; return};
 			this.consumableIndex = index;
 			if (val['value'] == 0) {

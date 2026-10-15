@@ -1707,7 +1707,7 @@
 					fail: (err) => {
 						// 用户拒绝了隐私协议，或者触发了拒绝
 						uni.showToast({ 
-							title: '需同意隐私协议才能上传图片', 
+							title: '需同意隐私协议才能使用扫码功能', 
 							icon: 'none',
 							duration: 2000
 						})

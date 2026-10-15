@@ -24,7 +24,7 @@
 							<view class="message-one">
 									<view class="message-one-left">
 											<text>编号:</text>
-											<text>{{ schedulingTaskDetails.taskNumber }}</text>
+											<text>{{ schedulingTaskDetails.taskNumber ? schedulingTaskDetails.taskNumber : '' }}</text>
 									</view>
 									<view class="message-one-right" v-if="taskStatusTransition(schedulingTaskDetails.state) != ''" :class="{'noAllocationStyle':schedulingTaskDetails.state == 0,'noLookupStyle':schedulingTaskDetails.state == 1,'noStartStyle': schedulingTaskDetails.state == 2,'underwayStyle':schedulingTaskDetails.state == 3,'tobeSigned':schedulingTaskDetails.state == 4}">
 											{{ taskStatusTransition(schedulingTaskDetails.state) }}
@@ -35,7 +35,7 @@
 											<text>创建时间</text>
 									</view>
 									<view class="message-two-right">
-											{{ schedulingTaskDetails.createTime }}
+											{{ schedulingTaskDetails.createTime ? schedulingTaskDetails.createTime : '' }}
 									</view>
 							</view>
 							<view class="message-one message-two">
@@ -67,7 +67,7 @@
 											<text>位置</text>
 									</view>
 									<view class="message-two-right">
-											{{ schedulingTaskDetails.depName == '/' ? '' : schedulingTaskDetails.depName }}
+											{{ schedulingTaskDetails.depName == '/' ? '' : schedulingTaskDetails.depName ? schedulingTaskDetails.depName : ''}}
 									</view>
 							</view>
 							<view class="message-one message-two">
@@ -132,7 +132,7 @@
 											<text>问题描述</text>
 									</view>
 									<view class="message-two-right task-remark">
-											{{ schedulingTaskDetails.taskDesc }}
+											{{ schedulingTaskDetails.taskDesc ? schedulingTaskDetails.taskDesc : '' }}
 									</view>
 							</view>
 					</view>

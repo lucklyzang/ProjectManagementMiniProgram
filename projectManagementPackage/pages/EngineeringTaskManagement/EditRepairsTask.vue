@@ -210,7 +210,7 @@
 					</view>
 				</view>
 				<view class="btn-box">
-					<text class="operate-one" @click="sureEvent">确认</text>
+					<text class="operate-one" @click="$noMultipleClicks(sureEvent)">确认</text>
 					<text class="operate-three" @click="cancelEvent">取消</text>
 				</view>
 			</view>
@@ -366,6 +366,7 @@
 			return {
 				infoText: '修改中···',
 				showLoadingHint: false,
+				noClick: true,
 				materialShow: false,
 				deleteInfoPng: require('@/static/img/delete-info.png'),
 				materialDeleteShow: false,

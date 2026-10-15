@@ -45,7 +45,7 @@
 									问题描述
 								</view>
 								<view class="issue-right">
-									{{ taskMessage.taskDesc }}
+									{{ taskMessage.taskDesc ? taskMessage.taskDesc : '' }}
 								</view>
 							</view>
 					 </view>
@@ -57,7 +57,7 @@
 					 <view class="maintenance-record-content">
 							<view class="line-content">
 							 <text>维修员</text>
-							 <text>{{ taskMessage.workerName }}</text>
+							 <text>{{ taskMessage.workerName ? taskMessage.workerName : '' }}</text>
 						 </view>
 						 <view class="line-content">
 							 <text>参与人</text>

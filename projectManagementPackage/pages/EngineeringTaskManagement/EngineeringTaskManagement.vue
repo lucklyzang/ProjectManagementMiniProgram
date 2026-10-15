@@ -85,7 +85,7 @@
 											</view>
 										<view class="issue-image-list" v-if="item.images && item.images.length > 0">
 												<view v-for="(innerItem,innerIndex) in item.images" :key="innerIndex" >
-														<image alt="" mode="widthFix" :src="innerItem.path ? innerItem.path : ''" @click.stop="enlareEvent(innerItem.path)"></image>
+														<image alt="" :src="innerItem.path ? innerItem.path : ''" @click.stop="enlareEvent(innerItem.path)"></image>
 												</view>
 										</view>
 										</view>
@@ -1990,6 +1990,7 @@
 											 margin-left: 6px;
 											 > view {
 												 width: 22%;
+												 height: 80px;
 												 margin-right: 4%;
 												 margin-bottom: 10px;
 												 &:nth-child(4n) {
@@ -1997,6 +1998,7 @@
 												 }
 												 >image {
 													 width: 100%;
+													 height: 100%;
 												 }
 											 }
 										 }

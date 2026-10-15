@@ -423,7 +423,7 @@
 			// 步进器值变化事件
 			stepValueChange (item,index,val) {
 				if (item.quantity == null) { return};
-				item['number'] = value['value'];
+				item['number'] = val['value'];
 				if (val['value'] === "") { item['number'] = 0; return};
 				this.consumableIndex = index;
 				if (val['value'] == 0) {
@@ -490,6 +490,7 @@
 							number: item.number,
 							mateName: item.mateName,
 							mateNumber: item.mateNumber,
+							quantity: item.quantity,
 							model: item.model,
 							unit: item.unit,
 							storeId: this.storeId,
