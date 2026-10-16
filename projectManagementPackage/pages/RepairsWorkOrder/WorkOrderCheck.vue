@@ -159,8 +159,8 @@
 						</view>
 				</u-modal>
 		</view>
-		<view class="infoDialog">
-			<u-modal class="infoDialog" :show="enlargeImgShow" @confirm="enlargeImgShow = false">
+		<view class="imgDialog">
+			<u-modal :show="enlargeImgShow" @confirm="enlargeImgShow = false">
 				<image :src="enlargeImgUrl" mode="widthFix"></image>
 			</u-modal>
 		</view>  
@@ -1127,6 +1127,16 @@
 				.u-modal__content {
 					max-height: 70vh;
 					overflow: auto;
+				}
+			}
+		};
+		.imgDialog {
+			::v-deep .u-modal {
+				top: 50% !important;
+				.u-modal__content {
+					max-height: 70vh;
+					overflow: auto;
+					padding: 0 !important;
 					>image {
 						width: 100%;
 					}

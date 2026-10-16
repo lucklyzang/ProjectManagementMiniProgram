@@ -135,8 +135,8 @@
 		<view class="content-bottom" ref="contentBottom" v-if="repairsWorkOrderMsg.state !== 5 && repairsWorkOrderMsg.state !== 6">
 			<view class="quit-account" @click="$noMultipleClicks(completeTask)">{{repairsWorkOrderMsg.state == 4 ? "签字" : "完成工单"}}</view>
 		</view>
-		<view class="infoDialog">
-			<u-modal class="infoDialog" :show="enlargeImgShow" @confirm="enlargeImgShow = false">
+		<view class="imgDialog">
+			<u-modal :show="enlargeImgShow" @confirm="enlargeImgShow = false">
 				<image :src="enlargeImgUrl" mode="widthFix"></image>
 			</u-modal>
 		</view>  
@@ -1343,7 +1343,17 @@
 				top: 50% !important;
 				.u-modal__content {
 					max-height: 70vh;
+					overflow: auto
+				}
+			}
+		};
+		.imgDialog {
+			::v-deep .u-modal {
+				top: 50% !important;
+				.u-modal__content {
+					max-height: 70vh;
 					overflow: auto;
+					padding: 0 !important;
 					>image {
 						width: 100%;
 					}

@@ -1390,6 +1390,7 @@
 				.u-modal__content {
 					max-height: 70vh;
 					overflow: auto;
+					padding: 0 !important;
 					>image {
 						width: 100%;
 					}

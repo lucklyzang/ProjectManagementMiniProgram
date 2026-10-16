@@ -98,8 +98,8 @@
 			</view>
 		</view>
 		<!-- 图片放大弹框 -->
-		<view class="infoDialog">
-			<u-modal class="infoDialog" :show="imgBoxShow" @confirm="imgBoxShow = false">
+		<view class="img-dislog-box">
+			<u-modal :show="imgBoxShow" @confirm="imgBoxShow = false">
 				<image :src="currentImgUrl" mode="widthFix"></image>
 			</u-modal>
 		</view>  
@@ -308,7 +308,17 @@
 				top: 50% !important;
 				.u-modal__content {
 					max-height: 70vh;
+					overflow: auto
+				}
+			}
+		};
+		.img-dislog-box {
+			::v-deep .u-modal {
+				top: 50% !important;
+				.u-modal__content {
+					max-height: 70vh;
 					overflow: auto;
+					padding: 0 !important;
 					>image {
 						width: 100%;
 					}

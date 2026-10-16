@@ -85,8 +85,8 @@
 				@change="timeChange">
 			</u-datetime-picker>
 		</u-popup>
-		<view class="infoDialog">
-			<u-modal class="infoDialog" :show="enlargeImgShow" @confirm="enlargeImgShow = false">
+		<view class="img-dislog-box">
+			<u-modal :show="enlargeImgShow" @confirm="enlargeImgShow = false">
 				<image :src="enlargeImgUrl" mode="widthFix"></image>
 			</u-modal>
 		</view>
@@ -525,7 +525,17 @@
 				top: 50% !important;
 				.u-modal__content {
 					max-height: 70vh;
+					overflow: auto
+				}
+			}
+		};
+		.img-dislog-box {
+			::v-deep .u-modal {
+				top: 50% !important;
+				.u-modal__content {
+					max-height: 70vh;
 					overflow: auto;
+					padding: 0 !important;
 					>image {
 						width: 100%;
 					}
